@@ -1,93 +1,135 @@
+
+// types/index.ts
+
 export enum Role {
     User = 'User',
     Admin = 'Admin',
-    HR = 'HR'
+    HR = 'HR',
 }
 
-export enum WorkerType {
-    Private = 'Karyawan Swasta',
-    BUMN = 'Karyawan BUMN',
-    PNS = 'PNS'
+export interface Profile {
+    name: string;
+    phone: string;
+    photoUrl: string;
+    branch?: string; // For HR and User
+    joinDate?: string; // ISO date string
+    salary?: number;
 }
 
-export enum WorkerStatus {
-    Contract = 'Kontrak / PKWT',
-    Permanent = 'Tetap'
+export interface Wallet {
+    balance: number;
+    isFrozen: boolean;
+}
+
+export type Achievement = 'First Purchase' | 'Punctual Payer' | 'Top Spender';
+
+export interface HealthData {
+    moodHistory: { mood: number; timestamp: string }[];
+    activeChallenges: string[]; // challenge IDs
+}
+
+export interface PayLaterStatus {
+    status: 'not_applied' | 'pending' | 'approved' | 'rejected';
+    limit: number;
+    used: number;
 }
 
 export interface User {
     id: string;
     email: string;
-    password?: string;
+    password: string; // In a real app, this would be a hash
+    profile: Profile;
     role: Role;
     status: 'active' | 'inactive';
-    profile: {
-        name: string;
-        phone: string;
-        photoUrl: string;
-        birthPlace?: string;
-        birthDate?: string;
-        company?: string;
-        salary?: number;
-        workerType?: WorkerType;
-        workerStatus?: WorkerStatus;
-        joinDate?: string;
-        branch?: string; // For HR Scoping
-    };
-    wallet: {
-        balance: number;
-        isFrozen: boolean;
-    };
+    wallet: Wallet;
     achievements: Achievement[];
     loyaltyPoints: number;
     wishlist: string[]; // Array of product IDs
     bookmarkedArticles: string[]; // Array of article IDs
-    healthData?: {
-        moodHistory: MoodEntry[];
-        activeChallenges: string[]; // Array of challenge IDs
-    };
-    payLater?: {
-        status: 'not_applied' | 'pending' | 'approved' | 'rejected';
-        limit: number;
-        used: number;
-    };
+    healthData: HealthData;
+    payLater?: PayLaterStatus;
 }
 
 export interface Transaction {
     id: string;
     userId: string;
     userName: string;
-    type: 'Top-Up' | 'Transfer' | 'PPOB' | 'Marketplace' | 'Teleconsultation' | 'Refund' | 'Reversal' | 'Commission' | 'Tax' | 'Doctor Fee' | 'PayLater Payment' | 'Adjustment';
-    amount: number; // positive for income, negative for outcome
-    status: 'Completed' | 'Pending' | 'Failed';
+    type: 'Top-Up' | 'Transfer' | 'Marketplace' | 'PPOB' | 'Teleconsultation' | 'Refund' | 'Reversal' | 'Commission' | 'Tax';
+    amount: number; // Positive for income, negative for outcome
     description: string;
-    timestamp: string;
-    relatedId?: string; // e.g., orderId, targetUserId
+    timestamp: string; // ISO date string
+    status: 'Completed' | 'Pending' | 'Failed';
+    relatedId?: string; // e.g., orderId, other transactionId for reversal
 }
 
-export interface Review {
+export interface Notification {
     id: string;
-    productId: string;
+    userId: string;
+    message: string;
+    type: 'success' | 'info' | 'warning' | 'error';
+    read: boolean;
+    timestamp: string; // ISO date string
+}
+
+export interface ProductReview {
     userId: string;
     userName: string;
-    rating: number; // 1 to 5
+    rating: number; // 1-5
     comment: string;
     timestamp: string;
 }
 
 export interface Product {
     id: string;
-    sellerId: string;
-    sellerName: string;
     name: string;
     description: string;
     price: number;
-    imageUrl: string;
-    category: string;
     stock: number;
-    reviews: Review[];
-    rating: number; // Average rating
+    category: string;
+    imageUrl: string;
+    sellerId: string;
+    sellerName: string;
+    rating: number;
     reviewCount: number;
+    reviews: ProductReview[];
+}
+
+export interface PollOption {
+    text: string;
+    votes: string[]; // Array of user IDs
+}
+
+export interface Comment {
+    userId: string;
+    userName: string;
+    comment: string;
+    timestamp: string;
+    likes: string[];
+}
+
+export interface ArticleMonetization {
+    enabled: boolean;
+    cpm: number;
+    views: number;
+    revenueGenerated: number;
+}
+
+export interface Article {
+    id: string;
+    title: string;
+    summary: string;
+    content: string;
+    category: string;
+    imageUrl?: string;
+    youtubeId?: string;
+    author: string;
+    timestamp: string; // ISO date string
+    status: 'Draft' | 'Published';
+    likes: string[]; // Array of user IDs
+    comments: Comment[];
+    type: 'standard' | 'poll' | 'qa' | 'Banner';
+    pollOptions?: PollOption[];
+    monetization?: ArticleMonetization;
 }
 
 export interface CartItem {
@@ -96,70 +138,22 @@ export interface CartItem {
 }
 
 export interface Order {
-    id:string;
-    buyerId: string;
-    sellerId: string;
-    items: { productId: string; name: string; quantity: number; price: number }[];
+    id: string;
+    userId: string;
+    items: CartItem[];
     total: number;
-    status: 'Pending' | 'Paid' | 'Shipped' | 'Completed' | 'Cancelled' | 'In Dispute';
+    status: 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Cancelled';
     timestamp: string;
-}
-
-export interface Dispute {
-    id: string;
-    orderId: string;
-    buyerId: string;
-    sellerId: string;
-    buyerName: string;
-    sellerName: string;
-    reason: string;
-    status: 'Open' | 'Resolved - Refund Buyer' | 'Resolved - Pay Seller';
-    timestamp: string;
-}
-
-export interface Article {
-    id: string;
-    title: string;
-    summary: string;
-    content: string;
-    imageUrl: string;
-    category: string;
-    videoUrl?: string;
-    youtubeId?: string;
-    author: string;
-    timestamp: string;
-    status: 'Published' | 'Draft';
-    likes: string[]; // Array of user IDs who liked the article
-    comments: { 
-        userId: string; 
-        userName: string; 
-        comment: string; 
-        timestamp: string;
-        likes: string[]; // For Q&A comment upvoting
-    }[];
-    type: 'standard' | 'poll' | 'qa'; // New type for interactive content
-    pollOptions?: { text: string; votes: string[] }[]; // Options for polls
-    monetization?: {
-        enabled: boolean;
-        revenueGenerated: number;
-    };
 }
 
 export interface Doctor {
     id: string;
     name: string;
     specialty: string;
-    consultationFee: number;
     bio: string;
     imageUrl: string;
-    availableSlots: { time: string, isBooked: boolean }[];
-}
-
-export interface DigitalPrescriptionItem {
-    medicineName: string;
-    productId: string; // Corresponding product ID in marketplace
-    dosage: string; // e.g., "3x1 Sehari"
-    quantity: number;
+    consultationFee: number;
+    availableSlots: { time: string; isBooked: boolean }[];
 }
 
 export interface Consultation {
@@ -169,38 +163,27 @@ export interface Consultation {
     doctorId: string;
     doctorName: string;
     doctorSpecialty: string;
-    scheduledTime: string;
-    status: 'Scheduled' | 'In-Progress' | 'Completed' | 'Cancelled';
-    chatHistory: { sender: 'user' | 'doctor'; message: string; timestamp: string }[];
-    prescription?: DigitalPrescriptionItem[];
+    scheduledTime: string; // ISO date string
+    status: 'Scheduled' | 'Completed' | 'Cancelled';
+    notes?: string;
+    prescription?: string;
 }
 
-export interface HealthChallenge {
-    id: string;
-    title: string;
-    description: string;
-    durationDays: number;
-    participants: { userId: string; userName: string; progress: number; }[]; // Progress is a percentage
-}
-
-export interface MoodEntry {
-    mood: 'Sangat Senang' | 'Senang' | 'Biasa' | 'Sedih' | 'Sangat Sedih';
-    notes: string;
-    timestamp: string;
-}
-
-export interface Notification {
+export interface LeaveRequest {
     id: string;
     userId: string;
-    message: string;
-    timestamp: string;
-    read: boolean;
-    type: 'success' | 'error' | 'info' | 'warning';
+    userName: string;
+    branch: string;
+    startDate: string;
+    endDate: string;
+    reason: string;
+    status: 'Pending' | 'Approved' | 'Rejected';
 }
 
 export enum IntegrationStatus {
-    Inactive = 'Inactive',
     Active = 'Active',
+    Inactive = 'Inactive',
+    Error = 'Error',
 }
 
 export interface ApiIntegration {
@@ -216,10 +199,10 @@ export interface ApiIntegration {
 }
 
 export enum ScalabilityServiceStatus {
+    Active = 'Active',
     Inactive = 'Inactive',
     Provisioning = 'Provisioning',
     AwaitingConfig = 'Awaiting Config',
-    Active = 'Active',
     Error = 'Error',
     Scaling = 'Scaling',
     Migrating = 'Migrating',
@@ -227,16 +210,13 @@ export enum ScalabilityServiceStatus {
 
 export interface ScalabilityService {
     id: string;
+    type: 'load_balancer' | 'cdn' | 'redis' | 'rabbitmq' | 'read_replicas' | 'db_sharding';
     name: string;
-    type: 'redis' | 'rabbitmq' | 'read_replicas' | 'load_balancer' | 'cdn' | 'db_sharding';
     description: string;
     status: ScalabilityServiceStatus;
+    cost: number;
     logs: string[];
-    cost: number; // Simulated monthly cost in USD
-    // Optional metadata for more complex components
-    metadata?: {
-        [key: string]: any;
-    };
+    metadata?: Record<string, any>;
 }
 
 export interface Budget {
@@ -253,72 +233,81 @@ export interface ScheduledPayment {
     description: string;
     amount: number;
     recurrence: 'monthly' | 'weekly';
-    nextDueDate: string;
+    nextDueDate: string; // ISO date string
+}
+
+export interface Dispute {
+    id: string;
+    orderId: string;
+    buyerId: string;
+    buyerName: string;
+    sellerId: string;
+    sellerName: string;
+    reason: string;
+    status: 'Open' | 'Resolved';
+    resolution?: 'Refund Buyer' | 'Pay Seller';
+    timestamp: string;
+}
+
+export interface MonetizationConfig {
+    marketplaceCommission: number; // e.g., 0.05 for 5%
+    marketingCPA: number; // Cost Per Acquisition
+}
+
+export interface TaxConfig {
+    ppnRate: number; // e.g., 0.11 for 11%
+    pph21Rate: number; // e.g., 0.025 for 2.5%
 }
 
 export interface HomePageConfig {
-    pinnedItemId: string | null; // Can be a product or article ID
-    quickAccessOrder: string[];
     globalAnnouncement: {
-        message: string;
         active: boolean;
-    } | null;
+        message: string;
+    };
+    pinnedItemId: string | null; // Product or Article ID
+    quickAccessOrder: string[];
 }
 
 export interface AssistantLog {
     id: string;
+    userId: string;
     query: string;
     detectedIntent: string;
     timestamp: string;
-    userId: string;
 }
 
 export interface EngagementAnalytics {
-    forYouClicks: Record<string, number>; // key: 'type:id' (e.g., 'product:prod-123'), value: count
-    quickAccessClicks: Record<string, number>; // key: item id, value: count
+    forYouClicks: Record<string, number>; // e.g., { 'product:p-001': 10 }
+    quickAccessClicks: Record<string, number>; // e.g., { 'market': 25 }
 }
 
-// --- START: Personalization Engine Types ---
-export type ConditionField = 'role' | 'profile.branch' | 'transactionCount';
+export interface AdminWallets {
+    profit: number;
+    tax: number;
+    cash: number;
+}
+
+// Personalization Types
+export type ConditionField = 'profile.branch' | 'role' | 'transactionCount';
 export type ConditionOperator = 'equals' | 'not_equals' | 'greater_than' | 'less_than';
 export type ActionType = 'PIN_ITEM' | 'SHOW_ANNOUNCEMENT';
 
 export interface PersonalizationCondition {
     field: ConditionField;
     operator: ConditionOperator;
-    value: string | number | Role;
-}
-
-export interface PersonalizationAction {
-    type: ActionType;
-    payload: {
-        itemId?: string; // for PIN_ITEM
-        message?: string; // for SHOW_ANNOUNCEMENT
-    };
+    value: string | number;
 }
 
 export interface PersonalizationRule {
     id: string;
     name: string;
     conditions: PersonalizationCondition[];
-    action: PersonalizationAction;
+    action: {
+        type: ActionType;
+        payload: {
+            itemId?: string; // for PIN_ITEM
+            message?: string; // for SHOW_ANNOUNCEMENT
+        }
+    };
     isActive: boolean;
 }
-// --- END: Personalization Engine Types ---
-
-// --- START: HR Module Types ---
-export interface LeaveRequest {
-  id: string;
-  userId: string;
-  userName: string;
-  branch: string;
-  startDate: string;
-  endDate: string;
-  reason: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
-}
-// --- END: HR Module Types ---
-
-
-// FIX: Add Achievement type for LoyaltyScreen component
-export type Achievement = 'First Purchase' | 'Punctual Payer' | 'Top Spender';

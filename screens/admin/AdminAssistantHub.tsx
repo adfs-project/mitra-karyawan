@@ -1,3 +1,5 @@
+
+
 import React, { useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { ChatBubbleLeftRightIcon, ChartPieIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
@@ -6,13 +8,14 @@ const AdminAssistantHub: React.FC = () => {
     const { assistantLogs } = useData();
 
     const intentAnalytics = useMemo(() => {
-        const intentCounts = assistantLogs.reduce((acc, log) => {
+        const intentCounts = assistantLogs.reduce((acc: Record<string, number>, log) => {
             acc[log.detectedIntent] = (acc[log.detectedIntent] || 0) + 1;
             return acc;
-        }, {} as Record<string, number>);
+        }, {});
 
         return Object.entries(intentCounts)
-            .sort(([, a], [, b]) => b - a)
+            // FIX: Cast b and a to numbers to allow subtraction for sorting.
+            .sort(([, a], [, b]) => (b as number) - (a as number))
             .map(([intent, count]) => ({ intent, count }));
     }, [assistantLogs]);
 

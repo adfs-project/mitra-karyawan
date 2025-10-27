@@ -1,133 +1,90 @@
-import React, { useState, useRef, useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../../../contexts/DataContext';
-import { ArrowLeftIcon, PaperAirplaneIcon, DocumentPlusIcon } from '@heroicons/react/24/outline';
-import { DigitalPrescriptionItem } from '../../../types';
-
-const DigitalPrescription: React.FC<{
-    prescription: DigitalPrescriptionItem[];
-    onRedeem: () => void;
-}> = ({ prescription, onRedeem }) => (
-    <div className="bg-surface-light p-4 rounded-lg border border-primary">
-        <h3 className="text-lg font-bold text-primary flex items-center mb-3">
-            <DocumentPlusIcon className="h-5 w-5 mr-2" />
-            Resep Digital
-        </h3>
-        <ul className="space-y-2">
-            {prescription.map(item => (
-                <li key={item.productId} className="border-b border-border-color pb-2">
-                    <p className="font-semibold text-text-primary">{item.medicineName} ({item.quantity})</p>
-                    <p className="text-xs text-text-secondary">{item.dosage}</p>
-                </li>
-            ))}
-        </ul>
-        <button onClick={onRedeem} className="w-full btn-primary p-2 mt-4 rounded-lg font-bold text-sm">
-            Tebus Resep di Apotek
-        </button>
-    </div>
-);
-
+import { VideoCameraIcon, PhoneIcon, ChatBubbleLeftRightIcon, DocumentTextIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
 
 const ConsultationRoomScreen: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { consultations, addConsultationMessage, completeConsultation, products, addToCart, addNotification } = useData();
+    const { consultations } = useData();
     const consultation = consultations.find(c => c.id === id);
-    
-    const [message, setMessage] = useState('');
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [time, setTime] = useState(0);
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [consultation?.chatHistory]);
-
-    const handleSend = () => {
-        if (!consultation || !message.trim()) return;
-        addConsultationMessage(consultation.id, message, 'user');
-        setMessage('');
-
-        // Simulate doctor's response
-        setTimeout(() => {
-            const responses = ["Baik, saya mengerti.", "Tolong jelaskan lebih lanjut.", "Ada gejala lain?", "Oke, saya catat."];
-            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-            addConsultationMessage(consultation.id, randomResponse, 'doctor');
-        }, 1500);
-    };
-
-    const handleComplete = () => {
-        if (!consultation) return;
-        // Simulate a prescription
-        const prescription: DigitalPrescriptionItem[] = [
-            { medicineName: 'Paracetamol 500mg', productId: 'med-001', dosage: '3x1 Sehari sesudah makan', quantity: 1 },
-            { medicineName: 'Amoxicillin 500mg', productId: 'med-002', dosage: '3x1 Sehari, habiskan', quantity: 1 },
-        ];
-        completeConsultation(consultation.id, prescription);
-    };
-    
-    const handleRedeemPrescription = () => {
-        if (!consultation?.prescription) return;
-        
-        consultation.prescription.forEach(item => {
-            const product = products.find(p => p.id === item.productId);
-            if (product) {
-                addToCart(item.productId, item.quantity);
-            }
-        });
-        
-        addNotification(consultation.userId, "Obat dari resep telah ditambahkan ke keranjang.", 'success');
-        navigate('/cart');
-    };
+        const timer = setInterval(() => setTime(prev => prev + 1), 1000);
+        return () => clearInterval(timer);
+    }, []);
 
     if (!consultation) {
         return <div className="p-4 text-center">Konsultasi tidak ditemukan.</div>;
     }
 
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const secs = (seconds % 60).toString().padStart(2, '0');
+        return `${mins}:${secs}`;
+    };
+
     return (
         <div className="flex flex-col h-full">
-            <header className="p-4 flex items-center border-b border-border-color sticky top-0 bg-surface z-10">
+            <header className="p-4 flex items-center bg-surface border-b border-border-color">
                 <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-surface-light">
                     <ArrowLeftIcon className="h-6 w-6" />
                 </button>
                 <div className="ml-4">
-                    <h1 className="text-lg font-bold">Dr. {consultation.doctorName}</h1>
-                    <p className="text-sm text-text-secondary">{consultation.doctorSpecialty}</p>
+                    <h1 className="text-lg font-bold">Konsultasi dengan {consultation.doctorName}</h1>
+                    <p className="text-sm text-green-400">● Live ({formatTime(time)})</p>
                 </div>
             </header>
-
-            <main className="flex-grow p-4 overflow-y-auto space-y-4">
-                 {consultation.chatHistory.map((chat, index) => (
-                    <div key={index} className={`flex ${chat.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-xs md:max-w-md p-3 rounded-lg ${chat.sender === 'user' ? 'bg-primary text-black' : 'bg-surface-light'}`}>
-                            <p className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>{chat.message}</p>
+            
+            <main className="flex-grow flex flex-col md:flex-row bg-background">
+                {/* Video Feed Simulation */}
+                <div className="w-full md:w-2/3 bg-black flex flex-col items-center justify-center relative p-2">
+                    <div className="w-full aspect-video bg-gray-900 rounded-lg flex items-center justify-center text-white relative overflow-hidden">
+                        <img src={`https://i.pravatar.cc/400?u=${consultation.doctorId}`} alt="Doctor" className="w-full h-full object-cover"/>
+                        <div className="absolute bottom-2 left-2 bg-black/50 p-2 rounded">
+                            <p className="font-semibold">{consultation.doctorName}</p>
+                            <p className="text-xs">{consultation.doctorSpecialty}</p>
                         </div>
                     </div>
-                 ))}
-                 {consultation.status === 'Completed' && consultation.prescription && (
-                    <DigitalPrescription prescription={consultation.prescription} onRedeem={handleRedeemPrescription} />
-                 )}
-                <div ref={messagesEndRef} />
-            </main>
-            
-            {consultation.status !== 'Completed' && (
-                <footer className="p-4 border-t border-border-color bg-surface">
-                    <div className="flex items-center space-x-2">
-                        <input
-                            type="text"
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="Ketik pesan..."
-                            className="w-full bg-surface-light border border-border-color rounded-full py-2 px-4 focus:outline-none focus:ring-1 focus:ring-primary"
-                        />
-                        <button onClick={handleSend} disabled={!message.trim()} className="p-2 btn-secondary rounded-full disabled:opacity-50">
-                            <PaperAirplaneIcon className="h-5 w-5" />
-                        </button>
+                     <div className="absolute bottom-4 right-4 w-24 h-32 bg-gray-800 border-2 border-border-color rounded-lg overflow-hidden">
+                        <img src={`https://i.pravatar.cc/150?u=${consultation.userId}`} alt="You" className="w-full h-full object-cover"/>
+                     </div>
+
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-4 bg-black/50 p-3 rounded-full">
+                        <button className="p-3 bg-red-600 rounded-full"><PhoneIcon className="h-6 w-6 text-white" /></button>
                     </div>
-                    <button onClick={handleComplete} className="w-full mt-2 btn-secondary p-2 rounded-lg font-bold text-sm">
-                        Akhiri Konsultasi & Dapatkan Resep
-                    </button>
-                </footer>
-            )}
+                </div>
+
+                {/* Info Panel */}
+                <div className="w-full md:w-1/3 bg-surface p-4 border-l border-border-color overflow-y-auto">
+                    {consultation.status === 'Completed' ? (
+                        <div>
+                            <h2 className="text-xl font-bold text-primary mb-4 flex items-center">
+                                <DocumentTextIcon className="h-6 w-6 mr-2"/>
+                                Ringkasan & Resep
+                            </h2>
+                            <div className="bg-surface-light p-4 rounded-lg space-y-2">
+                                <h3 className="font-bold">Catatan Dokter</h3>
+                                <p className="text-sm text-text-secondary">{consultation.notes || "Tidak ada catatan."}</p>
+                                <h3 className="font-bold pt-2 border-t border-border-color">Resep</h3>
+                                <p className="text-sm text-text-secondary whitespace-pre-wrap">{consultation.prescription || "Tidak ada resep."}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div>
+                            <h2 className="text-xl font-bold text-primary mb-4 flex items-center">
+                                <ChatBubbleLeftRightIcon className="h-6 w-6 mr-2"/>
+                                Obrolan
+                            </h2>
+                            <div className="h-64 bg-surface-light rounded-lg p-2 flex flex-col items-center justify-center text-text-secondary">
+                                <p>Fitur obrolan segera hadir.</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </main>
         </div>
     );
 };

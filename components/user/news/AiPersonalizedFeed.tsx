@@ -1,110 +1,102 @@
-import React, { useState, useEffect } from 'react';
-import { useData } from '../../../contexts/DataContext';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useData } from '../../../contexts/DataContext';
 import { Article } from '../../../types';
 import ArticleCard from './ArticleCard';
 import { GoogleGenAI, Type } from "@google/genai";
+import { SparklesIcon } from '@heroicons/react/24/solid';
 
 const AiPersonalizedFeed: React.FC<{ onOpenComments: (article: Article) => void }> = ({ onOpenComments }) => {
-    const { articles } = useData();
     const { user } = useAuth();
-    const [recommended, setRecommended] = useState<Article[]>([]);
+    const { articles } = useData();
+    const [recommendedArticles, setRecommendedArticles] = useState<Article[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    const availableArticles = useMemo(() => {
+        return articles.filter(a => a.status === 'Published');
+    }, [articles]);
+
     useEffect(() => {
-        const fetchRecommendations = async () => {
-            if (!user || articles.length === 0) {
+        const fetchFeed = async () => {
+            if (!user || availableArticles.length === 0) {
                 setIsLoading(false);
                 return;
             }
-
-            const publishedArticles = articles.filter(a => a.status === 'Published').map(a => ({
-                id: a.id,
-                title: a.title,
-                category: a.category,
-                summary: a.summary,
-            }));
-
-            const likedArticles = articles.filter(a => a.likes.includes(user.id)).map(a => a.title);
-            const bookmarkedArticles = articles.filter(a => user.bookmarkedArticles.includes(a.id)).map(a => a.title);
             
             const prompt = `
-                You are a news feed personalization engine for an employee super-app.
-                Your task is to re-order the provided list of articles to create a personalized "For You" feed for a specific user.
+                You are a personalization engine for an employee super-app's news feed.
+                Your task is to create a personalized list of articles for a user based on their profile.
 
                 User Profile:
                 - Role: ${user.role}
                 - Branch: ${user.profile.branch || 'Unknown'}
 
-                User Interactions:
-                - Liked Articles: ${JSON.stringify(likedArticles)}
-                - Bookmarked Articles: ${JSON.stringify(bookmarkedArticles)}
+                Available Articles (JSON format):
+                ${JSON.stringify(availableArticles.map(a => ({ id: a.id, title: a.title, category: a.category, summary: a.summary })), null, 2)}
 
-                Available Articles (do not recommend articles the user has already liked or bookmarked):
-                ${JSON.stringify(publishedArticles)}
-
-                Analyze the user's profile and interactions to determine their interests. Re-order the list of available articles from most to least relevant.
-                Your response MUST be a valid JSON object with a single key "sorted_article_ids", which is an array of strings representing the article IDs in the recommended order.
-                Example: { "sorted_article_ids": ["article-003", "article-001", "article-002"] }
+                Please select up to 5 articles that would be most relevant to this user. Prioritize articles related to their work, branch, or general well-being.
+                
+                Your response MUST be a valid JSON object with a single key "article_ids", which is an array of strings of the recommended article IDs.
+                Example: { "article_ids": ["a-001", "a-002"] }
             `;
-
+            
             try {
                 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
                 const response = await ai.models.generateContent({
                     model: "gemini-2.5-flash",
                     contents: prompt,
-                    config: {
+                     config: {
                         responseMimeType: "application/json",
                         responseSchema: {
                             type: Type.OBJECT,
                             properties: {
-                                sorted_article_ids: {
+                                article_ids: {
                                     type: Type.ARRAY,
                                     items: { type: Type.STRING }
                                 }
                             },
-                            required: ['sorted_article_ids']
+                            required: ["article_ids"]
                         }
                     }
                 });
 
                 const result = JSON.parse(response.text);
-                const sortedIds = result.sorted_article_ids || [];
-                const sortedArticles = sortedIds.map((id: string) => articles.find(a => a.id === id)).filter(Boolean as any as (x: Article | undefined) => x is Article);
+                const recommendedIds = result.article_ids || [];
+                const feed = availableArticles
+                    .filter(a => recommendedIds.includes(a.id))
+                    .sort((a, b) => recommendedIds.indexOf(a.id) - recommendedIds.indexOf(b.id)); // Keep AI's order
                 
-                // Add remaining articles that weren't sorted by AI to the end
-                const remainingArticles = articles.filter(a => a.status === 'Published' && !sortedIds.includes(a.id));
-                setRecommended([...sortedArticles, ...remainingArticles]);
+                setRecommendedArticles(feed);
 
             } catch (error) {
-                console.error("AI Feed Personalization Error:", error);
-                // Fallback to default sort on error
-                setRecommended([...articles].filter(a => a.status === 'Published').sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+                console.error("AI Personalized Feed Error:", error);
+                // Fallback to latest articles
+                setRecommendedArticles(availableArticles.slice(0, 5));
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchRecommendations();
-    }, [user, articles]);
+        fetchFeed();
+    }, [user, availableArticles]);
 
     if (isLoading) {
         return (
-            <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="bg-surface rounded-lg p-4 h-64 animate-pulse"></div>
-                ))}
+            <div className="text-center p-8">
+                <SparklesIcon className="h-10 w-10 text-primary mx-auto animate-pulse" />
+                <p className="mt-2 text-text-secondary">Menyiapkan feed untuk Anda...</p>
             </div>
         );
     }
     
-    if (recommended.length === 0) {
-        return <p className="text-center text-text-secondary py-8">Tidak ada artikel untuk ditampilkan.</p>;
+    if(recommendedArticles.length === 0) {
+        return <p className="text-center text-text-secondary py-4">Tidak ada artikel untuk ditampilkan.</p>
     }
 
     return (
         <div className="space-y-4">
-            {recommended.map(article => (
+            {recommendedArticles.map(article => (
                 <ArticleCard key={article.id} article={article} onOpenComments={() => onOpenComments(article)} />
             ))}
         </div>

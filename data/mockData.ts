@@ -1,316 +1,223 @@
-import { User, Role, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, Article, Product, Doctor, Transaction, Order, PersonalizationRule, LeaveRequest, Dispute } from '../types';
 
-// Hashing the password is a backend concern. For this frontend simulation, we store it as is.
-// In a real app, this would NEVER be done.
-const adminUser: User = {
-    id: 'admin-001',
-    email: 'secret3triple@gmail.com',
-    password: 'Thunder!@#$%%12', // WARNING: Storing plain text password for simulation only
-    role: Role.Admin,
-    status: 'active',
-    profile: {
-        name: 'Super Admin',
-        phone: '081234567890',
-        photoUrl: 'https://i.pravatar.cc/150?u=admin-001',
-        branch: 'HEAD_OFFICE',
+import { User, Role, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig, HomePageConfig, AdminWallets, PersonalizationRule } from '../types';
+
+export const initialUsers: User[] = [
+    {
+        id: 'admin-001',
+        email: 'admin@mitra.com',
+        password: 'adminpassword',
+        profile: {
+            name: 'Super Admin',
+            phone: '081234567890',
+            photoUrl: 'https://i.pravatar.cc/150?u=admin@mitra.com',
+        },
+        role: Role.Admin,
+        status: 'active',
+        wallet: { balance: 10000000, isFrozen: false },
+        achievements: [], loyaltyPoints: 0, wishlist: [], bookmarkedArticles: [], healthData: { moodHistory: [], activeChallenges: [] }
     },
-    wallet: {
-        balance: 1000000000, // Platform wallet for initial funds
-        isFrozen: false,
+    {
+        id: 'hr-jkt-001',
+        email: 'hr.jakarta@mitra.com',
+        password: 'hrpassword',
+        profile: {
+            name: 'HR Jakarta',
+            phone: '081234567891',
+            photoUrl: 'https://i.pravatar.cc/150?u=hr.jakarta@mitra.com',
+            branch: 'Jakarta',
+        },
+        role: Role.HR,
+        status: 'active',
+        wallet: { balance: 500000, isFrozen: false },
+        achievements: [], loyaltyPoints: 0, wishlist: [], bookmarkedArticles: [], healthData: { moodHistory: [], activeChallenges: [] }
     },
-    achievements: [],
-    loyaltyPoints: 0,
-    wishlist: [],
-    bookmarkedArticles: [],
-    payLater: { status: 'not_applied', limit: 0, used: 0 },
-};
-
-const hrUser: User = {
-    id: 'hr-001',
-    email: 'hr@mitra.com',
-    password: 'password123',
-    role: Role.HR,
-    status: 'active',
-    profile: {
-        name: 'HR Jakarta Pusat',
-        phone: '081211112222',
-        photoUrl: 'https://i.pravatar.cc/150?u=hr-001',
-        branch: 'JAKARTA_PUSAT',
+    {
+        id: 'user-jkt-001',
+        email: 'budi.karyawan@mitra.com',
+        password: 'userpassword',
+        profile: {
+            name: 'Budi Karyawan',
+            phone: '081234567892',
+            photoUrl: 'https://i.pravatar.cc/150?u=budi.karyawan@mitra.com',
+            branch: 'Jakarta',
+            joinDate: '2022-01-15T00:00:00.000Z',
+            salary: 8000000
+        },
+        role: Role.User,
+        status: 'active',
+        wallet: { balance: 750000, isFrozen: false },
+        achievements: ['First Purchase'],
+        loyaltyPoints: 1250,
+        wishlist: ['p-002'],
+        bookmarkedArticles: ['a-001'],
+        healthData: { moodHistory: [], activeChallenges: [] },
+        payLater: { status: 'approved', limit: 2000000, used: 250000 }
     },
-    wallet: { balance: 100000, isFrozen: false },
-    achievements: [], loyaltyPoints: 0, wishlist: [], bookmarkedArticles: [],
-    payLater: { status: 'not_applied', limit: 0, used: 0 },
-};
-
-const employeeUser: User = {
-    id: 'user-001',
-    email: 'karyawan@mitra.com',
-    password: 'password123',
-    role: Role.User,
-    status: 'active',
-    profile: {
-        name: 'Budi Karyawan',
-        phone: '081298765432',
-        photoUrl: 'https://i.pravatar.cc/150?u=user-001',
-        branch: 'JAKARTA_PUSAT',
-        salary: 8000000,
-        joinDate: new Date().toISOString(),
+     {
+        id: 'user-bdg-001',
+        email: 'siti.nurhaliza@mitra.com',
+        password: 'userpassword',
+        profile: {
+            name: 'Siti Nurhaliza',
+            phone: '081234567893',
+            photoUrl: 'https://i.pravatar.cc/150?u=siti.nurhaliza@mitra.com',
+            branch: 'Bandung',
+            joinDate: '2023-05-20T00:00:00.000Z',
+            salary: 7500000
+        },
+        role: Role.User,
+        status: 'active',
+        wallet: { balance: 1200000, isFrozen: false },
+        achievements: [],
+        loyaltyPoints: 500,
+        wishlist: [],
+        bookmarkedArticles: [],
+        healthData: { moodHistory: [], activeChallenges: [] },
+        payLater: { status: 'pending', limit: 0, used: 0 }
     },
-    wallet: { balance: 500000, isFrozen: false },
-    achievements: [], loyaltyPoints: 250, wishlist: [], bookmarkedArticles: [],
-    healthData: { moodHistory: [], activeChallenges: [] },
-    payLater: { status: 'approved', limit: 2000000, used: 0 },
-};
+    {
+        id: 'user-jkt-002',
+        email: 'inactive.user@mitra.com',
+        password: 'userpassword',
+        profile: {
+            name: 'Inactive User',
+            phone: '081234567894',
+            photoUrl: 'https://i.pravatar.cc/150?u=inactive.user@mitra.com',
+            branch: 'Jakarta',
+            joinDate: '2021-11-10T00:00:00.000Z',
+            salary: 9000000
+        },
+        role: Role.User,
+        status: 'inactive',
+        wallet: { balance: 50000, isFrozen: true },
+        achievements: [], loyaltyPoints: 0, wishlist: [], bookmarkedArticles: [], healthData: { moodHistory: [], activeChallenges: [] },
+        payLater: { status: 'not_applied', limit: 0, used: 0 }
+    }
+];
 
-const employeeUser2: User = {
-    id: 'user-002',
-    email: 'siti@mitra.com',
-    password: 'password123',
-    role: Role.User,
-    status: 'active',
-    profile: {
-        name: 'Siti Aminah',
-        phone: '081212345678',
-        photoUrl: 'https://i.pravatar.cc/150?u=user-002',
-        branch: 'JAKARTA_PUSAT',
-        salary: 7500000,
-        joinDate: new Date('2023-01-15').toISOString(),
-    },
-    wallet: { balance: 1200000, isFrozen: false },
-    achievements: ['First Purchase'], loyaltyPoints: 800, wishlist: [], bookmarkedArticles: [],
-    healthData: { moodHistory: [], activeChallenges: [] },
-    payLater: { status: 'not_applied', limit: 0, used: 0 },
-};
-
-const employeeUser3: User = {
-    id: 'user-003',
-    email: 'agus@mitra.com',
-    password: 'password123',
-    role: Role.User,
-    status: 'active',
-    profile: {
-        name: 'Agus Setiawan',
-        phone: '081287654321',
-        photoUrl: 'https://i.pravatar.cc/150?u=user-003',
-        branch: 'BANDUNG',
-        salary: 6500000,
-        joinDate: new Date('2022-11-20').toISOString(),
-    },
-    wallet: { balance: 250000, isFrozen: false },
-    achievements: [], loyaltyPoints: 150, wishlist: [], bookmarkedArticles: [],
-    healthData: { moodHistory: [], activeChallenges: [] },
-    payLater: { status: 'rejected', limit: 0, used: 0 },
-};
-
-
-export const initialUsers: User[] = [adminUser, hrUser, employeeUser, employeeUser2, employeeUser3];
-export const initialTransactions: Transaction[] = [];
 export const initialProducts: Product[] = [
     {
-        id: 'med-001',
-        sellerId: 'admin-001',
-        sellerName: 'Apotek Mitra Sehat',
-        name: 'Paracetamol 500mg',
-        description: 'Meredakan sakit kepala, sakit gigi, dan demam.',
-        price: 8000,
-        imageUrl: 'https://picsum.photos/seed/paracetamol/400/400',
-        category: 'Obat-obatan',
-        stock: 100,
-        reviews: [],
-        rating: 4.8,
-        reviewCount: 25,
+        id: 'p-001', name: 'Keyboard Mekanikal Wireless', description: 'Keyboard mekanikal 65% dengan konektivitas bluetooth dan 2.4Ghz. Cocok untuk kerja dan gaming.',
+        price: 850000, stock: 10, category: 'Elektronik', imageUrl: 'https://picsum.photos/seed/keyboard/400/400',
+        sellerId: 'user-jkt-001', sellerName: 'Budi Karyawan', rating: 4.8, reviewCount: 25, reviews: []
     },
     {
-        id: 'med-002',
-        sellerId: 'admin-001',
-        sellerName: 'Apotek Mitra Sehat',
-        name: 'Amoxicillin 500mg',
-        description: 'Antibiotik untuk infeksi bakteri. Membutuhkan resep dokter.',
-        price: 15000,
-        imageUrl: 'https://picsum.photos/seed/amoxicillin/400/400',
-        category: 'Obat-obatan',
-        stock: 50,
-        reviews: [],
-        rating: 4.9,
-        reviewCount: 18,
-    }
-];
-export const initialOrders: Order[] = [
-    {
-        id: 'order-dispute-001',
-        buyerId: 'user-002',
-        sellerId: 'user-001',
-        items: [{ productId: 'med-001', name: 'Barang Bekas', quantity: 1, price: 75000 }],
-        total: 75000,
-        status: 'In Dispute',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    }
-];
-
-export const initialDisputes: Dispute[] = [
-    {
-        id: 'disp-001',
-        orderId: 'order-dispute-001',
-        buyerId: 'user-002',
-        sellerId: 'user-001',
-        buyerName: 'Siti Aminah',
-        sellerName: 'Budi Karyawan',
-        reason: 'Barang yang diterima tidak sesuai dengan deskripsi. Kondisinya jauh lebih buruk dari yang ditampilkan di foto.',
-        status: 'Open',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    }
-];
-
-export const initialArticles: Article[] = [];
-export const initialDoctors: Doctor[] = [
+        id: 'p-002', name: 'Tumbler Kopi Tahan Panas', description: 'Tumbler 500ml stainless steel yang menjaga suhu minuman hingga 8 jam.',
+        price: 150000, stock: 30, category: 'Rumah Tangga', imageUrl: 'https://picsum.photos/seed/tumbler/400/400',
+        sellerId: 'user-bdg-001', sellerName: 'Siti Nurhaliza', rating: 4.9, reviewCount: 40, reviews: []
+    },
      {
-        id: 'doc-001',
-        name: 'Dr. Budi Santoso',
-        specialty: 'Dokter Umum',
-        consultationFee: 50000,
-        bio: 'Lulusan Universitas Indonesia dengan pengalaman 10 tahun sebagai dokter umum. Fokus pada penanganan penyakit umum dan pencegahan.',
-        imageUrl: 'https://i.pravatar.cc/150?u=doc-001',
-        availableSlots: [
-            { time: '09:00', isBooked: false },
-            { time: '10:00', isBooked: true },
-            { time: '11:00', isBooked: false },
+        id: 'p-003', name: 'Buku "Atomic Habits"', description: 'Buku self-improvement oleh James Clear. Kondisi baru, segel.',
+        price: 95000, stock: 5, category: 'Hobi', imageUrl: 'https://picsum.photos/seed/book/400/400',
+        sellerId: 'user-jkt-001', sellerName: 'Budi Karyawan', rating: 5.0, reviewCount: 15, reviews: []
+    }
+];
+
+export const initialArticles: Article[] = [
+    {
+        id: 'a-001', title: 'Tips Produktif Saat Bekerja dari Rumah', summary: 'Maksimalkan produktivitas Anda dengan tips jitu ini saat WFH.', content: '',
+        category: 'Produktivitas', author: 'HR Mitra', timestamp: '2023-10-26T10:00:00Z', status: 'Published',
+        imageUrl: 'https://picsum.photos/seed/wfh/800/400',
+        likes: ['user-bdg-001'], comments: [{ userId: 'user-bdg-001', userName: 'Siti Nurhaliza', comment: 'Sangat membantu, terima kasih!', timestamp: '2023-10-26T11:00:00Z', likes: [] }],
+        type: 'standard'
+    },
+    {
+        id: 'a-002', title: 'Polling: Menu Kantin Favorit Anda?', summary: 'Bantu kami menentukan menu baru untuk kantin bulan depan!', content: '',
+        category: 'Kantor', author: 'GA Mitra', timestamp: '2023-10-25T14:00:00Z', status: 'Published',
+        likes: ['user-jkt-001'], comments: [], type: 'poll',
+        pollOptions: [
+            { text: 'Nasi Goreng Spesial', votes: ['user-jkt-001'] },
+            { text: 'Ayam Geprek Sambal Matah', votes: [] },
+            { text: 'Soto Ayam Lamongan', votes: ['user-bdg-001'] }
         ]
     },
     {
-        id: 'doc-002',
-        name: 'Dr. Citra Wijaya',
-        specialty: 'Psikolog',
-        consultationFee: 150000,
-        bio: 'Psikolog klinis dengan spesialisasi kesehatan mental di lingkungan kerja. Siap membantu Anda mengelola stres dan burnout.',
-        imageUrl: 'https://i.pravatar.cc/150?u=doc-002',
+        id: 'a-003', title: 'Pentingnya Dana Darurat dan Cara Memulainya', summary: 'Video penjelasan singkat mengenai perencanaan keuangan pribadi.', content: '',
+        category: 'Keuangan', author: 'Finance Mitra', timestamp: '2023-10-27T09:00:00Z', status: 'Published',
+        youtubeId: '8vbQd_b4daM', likes: [], comments: [], type: 'standard'
+    }
+];
+
+export const initialTransactions: Transaction[] = [
+    { id: 'tx-001', userId: 'user-jkt-001', userName: 'Budi Karyawan', type: 'Marketplace', amount: -150000, description: 'Pembelian Tumbler Kopi Tahan Panas', timestamp: new Date().toISOString(), status: 'Completed' },
+    { id: 'tx-002', userId: 'user-bdg-001', userName: 'Siti Nurhaliza', type: 'Marketplace', amount: 150000, description: 'Penjualan Tumbler Kopi Tahan Panas', timestamp: new Date().toISOString(), status: 'Completed' },
+    { id: 'tx-003', userId: 'user-jkt-001', userName: 'Budi Karyawan', type: 'Top-Up', amount: 500000, description: 'Top-Up via BCA Virtual Account', timestamp: new Date(Date.now() - 86400000).toISOString(), status: 'Completed' },
+];
+
+export const initialNotifications: Notification[] = [
+    { id: 'n-001', userId: 'user-jkt-001', message: 'Pembelian Anda untuk Tumbler Kopi Tahan Panas telah berhasil.', type: 'success', read: false, timestamp: new Date().toISOString() }
+];
+
+export const initialDoctors: Doctor[] = [
+    {
+        id: 'doc-001', name: 'Dr. Budi Santoso', specialty: 'Dokter Umum', bio: 'Lulusan Universitas Indonesia dengan pengalaman 5 tahun di UGD.',
+        imageUrl: 'https://i.pravatar.cc/150?u=doc-001', consultationFee: 75000,
         availableSlots: [
-            { time: '13:00', isBooked: false },
-            { time: '14:00', isBooked: false },
-            { time: '15:00', isBooked: false },
+            { time: '09:00', isBooked: false }, { time: '09:30', isBooked: true }, { time: '10:00', isBooked: false },
+            { time: '10:30', isBooked: false }, { time: '11:00', isBooked: false }, { time: '11:30', isBooked: true },
         ]
     },
     {
-        id: 'doc-003',
-        name: 'Dr. Rina Amelia',
-        specialty: 'Dokter Anak',
-        consultationFee: 75000,
-        bio: 'Spesialis kesehatan anak dengan pendekatan yang ramah dan komunikatif. Berpengalaman menangani berbagai masalah kesehatan anak.',
-        imageUrl: 'https://i.pravatar.cc/150?u=doc-003',
+        id: 'doc-002', name: 'Dr. Siti Aminah', specialty: 'Psikolog', bio: 'Spesialis kesehatan mental dengan fokus pada manajemen stres dan kecemasan di tempat kerja.',
+        imageUrl: 'https://i.pravatar.cc/150?u=doc-002', consultationFee: 150000,
         availableSlots: [
-            { time: '09:00', isBooked: false },
-            { time: '10:00', isBooked: false },
+            { time: '13:00', isBooked: false }, { time: '14:00', isBooked: false }, { time: '15:00', isBooked: false },
         ]
     }
 ];
+
+export const initialConsultations: Consultation[] = [];
+export const initialDisputes: Dispute[] = [];
 
 export const initialApiIntegrations: ApiIntegration[] = [
-    { id: 'bca', name: 'BCA', type: 'Bank', status: IntegrationStatus.Inactive },
-    { id: 'jago', name: 'Bank Jago', type: 'Bank', status: IntegrationStatus.Inactive },
-    { id: 'mandiri', name: 'Mandiri', type: 'Bank', status: IntegrationStatus.Inactive },
-    { id: 'bni', name: 'BNI', type: 'Bank', status: IntegrationStatus.Inactive },
-    { id: 'bri', name: 'BRI', type: 'Bank', status: IntegrationStatus.Inactive },
-    { id: 'gopay', name: 'GoPay', type: 'E-Wallet', status: IntegrationStatus.Inactive },
-    { id: 'ovo', name: 'OVO', type: 'E-Wallet', status: IntegrationStatus.Inactive },
-    { id: 'dana', name: 'DANA', type: 'E-Wallet', status: IntegrationStatus.Inactive },
-    { id: 'shopeepay', name: 'ShopeePay', type: 'E-Wallet', status: IntegrationStatus.Inactive },
-    { id: 'alfamart', name: 'Alfamart', type: 'Retail', status: IntegrationStatus.Inactive },
-    { id: 'indomart', name: 'Indomart', type: 'Retail', status: IntegrationStatus.Inactive },
+    { id: 'api-bca', name: 'Bank Central Asia (BCA)', type: 'Bank', status: IntegrationStatus.Inactive },
+    { id: 'api-gopay', name: 'GoPay', type: 'E-Wallet', status: IntegrationStatus.Inactive },
 ];
 
 export const initialScalabilityServices: ScalabilityService[] = [
-    {
-        id: 'load_balancer',
-        name: 'Global Load Balancer & Auto-Scaling',
-        type: 'load_balancer',
-        description: 'Distribute incoming traffic across multiple servers and automatically scale the number of servers based on demand.',
-        status: ScalabilityServiceStatus.Inactive,
-        logs: [],
-        cost: 0,
-        metadata: { servers: 3, rps: 150 } // requests per second
-    },
-    {
-        id: 'cdn',
-        name: 'Content Delivery Network (CDN)',
-        type: 'cdn',
-        description: 'Cache static assets (images, files) across the globe to reduce latency and improve load times for all users.',
-        status: ScalabilityServiceStatus.Inactive,
-        logs: [],
-        cost: 0,
-        metadata: { cacheHitRatio: 0, latency: 250 } // ms
-    },
-    {
-        id: 'redis',
-        name: 'In-Memory Caching (Redis)',
-        type: 'redis',
-        description: 'Accelerate data retrieval for frequently accessed information like user profiles and popular products.',
-        status: ScalabilityServiceStatus.Inactive,
-        logs: [],
-        cost: 0,
-        metadata: { cacheHitRatio: 0, memoryUsage: 0, keys: 0 }
-    },
-    {
-        id: 'rabbitmq',
-        name: 'Async Task Queue (RabbitMQ)',
-        type: 'rabbitmq',
-        description: 'Offload time-consuming tasks like sending bulk notifications or processing reports to background workers.',
-        status: ScalabilityServiceStatus.Inactive,
-        logs: [],
-        cost: 0,
-        metadata: { queueLength: 0, processedPerSec: 0, workers: 5 }
-    },
-    {
-        id: 'read_replicas',
-        name: 'Database Read Replicas',
-        type: 'read_replicas',
-        description: 'Distribute database read operations across multiple database copies to handle high traffic without slowing down writes.',
-        status: ScalabilityServiceStatus.Inactive,
-        logs: [],
-        cost: 0,
-        metadata: { primaryLoad: 5, replicaLoad: 5, replicaLag: 15 } // ms
-    },
-    {
-        id: 'db_sharding',
-        name: 'Database Sharding',
-        type: 'db_sharding',
-        description: 'Partition the main database into smaller, faster, more easily managed parts to handle massive data volume.',
-        status: ScalabilityServiceStatus.Inactive,
-        logs: [],
-        cost: 0,
-        metadata: { shards: 1 }
-    }
+    { id: 'scale-lb', type: 'load_balancer', name: 'Global Load Balancer', description: 'Distributes traffic across multiple servers to ensure high availability and prevent overload.', status: ScalabilityServiceStatus.Inactive, cost: 0, logs: [], metadata: { servers: 1, rps: 150 } },
+    { id: 'scale-cdn', type: 'cdn', name: 'Content Delivery Network', description: 'Caches static content at edge locations globally to reduce latency for users.', status: ScalabilityServiceStatus.Inactive, cost: 0, logs: [], metadata: { cacheHitRatio: 0, latency: 250 } },
+    { id: 'scale-redis', type: 'redis', name: 'In-Memory Cache (Redis)', description: 'Provides lightning-fast data access for frequently requested information, reducing database load.', status: ScalabilityServiceStatus.Inactive, cost: 0, logs: [], metadata: { cacheHitRatio: 0, memoryUsage: 16, keys: 1200 } },
+    { id: 'scale-rmq', type: 'rabbitmq', name: 'Message Queue (RabbitMQ)', description: 'Handles asynchronous tasks like notifications and processing, ensuring system responsiveness.', status: ScalabilityServiceStatus.Inactive, cost: 0, logs: [], metadata: { queueLength: 0, processedPerSec: 0, workers: 2 } },
+    { id: 'scale-replicas', type: 'read_replicas', name: 'Database Read Replicas', description: 'Creates copies of the database to handle high read traffic without impacting write performance.', status: ScalabilityServiceStatus.Inactive, cost: 0, logs: [], metadata: { primaryLoad: 12, replicaLoad: 0, replicaLag: 5 } },
+    { id: 'scale-sharding', type: 'db_sharding', name: 'Database Sharding', description: 'Horizontally partitions the database across multiple servers to handle massive data volumes.', status: ScalabilityServiceStatus.Inactive, cost: 0, logs: [], metadata: { shards: 1 } },
 ];
 
-export const initialPersonalizationRules: PersonalizationRule[] = [];
-
 export const initialLeaveRequests: LeaveRequest[] = [
-    {
-        id: 'leave-001',
-        userId: 'user-001',
-        userName: 'Budi Karyawan',
-        branch: 'JAKARTA_PUSAT',
-        startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        reason: 'Acara keluarga di luar kota.',
-        status: 'Pending',
+    { id: 'lr-001', userId: 'user-jkt-001', userName: 'Budi Karyawan', branch: 'Jakarta', startDate: '2023-12-26', endDate: '2023-12-27', reason: 'Acara keluarga.', status: 'Pending' }
+];
+
+export const initialMonetizationConfig: MonetizationConfig = {
+    marketplaceCommission: 0.05,
+    marketingCPA: 25000,
+};
+
+export const initialTaxConfig: TaxConfig = {
+    ppnRate: 0.11,
+    pph21Rate: 0.025,
+};
+
+export const initialHomePageConfig: HomePageConfig = {
+    globalAnnouncement: {
+        active: true,
+        message: "Selamat datang di platform Mitra Karyawan! Jelajahi semua fiturnya.",
     },
+    pinnedItemId: 'p-001',
+    quickAccessOrder: ['ppob', 'market', 'health', 'gov', 'lifestyle', 'pulsa', 'cashout', 'daily'],
+};
+
+export const initialAdminWallets: AdminWallets = {
+    profit: 7500, // From 5% commission on 150k sale
+    tax: 0,
+    cash: 50000000, // Initial cash
+};
+
+export const initialPersonalizationRules: PersonalizationRule[] = [
     {
-        id: 'leave-002',
-        userId: 'user-002',
-        userName: 'Siti Aminah',
-        branch: 'JAKARTA_PUSAT',
-        startDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        endDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        reason: 'Sakit, surat dokter menyusul.',
-        status: 'Pending',
-    },
-     {
-        id: 'leave-003',
-        userId: 'user-003',
-        userName: 'Agus Setiawan',
-        branch: 'BANDUNG',
-        startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        reason: 'Keperluan pribadi mendadak.',
-        status: 'Pending',
+        id: 'rule-1',
+        name: 'Promo Bandung',
+        conditions: [{ field: 'profile.branch', operator: 'equals', value: 'Bandung' }],
+        action: { type: 'PIN_ITEM', payload: { itemId: 'p-002' } },
+        isActive: true,
     }
 ];

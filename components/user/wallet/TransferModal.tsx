@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useData } from '../../../contexts/DataContext';
@@ -5,49 +6,72 @@ import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const TransferModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
     const { user } = useAuth();
-    const { addTransaction, addNotification } = useData();
+    const { addTransaction, users, addNotification } = useData();
     const [amount, setAmount] = useState(0);
-    const [recipient, setRecipient] = useState('');
+    const [recipientEmail, setRecipientEmail] = useState('');
+    const [note, setNote] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [step, setStep] = useState(1);
-    const [error, setError] = useState('');
-
+    const [step, setStep] = useState(1); // 1: Input, 2: Result
+    const [result, setResult] = useState<{success: boolean, message: string} | null>(null);
 
     const handleTransfer = async () => {
         if (!user) return;
-        
-        setError('');
-        if (amount <= 0 || !recipient) {
-            setError("Mohon isi semua field.");
+
+        if (amount <= 0 || !recipientEmail) {
+            setResult({ success: false, message: "Email penerima dan jumlah harus diisi." });
+            setStep(2);
             return;
         }
         if (user.wallet.balance < amount) {
-            setError("Saldo tidak cukup.");
+            setResult({ success: false, message: "Saldo tidak cukup." });
+            setStep(2);
             return;
         }
-        
+        const recipient = users.find(u => u.email.toLowerCase() === recipientEmail.toLowerCase());
+        if (!recipient) {
+            setResult({ success: false, message: "Penerima tidak ditemukan." });
+            setStep(2);
+            return;
+        }
+        if (recipient.id === user.id) {
+             setResult({ success: false, message: "Tidak dapat mentransfer ke diri sendiri." });
+             setStep(2);
+             return;
+        }
+
         setIsLoading(true);
-        // FIX: Added the 'status' property to the transaction object to match the 'Transaction' type expected by 'addTransaction'.
-        const result = await addTransaction({
+
+        // Perform transaction for sender
+        await addTransaction({
             userId: user.id,
             type: 'Transfer',
             amount: -amount,
-            description: `Transfer ke ${recipient}`,
-            status: 'Pending',
+            description: `Transfer ke ${recipient.profile.name}. Catatan: ${note || '-'}`,
+            status: 'Completed',
+        });
+
+        // Perform transaction for recipient
+        await addTransaction({
+            userId: recipient.id,
+            type: 'Transfer',
+            amount: amount,
+            description: `Transfer dari ${user.profile.name}. Catatan: ${note || '-'}`,
+            status: 'Completed',
         });
         
-        if(result.success) {
-            addNotification(user.id, `Transfer sebesar ${new Intl.NumberFormat('id-ID', {style: 'currency', currency: 'IDR'}).format(amount)} berhasil!`, 'success');
-        }
+        addNotification(recipient.id, `Anda menerima transfer sebesar ${new Intl.NumberFormat('id-ID', {style: 'currency', currency: 'IDR'}).format(amount)} dari ${user.profile.name}.`, 'success');
+        
+        setResult({ success: true, message: "Transfer berhasil!" });
         setIsLoading(false);
         setStep(2);
     };
 
     const handleClose = () => {
         setAmount(0);
-        setRecipient('');
+        setRecipientEmail('');
+        setNote('');
         setStep(1);
-        setError('');
+        setResult(null);
         onClose();
     };
 
@@ -64,35 +88,34 @@ const TransferModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ is
 
                 {step === 1 ? (
                     <div className="space-y-4">
-                        <div>
-                            <label className="text-sm font-bold text-text-secondary">Nomor Tujuan (HP/ID)</label>
-                            <input
-                                type="text"
-                                value={recipient}
-                                onChange={(e) => setRecipient(e.target.value)}
-                                placeholder="0812..."
-                                className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color focus:outline-none focus:ring-2 focus:ring-primary text-lg"
-                            />
-                        </div>
-                        <div>
-                            <label className="text-sm font-bold text-text-secondary">Jumlah Transfer</label>
-                            <input
-                                type="number"
-                                value={amount || ''}
-                                onChange={(e) => setAmount(Number(e.target.value))}
-                                placeholder="Rp 0"
-                                className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color focus:outline-none focus:ring-2 focus:ring-primary text-lg"
-                            />
-                        </div>
-                        {error && <p className="text-red-500 text-sm">{error}</p>}
+                        <input
+                            type="email"
+                            value={recipientEmail}
+                            onChange={(e) => setRecipientEmail(e.target.value)}
+                            placeholder="Email Penerima"
+                            className="w-full p-3 bg-surface-light rounded border border-border-color"
+                        />
+                         <input
+                            type="number"
+                            value={amount || ''}
+                            onChange={(e) => setAmount(Number(e.target.value))}
+                            placeholder="Jumlah Transfer"
+                            className="w-full p-3 bg-surface-light rounded border border-border-color"
+                        />
+                         <input
+                            type="text"
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            placeholder="Catatan (Opsional)"
+                            className="w-full p-3 bg-surface-light rounded border border-border-color"
+                        />
                         <button onClick={handleTransfer} disabled={isLoading} className="w-full btn-primary p-3 rounded font-bold mt-2 flex items-center justify-center">
-                           {isLoading ? <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div> : 'Kirim Sekarang'}
+                           {isLoading ? <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div> : 'Kirim'}
                         </button>
                     </div>
                 ) : (
                     <div className="text-center p-4">
-                        <h3 className="text-lg font-bold">Permintaan Transfer Diproses</h3>
-                        <p className="text-text-secondary mt-2">Anda akan menerima notifikasi saat transfer selesai. Silakan cek riwayat transaksi Anda.</p>
+                        <h3 className={`text-lg font-bold ${result?.success ? 'text-green-400' : 'text-red-400'}`}>{result?.message}</h3>
                         <button onClick={handleClose} className="mt-4 btn-primary px-6 py-2 rounded">Selesai</button>
                     </div>
                 )}
