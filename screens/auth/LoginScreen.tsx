@@ -90,10 +90,10 @@ const LoginScreen: React.FC = () => {
                     </form>
                 ) : (
                      <form onSubmit={handle2FA} className="space-y-6">
-                        <h2 className="text-xl font-bold text-center text-text-primary">Two-Factor Authentication</h2>
-                        <p className="text-center text-text-secondary">Enter the 6-digit code from your authenticator app.</p>
+                        <h2 className="text-xl font-bold text-center text-text-primary">Verifikasi Login</h2>
+                        <p className="text-center text-text-secondary">Kami telah mengirimkan kode 6 digit ke email Anda. Masukkan kode tersebut untuk melanjutkan.</p>
                          <div>
-                            <label className="text-sm font-bold text-text-secondary block mb-2">OTP Code</label>
+                            <label className="text-sm font-bold text-text-secondary block mb-2">Kode Verifikasi</label>
                             <input
                                 type="text"
                                 value={otp}

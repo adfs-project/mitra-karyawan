@@ -24,6 +24,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     });
     const [pendingLogin, setPendingLogin] = useState<User | null>(null);
+    const [pendingOTP, setPendingOTP] = useState<string | null>(null);
 
     useEffect(() => {
         localStorage.setItem('app_users', JSON.stringify(users));
@@ -57,23 +58,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return 'inactive';
         }
 
-        if (foundUser.role === Role.Admin || foundUser.role === Role.HR) {
-            setPendingLogin(foundUser);
-            return '2fa_required';
-        }
-        
-        setUser(foundUser);
-        sessionStorage.setItem('loggedInUser', JSON.stringify(foundUser));
-        return 'success';
+        // --- NEW: 2FA FOR ALL USERS ---
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        setPendingLogin(foundUser);
+        setPendingOTP(otp);
+
+        // Simulate sending email with OTP
+        console.log(`[SIMULASI EMAIL] Kode OTP untuk ${foundUser.email} adalah: ${otp}`);
+        // For development convenience, show an alert.
+        alert(`[SIMULASI] Kode OTP untuk ${foundUser.email} adalah: ${otp}\n(Cek console untuk melihat kode ini lagi)`);
+
+        return '2fa_required';
     };
     
     const verify2FA = async (otp: string): Promise<'success' | 'failed'> => {
-        // In a real app, this OTP would be verified against a service like Google Authenticator.
-        // For this simulation, any 6-digit code is accepted.
-        if (pendingLogin && otp.length === 6 && /^\d+$/.test(otp)) {
+        // In a real app, this OTP would be verified against a service.
+        // For this simulation, we compare it with the generated one.
+        if (pendingLogin && pendingOTP && otp === pendingOTP) {
             setUser(pendingLogin);
             sessionStorage.setItem('loggedInUser', JSON.stringify(pendingLogin));
             setPendingLogin(null);
+            setPendingOTP(null);
             return 'success';
         }
         return 'failed';
@@ -82,6 +87,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const logout = () => {
         setUser(null);
         sessionStorage.removeItem('loggedInUser');
+        setPendingLogin(null);
+        setPendingOTP(null);
     };
 
     const register = async (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData'>): Promise<'success' | 'exists'> => {
