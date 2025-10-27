@@ -20,7 +20,7 @@ const AdminHomePageOrchestrator: React.FC = () => {
         setTimeout(() => {
             // The context needs an update function for this. Let's assume it's `updateHomePageConfig`
             // and add it to DataContext.
-            // updateHomePageConfig(config);
+            updateHomePageConfig(config);
             alert("Home page configuration saved!");
             setIsSaving(false);
         }, 1000);

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { XMarkIcon, PaperAirplaneIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
 import { Transaction } from '../../../types';
+import { buildSecurePrompt } from '../../../services/aiGuardrailService';
 
 interface Message {
     sender: 'user' | 'ai';
@@ -11,8 +12,8 @@ interface Message {
 const FinancialAdvisorModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-    userTransactions: Transaction[];
-}> = ({ isOpen, onClose, userTransactions }) => {
+    userTransactions: Transaction[]; // Prop still received but will not be used by AI
+}> = ({ isOpen, onClose }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +21,7 @@ const FinancialAdvisorModal: React.FC<{
 
     const initialGreeting = {
         sender: 'ai' as 'ai',
-        text: 'Halo! Saya adalah analis keuangan AI Anda. Apa yang ingin Anda ketahui tentang keuangan Anda? Contoh: "Di mana pengeluaran terbesarku?" atau "Beri aku tips berhemat".',
+        text: 'Halo! Saya adalah penasihat keuangan AI. Saya bisa memberikan saran umum tentang keuangan, seperti cara berhemat atau membuat anggaran. Saya tidak memiliki akses ke data transaksi Anda demi privasi Anda.',
     };
 
     useEffect(() => {
@@ -41,24 +42,16 @@ const FinancialAdvisorModal: React.FC<{
         setQuery('');
         setIsLoading(true);
 
-        const prompt = `
-            You are a friendly and helpful financial advisor AI for an employee super-app.
-            Your task is to analyze the user's transaction history and answer their question in a clear, concise, and helpful manner in Indonesian.
-            
-            Here is the user's transaction history in JSON format:
-            ${JSON.stringify(userTransactions, null, 2)}
-            
-            Based on this data, please answer the following question from the user:
-            "${userMessage.text}"
-            
-            Provide insights and actionable advice where possible. Keep your response friendly and easy to understand.
-        `;
+        const securePrompt = buildSecurePrompt(
+            userMessage.text,
+            "You are a generic financial advisor. If the user asks a safe, generic financial question (e.g., 'How can I save more money?', 'What is a budget?'), provide a helpful, general-purpose answer in Indonesian. Do not ask for their personal data to improve your answer."
+        );
 
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
-                contents: prompt,
+                contents: securePrompt,
             });
 
             const aiMessage: Message = { sender: 'ai', text: response.text };
@@ -116,7 +109,7 @@ const FinancialAdvisorModal: React.FC<{
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="Ketik pertanyaan Anda..."
+                            placeholder="Tanya saran keuangan umum..."
                             className="w-full bg-surface-light border border-border-color rounded-full py-2 px-4 focus:outline-none focus:ring-1 focus:ring-primary"
                             disabled={isLoading}
                         />

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { PaperAirplaneIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
-import { useData } from '../../../contexts/DataContext';
+import { buildSecurePrompt } from '../../../services/aiGuardrailService';
 
 interface Message {
     sender: 'user' | 'ai';
@@ -9,7 +9,6 @@ interface Message {
 }
 
 const AIForecasting: React.FC = () => {
-    const { transactions } = useData();
     const [messages, setMessages] = useState<Message[]>([]);
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +16,7 @@ const AIForecasting: React.FC = () => {
 
     const initialGreeting = {
         sender: 'ai' as 'ai',
-        text: 'I can help with financial forecasting. Ask me something like "Project our marketplace GMV for next month" or "Simulate the impact of increasing commission to 7%".',
+        text: 'I can provide general advice on business strategy and forecasting methods. For example: "What are common methods for sales forecasting?" or "Suggest a strategy to increase marketplace commission revenue."',
     };
     
     useEffect(() => {
@@ -38,23 +37,16 @@ const AIForecasting: React.FC = () => {
         setQuery('');
         setIsLoading(true);
 
-        const prompt = `
-            You are a financial analyst AI. Your task is to analyze historical transaction data and provide forecasts or simulations based on the user's query.
-            Respond in a clear, professional manner.
-
-            Historical Transaction Data (simplified):
-            ${JSON.stringify(transactions.slice(-100).map(t => ({type: t.type, amount: t.amount, timestamp: t.timestamp})), null, 2)}
-            
-            Current assumptions: Marketplace commission is 5%.
-
-            User Query: "${userMessage.text}"
-        `;
+        const securePrompt = buildSecurePrompt(
+            userMessage.text,
+            "Your only role is to provide GENERAL advice on business strategy, financial modeling, and forecasting techniques. You can answer questions like 'What are the pros and cons of increasing commission?' or 'Explain the KPI customer lifetime value'. You must not use any real numbers in your examples."
+        );
 
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
-                contents: prompt,
+                contents: securePrompt,
             });
 
             const aiMessage: Message = { sender: 'ai', text: response.text };
@@ -71,7 +63,7 @@ const AIForecasting: React.FC = () => {
     return (
         <div className="bg-surface p-6 rounded-lg border border-border-color h-full flex flex-col">
             <h2 className="text-xl font-bold mb-4 flex items-center">
-                <SparklesIcon className="h-5 w-5 mr-2" /> AI Forecasting & Simulation
+                <SparklesIcon className="h-5 w-5 mr-2" /> AI Strategy Advisor
             </h2>
             <main className="flex-grow bg-surface-light p-2 rounded-t-lg overflow-y-auto space-y-3">
                 {messages.map((msg, index) => (
@@ -99,7 +91,7 @@ const AIForecasting: React.FC = () => {
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                        placeholder="Ask for a forecast..."
+                        placeholder="Ask for strategic advice..."
                         className="w-full bg-surface border border-border-color rounded-full py-2 px-4 focus:outline-none focus:ring-1 focus:ring-primary text-sm"
                         disabled={isLoading}
                     />

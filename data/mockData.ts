@@ -1,5 +1,8 @@
-
-import { User, Role, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig, HomePageConfig, AdminWallets, PersonalizationRule } from '../types';
+import {
+    User, Role, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration,
+    IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig,
+    HomePageConfig, AdminWallets, PersonalizationRule, Order
+} from '../types';
 
 export const initialUsers: User[] = [
     {
@@ -168,6 +171,34 @@ export const initialDoctors: Doctor[] = [
 
 export const initialConsultations: Consultation[] = [];
 export const initialDisputes: Dispute[] = [];
+
+// FIX: Added initialOrders for the admin dashboard GMV calculation.
+export const initialOrders: Order[] = [
+    {
+        id: 'order-001',
+        userId: 'user-jkt-001',
+        items: [{ productId: 'p-002', quantity: 1 }],
+        total: 150000,
+        status: 'Completed',
+        timestamp: new Date(Date.now() - 2 * 86400000).toISOString(), // 2 days ago
+    },
+    {
+        id: 'order-002',
+        userId: 'user-bdg-001',
+        items: [{ productId: 'p-003', quantity: 1 }],
+        total: 95000,
+        status: 'Shipped',
+        timestamp: new Date(Date.now() - 3 * 86400000).toISOString(), // 3 days ago
+    },
+    {
+        id: 'order-003',
+        userId: 'user-jkt-001',
+        items: [{ productId: 'p-001', quantity: 1 }, { productId: 'p-003', quantity: 1 }],
+        total: 945000,
+        status: 'Processing',
+        timestamp: new Date(Date.now() - 1 * 86400000).toISOString(), // 1 day ago
+    },
+];
 
 export const initialApiIntegrations: ApiIntegration[] = [
     { id: 'api-bca', name: 'Bank Central Asia (BCA)', type: 'Bank', status: IntegrationStatus.Inactive },

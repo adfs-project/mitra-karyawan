@@ -1,20 +1,61 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../../../contexts/DataContext';
 import { VideoCameraIcon, PhoneIcon, ChatBubbleLeftRightIcon, DocumentTextIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
+import { GoogleGenAI, Type } from "@google/genai";
+import { getConsultationTemplatePrompt } from '../../../services/aiGuardrailService';
 
 const ConsultationRoomScreen: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { consultations } = useData();
+    const { consultations, endConsultation } = useData();
     const consultation = consultations.find(c => c.id === id);
     const [time, setTime] = useState(0);
+    const [isEnding, setIsEnding] = useState(false);
 
     useEffect(() => {
-        const timer = setInterval(() => setTime(prev => prev + 1), 1000);
-        return () => clearInterval(timer);
-    }, []);
+        if (consultation?.status === 'Scheduled') {
+            const timer = setInterval(() => setTime(prev => prev + 1), 1000);
+            return () => clearInterval(timer);
+        }
+    }, [consultation]);
+
+    const handleEndConsultation = async () => {
+        if (!consultation) return;
+        setIsEnding(true);
+
+        const securePrompt = getConsultationTemplatePrompt();
+
+        try {
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: securePrompt,
+                 config: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: Type.OBJECT,
+                        properties: {
+                            notes: { type: Type.STRING },
+                            prescription: { type: Type.STRING }
+                        },
+                        required: ['notes', 'prescription']
+                    }
+                }
+            });
+
+            const result = JSON.parse(response.text);
+            await endConsultation(consultation.id, result.notes, result.prescription);
+
+        } catch (err) {
+            console.error("AI Consultation Template Error:", err);
+            // Fallback to a hardcoded template if AI fails
+            await endConsultation(consultation.id, "[Gagal memuat templat AI]", "[Gagal memuat templat AI]");
+        } finally {
+            setIsEnding(false);
+        }
+    };
+
 
     if (!consultation) {
         return <div className="p-4 text-center">Konsultasi tidak ditemukan.</div>;
@@ -25,6 +66,8 @@ const ConsultationRoomScreen: React.FC = () => {
         const secs = (seconds % 60).toString().padStart(2, '0');
         return `${mins}:${secs}`;
     };
+    
+    const isSafetyAlert = consultation.prescription?.startsWith('SAFETY_ALERT:');
 
     return (
         <div className="flex flex-col h-full">
@@ -34,7 +77,9 @@ const ConsultationRoomScreen: React.FC = () => {
                 </button>
                 <div className="ml-4">
                     <h1 className="text-lg font-bold">Konsultasi dengan {consultation.doctorName}</h1>
-                    <p className="text-sm text-green-400">● Live ({formatTime(time)})</p>
+                    {consultation.status === 'Scheduled' && (
+                        <p className="text-sm text-green-400">● Live ({formatTime(time)})</p>
+                    )}
                 </div>
             </header>
             
@@ -52,9 +97,13 @@ const ConsultationRoomScreen: React.FC = () => {
                         <img src={`https://i.pravatar.cc/150?u=${consultation.userId}`} alt="You" className="w-full h-full object-cover"/>
                      </div>
 
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-4 bg-black/50 p-3 rounded-full">
-                        <button className="p-3 bg-red-600 rounded-full"><PhoneIcon className="h-6 w-6 text-white" /></button>
-                    </div>
+                    {consultation.status === 'Scheduled' && (
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-4 bg-black/50 p-3 rounded-full">
+                            <button onClick={handleEndConsultation} disabled={isEnding} className="p-3 bg-red-600 rounded-full">
+                                {isEnding ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <PhoneIcon className="h-6 w-6 text-white" />}
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Info Panel */}
@@ -69,7 +118,14 @@ const ConsultationRoomScreen: React.FC = () => {
                                 <h3 className="font-bold">Catatan Dokter</h3>
                                 <p className="text-sm text-text-secondary">{consultation.notes || "Tidak ada catatan."}</p>
                                 <h3 className="font-bold pt-2 border-t border-border-color">Resep</h3>
-                                <p className="text-sm text-text-secondary whitespace-pre-wrap">{consultation.prescription || "Tidak ada resep."}</p>
+                                {isSafetyAlert ? (
+                                    <div className="bg-red-500/20 border border-red-500 p-4 rounded-lg">
+                                        <h3 className="font-bold text-red-400">PERINGATAN KEAMANAN</h3>
+                                        <p className="text-sm text-red-300 whitespace-pre-wrap">{consultation.prescription?.replace('SAFETY_ALERT:', '').trim()}</p>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-text-secondary whitespace-pre-wrap">{consultation.prescription || "Tidak ada resep."}</p>
+                                )}
                             </div>
                         </div>
                     ) : (

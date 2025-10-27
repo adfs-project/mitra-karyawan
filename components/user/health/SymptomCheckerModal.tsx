@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { XMarkIcon, PaperAirplaneIcon, BeakerIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
+import { buildSecurePrompt } from '../../../services/aiGuardrailService';
 
 interface Message {
     sender: 'user' | 'ai';
@@ -16,11 +17,10 @@ const SymptomCheckerModal: React.FC<{
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const navigate = useNavigate();
 
     const initialGreeting = {
         sender: 'ai' as 'ai',
-        text: 'Halo! Saya asisten kesehatan AI. Jelaskan gejala yang Anda rasakan. Contoh: "Saya demam dan sakit kepala sejak kemarin."\n\n**Penting:** Saya bukan pengganti dokter. Informasi ini hanya untuk tujuan edukasi.',
+        text: 'Halo! Saya asisten kesehatan AI. Anda bisa bertanya tentang informasi umum seputar gejala atau kondisi kesehatan. Contoh: "Apa penyebab umum sakit kepala?".\n\n**Penting:** Saya bukan dokter dan tidak bisa memberikan diagnosis. Informasi ini hanya untuk tujuan edukasi.',
     };
 
     useEffect(() => {
@@ -41,24 +41,16 @@ const SymptomCheckerModal: React.FC<{
         setQuery('');
         setIsLoading(true);
 
-        const prompt = `
-            You are an AI Health Assistant for an employee app. Your role is to act as a helpful initial symptom checker.
-            - You MUST provide a clear disclaimer that you are not a real doctor and this is not a medical diagnosis.
-            - Analyze the user's symptoms.
-            - Provide a brief, simple explanation of possible common conditions (e.g., common cold, flu).
-            - Suggest simple self-care tips (e.g., rest, hydration).
-            - Recommend which type of doctor specialty is most appropriate to consult for these symptoms (e.g., "Dokter Umum", "Psikolog").
-            - End your response with a clear call to action, asking if the user wants to see the list of available doctors.
-            - Respond in friendly, clear Indonesian.
-
-            User's symptoms: "${userMessage.text}"
-        `;
+        const securePrompt = buildSecurePrompt(
+            userMessage.text,
+            `Your only role is to provide GENERAL, EDUCATIONAL information about health topics. You MUST NOT provide a diagnosis. You MUST always include a clear disclaimer that you are not a real doctor and this is not medical advice. Always end your response with a clear recommendation to consult a real doctor for any health concerns. Respond in friendly, clear Indonesian.`
+        );
 
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
-                contents: prompt,
+                contents: securePrompt,
             });
 
             const aiMessage: Message = { sender: 'ai', text: response.text };
@@ -80,7 +72,7 @@ const SymptomCheckerModal: React.FC<{
                 <header className="p-4 border-b border-border-color flex justify-between items-center">
                     <h2 className="text-lg font-bold text-primary flex items-center">
                         <BeakerIcon className="h-6 w-6 mr-2" />
-                        Pemeriksa Gejala AI
+                        Info Kesehatan AI
                     </h2>
                     <button onClick={onClose} className="p-1 rounded-full hover:bg-surface-light">
                         <XMarkIcon className="h-6 w-6 text-text-secondary" />
@@ -116,7 +108,7 @@ const SymptomCheckerModal: React.FC<{
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="Jelaskan gejala Anda..."
+                            placeholder="Tanya informasi kesehatan..."
                             className="w-full bg-surface-light border border-border-color rounded-full py-2 px-4 focus:outline-none focus:ring-1 focus:ring-primary"
                             disabled={isLoading}
                         />

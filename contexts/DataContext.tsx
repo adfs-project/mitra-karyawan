@@ -1,17 +1,19 @@
 
+
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import {
     User, Product, Article, Transaction, Notification, Doctor, Consultation,
     CartItem, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService,
     ScalabilityServiceStatus, LeaveRequest, Budget, ScheduledPayment,
     MonetizationConfig, TaxConfig, HomePageConfig, AssistantLog, EngagementAnalytics,
-    AdminWallets, PersonalizationRule
+    AdminWallets, PersonalizationRule, Order
 } from '../types';
 import {
     initialUsers, initialProducts, initialArticles, initialTransactions, initialNotifications,
     initialDoctors, initialConsultations, initialDisputes, initialApiIntegrations,
     initialScalabilityServices, initialLeaveRequests, initialMonetizationConfig,
-    initialTaxConfig, initialHomePageConfig, initialAdminWallets, initialPersonalizationRules
+    initialTaxConfig, initialHomePageConfig, initialAdminWallets, initialPersonalizationRules,
+    initialOrders
 } from '../data/mockData';
 import { testApiConnection } from '../services/apiService';
 import { useAuth } from './AuthContext';
@@ -57,6 +59,7 @@ interface DataContextType {
     assistantLogs: AssistantLog[];
     engagementAnalytics: EngagementAnalytics;
     adminWallets: AdminWallets;
+    orders: Order[];
     personalizationRules: PersonalizationRule[];
 
     // --- Methods ---
@@ -83,6 +86,7 @@ interface DataContextType {
     
     // Health
     bookConsultation: (doctorId: string, slotTime: string) => Promise<{ success: boolean; message: string; consultationId?: string }>;
+    endConsultation: (consultationId: string, notes: string, prescription: string) => Promise<void>;
     
     // HR
     submitLeaveRequest: (req: { startDate: string, endDate: string, reason: string }) => Promise<void>;
@@ -111,6 +115,7 @@ interface DataContextType {
     updateScalabilityService: (id: string, status: ScalabilityServiceStatus, log: string, metadata?: Record<string, any>, cost?: number) => void;
     updateMonetizationConfig: (config: MonetizationConfig) => void;
     updateTaxConfig: (config: TaxConfig) => void;
+    updateHomePageConfig: (config: HomePageConfig) => void;
 
     // Engagement & Personalization
     logAssistantQuery: (query: string, detectedIntent: string) => void;
@@ -151,6 +156,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [assistantLogs, setAssistantLogs] = useStickyState<AssistantLog[]>('app_assistant_logs', []);
     const [engagementAnalytics, setEngagementAnalytics] = useStickyState<EngagementAnalytics>('app_engagement_analytics', { forYouClicks: {}, quickAccessClicks: {} });
     const [adminWallets, setAdminWallets] = useStickyState<AdminWallets>('app_admin_wallets', initialAdminWallets);
+    const [orders, setOrders] = useStickyState<Order[]>('app_orders', initialOrders);
     const [personalizationRules, setPersonalizationRules] = useStickyState<PersonalizationRule[]>('app_personalization_rules', initialPersonalizationRules);
 
     const addNotification = useCallback((userId: string, message: string, type: Notification['type']) => {
@@ -334,6 +340,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { success: true, message: 'Booking confirmed!', consultationId: newConsultation.id };
     };
     
+    const endConsultation = async (consultationId: string, notes: string, prescription: string) => {
+        setConsultations(prev => prev.map(c => 
+            c.id === consultationId 
+            ? { ...c, status: 'Completed', notes, prescription } 
+            : c
+        ));
+    };
+
     const submitLeaveRequest = async (req: { startDate: string, endDate: string, reason: string }) => {
         if (!user) return;
         const newReq: LeaveRequest = {
@@ -453,6 +467,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     const updateMonetizationConfig = (config: MonetizationConfig) => setMonetizationConfig(config);
     const updateTaxConfig = (config: TaxConfig) => setTaxConfig(config);
+    const updateHomePageConfig = (config: HomePageConfig) => setHomePageConfig(config);
 
     const logAssistantQuery = (query: string, detectedIntent: string) => {
         if (!user) return;
@@ -507,19 +522,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         cart, disputes, apiIntegrations, scalabilityServices, leaveRequests, budgets,
         scheduledPayments, monetizationConfig, taxConfig, homePageConfig, assistantLogs,
         engagementAnalytics, adminWallets, personalizationRules,
+        orders,
         
         addTransaction, addNotification, markNotificationsAsRead, updateUserStatus,
         addToCart, removeFromCart, updateCartQuantity, clearCart,
         toggleWishlist, toggleArticleBookmark,
         toggleArticleLike, addArticleComment, toggleCommentLike, voteOnPoll,
-        bookConsultation,
+        bookConsultation, endConsultation,
         submitLeaveRequest, updateLeaveRequestStatus,
         addBudget, updateBudget, deleteBudget,
         addScheduledPayment, updateScheduledPayment, deleteScheduledPayment,
         applyForPayLater, approvePayLater, rejectPayLater,
         adjustUserWallet, freezeUserWallet, reverseTransaction, resolveDispute,
         updateApiIntegration, deactivateApiIntegration, updateScalabilityService,
-        updateMonetizationConfig, updateTaxConfig,
+        updateMonetizationConfig, updateTaxConfig, updateHomePageConfig,
         logAssistantQuery, logEngagementEvent,
         addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule,
         addProduct, updateProduct, deleteProduct
