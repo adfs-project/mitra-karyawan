@@ -299,6 +299,19 @@ export interface PersonalizationRule {
 }
 // --- END: Personalization Engine Types ---
 
+// --- START: HR Module Types ---
+export interface LeaveRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  branch: string;
+  startDate: string;
+  endDate: string;
+  reason: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+}
+// --- END: HR Module Types ---
+
 
 // FIX: Add Achievement type for LoyaltyScreen component
 export type Achievement = 'First Purchase' | 'Punctual Payer' | 'Top Spender';

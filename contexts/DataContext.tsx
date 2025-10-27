@@ -1,10 +1,10 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { 
     User, Transaction, Product, Order, Article, Doctor, Notification, ApiIntegration, IntegrationStatus, ScalabilityService, Budget, ScheduledPayment, Review, CartItem, Consultation, HealthChallenge, MoodEntry, HomePageConfig, AssistantLog, EngagementAnalytics, Dispute,
-    PersonalizationRule, PersonalizationCondition, Role
+    PersonalizationRule, PersonalizationCondition, Role, LeaveRequest
 } from '../types';
 import { 
-    initialUsers, initialTransactions, initialProducts, initialOrders, initialArticles, initialDoctors, initialApiIntegrations, initialScalabilityServices, initialPersonalizationRules
+    initialUsers, initialTransactions, initialProducts, initialOrders, initialArticles, initialDoctors, initialApiIntegrations, initialScalabilityServices, initialPersonalizationRules, initialLeaveRequests
 } from '../data/mockData';
 import { useAuth } from './AuthContext';
 import { testApiConnection } from '../services/apiService';
@@ -29,6 +29,7 @@ interface DataContextType {
     assistantLogs: AssistantLog[];
     engagementAnalytics: EngagementAnalytics;
     personalizationRules: PersonalizationRule[];
+    leaveRequests: LeaveRequest[];
     
     adminWallets: { profit: number; tax: number, cash: number };
     monetizationConfig: { marketplaceCommission: number; marketingCPA: number };
@@ -79,6 +80,11 @@ interface DataContextType {
     adjustUserWallet: (userId: string, amount: number, reason: string) => Promise<{ success: boolean }>;
     freezeUserWallet: (userId: string, freeze: boolean) => Promise<{ success: boolean }>;
     reverseTransaction: (transactionId: string) => Promise<{ success: boolean }>;
+
+    // HR Actions
+    createEmployee: (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData' | 'password'> & {password: string}) => Promise<{ success: boolean; message: string }>;
+    updateLeaveRequestStatus: (requestId: string, status: 'Approved' | 'Rejected') => Promise<{ success: boolean }>;
+    submitLeaveRequest: (requestData: Omit<LeaveRequest, 'id' | 'status' | 'branch' | 'userName' | 'userId'>) => Promise<{ success: boolean }>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -208,6 +214,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [budgets, setBudgets] = usePersistentState<Budget[]>('app_budgets', []);
     const [scheduledPayments, setScheduledPayments] = usePersistentState<ScheduledPayment[]>('app_scheduled_payments', []);
     const [cart, setCart] = usePersistentState<CartItem[]>('app_cart', []);
+    const [leaveRequests, setLeaveRequests] = usePersistentState<LeaveRequest[]>('app_leave_requests', initialLeaveRequests);
     
     // --- START: Personalization Engine ---
     const [baseHomePageConfig, setBaseHomePageConfig] = usePersistentState<HomePageConfig>('app_home_config', {
@@ -853,10 +860,65 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
     };
 
+    // --- HR ACTIONS ---
+    const createEmployee = async (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData' | 'password'> & {password: string}): Promise<{ success: boolean; message: string }> => {
+        if (users.some(u => u.email.toLowerCase() === userData.email.toLowerCase())) {
+            return { success: false, message: 'Email already exists.' };
+        }
+        const newUser: User = {
+            ...userData,
+            id: `user-${Date.now()}`,
+            role: Role.User,
+            status: 'active',
+            wallet: { balance: 0, isFrozen: false },
+            achievements: [],
+            loyaltyPoints: 0,
+            wishlist: [],
+            bookmarkedArticles: [],
+            healthData: {
+                moodHistory: [],
+                activeChallenges: []
+            }
+        };
+        setUsers(prevUsers => [...prevUsers, newUser]);
+        return { success: true, message: 'Employee created successfully.' };
+    };
+
+    const updateLeaveRequestStatus = async (requestId: string, status: 'Approved' | 'Rejected'): Promise<{ success: boolean }> => {
+        let targetUser: User | undefined;
+        setLeaveRequests(prev => prev.map(req => {
+            if (req.id === requestId) {
+                targetUser = users.find(u => u.id === req.userId);
+                return { ...req, status };
+            }
+            return req;
+        }));
+        if (targetUser) {
+            addNotification(targetUser.id, `Permohonan cuti Anda telah ${status === 'Approved' ? 'disetujui' : 'ditolak'}.`, status === 'Approved' ? 'success' : 'error');
+        }
+        return { success: true };
+    };
+
+    const submitLeaveRequest = async (requestData: Omit<LeaveRequest, 'id' | 'status' | 'branch' | 'userName' | 'userId'>): Promise<{ success: boolean }> => {
+        if (!user) return { success: false };
+        const newRequest: LeaveRequest = {
+            ...requestData,
+            id: `leave-${Date.now()}`,
+            userId: user.id,
+            status: 'Pending',
+            branch: user.profile.branch || 'UNKNOWN',
+            userName: user.profile.name,
+        };
+        setLeaveRequests(prev => [newRequest, ...prev]);
+        addNotification(user.id, 'Permohonan cuti berhasil diajukan.', 'success');
+        return { success: true };
+    };
+
+
     const value = {
         users, transactions, products, orders, articles, doctors, notifications, apiIntegrations, scalabilityServices,
         consultations, healthChallenges, disputes,
-        budgets, scheduledPayments, cart,
+        budgets, scheduledPayments, cart, leaveRequests,
         homePageConfig: personalizedHomePageConfig, 
         assistantLogs, engagementAnalytics, personalizationRules,
         adminWallets, monetizationConfig, taxConfig,
@@ -868,6 +930,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule,
         logAssistantQuery, logEngagementEvent,
         adjustUserWallet, freezeUserWallet, reverseTransaction,
+        createEmployee, updateLeaveRequestStatus, submitLeaveRequest
     };
 
     return (

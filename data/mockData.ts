@@ -1,4 +1,4 @@
-import { User, Role, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, Article, Product, Doctor, Transaction, Order, PersonalizationRule } from '../types';
+import { User, Role, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, Article, Product, Doctor, Transaction, Order, PersonalizationRule, LeaveRequest } from '../types';
 
 // Hashing the password is a backend concern. For this frontend simulation, we store it as is.
 // In a real app, this would NEVER be done.
@@ -16,13 +16,28 @@ const adminUser: User = {
     },
     wallet: {
         balance: 1000000000, // Platform wallet for initial funds
-// FIX: Added missing 'isFrozen' property to conform to the User type.
         isFrozen: false,
     },
     achievements: [],
     loyaltyPoints: 0,
     wishlist: [],
     bookmarkedArticles: [],
+};
+
+const hrUser: User = {
+    id: 'hr-001',
+    email: 'hr@mitra.com',
+    password: 'password123',
+    role: Role.HR,
+    status: 'active',
+    profile: {
+        name: 'HR Jakarta Pusat',
+        phone: '081211112222',
+        photoUrl: 'https://i.pravatar.cc/150?u=hr-001',
+        branch: 'JAKARTA_PUSAT',
+    },
+    wallet: { balance: 100000, isFrozen: false },
+    achievements: [], loyaltyPoints: 0, wishlist: [], bookmarkedArticles: [],
 };
 
 const employeeUser: User = {
@@ -36,24 +51,54 @@ const employeeUser: User = {
         phone: '081298765432',
         photoUrl: 'https://i.pravatar.cc/150?u=user-001',
         branch: 'JAKARTA_PUSAT',
+        salary: 8000000,
+        joinDate: new Date().toISOString(),
     },
-    wallet: {
-        balance: 500000,
-// FIX: Added missing 'isFrozen' property to conform to the User type.
-        isFrozen: false,
+    wallet: { balance: 500000, isFrozen: false },
+    achievements: [], loyaltyPoints: 250, wishlist: [], bookmarkedArticles: [],
+    healthData: { moodHistory: [], activeChallenges: [] }
+};
+
+const employeeUser2: User = {
+    id: 'user-002',
+    email: 'siti@mitra.com',
+    password: 'password123',
+    role: Role.User,
+    status: 'active',
+    profile: {
+        name: 'Siti Aminah',
+        phone: '081212345678',
+        photoUrl: 'https://i.pravatar.cc/150?u=user-002',
+        branch: 'JAKARTA_PUSAT',
+        salary: 7500000,
+        joinDate: new Date('2023-01-15').toISOString(),
     },
-    achievements: [],
-    loyaltyPoints: 250,
-    wishlist: [],
-    bookmarkedArticles: [],
-    healthData: {
-        moodHistory: [],
-        activeChallenges: [],
-    }
+    wallet: { balance: 1200000, isFrozen: false },
+    achievements: ['First Purchase'], loyaltyPoints: 800, wishlist: [], bookmarkedArticles: [],
+    healthData: { moodHistory: [], activeChallenges: [] }
+};
+
+const employeeUser3: User = {
+    id: 'user-003',
+    email: 'agus@mitra.com',
+    password: 'password123',
+    role: Role.User,
+    status: 'active',
+    profile: {
+        name: 'Agus Setiawan',
+        phone: '081287654321',
+        photoUrl: 'https://i.pravatar.cc/150?u=user-003',
+        branch: 'BANDUNG',
+        salary: 6500000,
+        joinDate: new Date('2022-11-20').toISOString(),
+    },
+    wallet: { balance: 250000, isFrozen: false },
+    achievements: [], loyaltyPoints: 150, wishlist: [], bookmarkedArticles: [],
+    healthData: { moodHistory: [], activeChallenges: [] }
 };
 
 
-export const initialUsers: User[] = [adminUser, employeeUser];
+export const initialUsers: User[] = [adminUser, hrUser, employeeUser, employeeUser2, employeeUser3];
 export const initialTransactions: Transaction[] = [];
 export const initialProducts: Product[] = [
     {
@@ -206,3 +251,36 @@ export const initialScalabilityServices: ScalabilityService[] = [
 ];
 
 export const initialPersonalizationRules: PersonalizationRule[] = [];
+
+export const initialLeaveRequests: LeaveRequest[] = [
+    {
+        id: 'leave-001',
+        userId: 'user-001',
+        userName: 'Budi Karyawan',
+        branch: 'JAKARTA_PUSAT',
+        startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        reason: 'Acara keluarga di luar kota.',
+        status: 'Pending',
+    },
+    {
+        id: 'leave-002',
+        userId: 'user-002',
+        userName: 'Siti Aminah',
+        branch: 'JAKARTA_PUSAT',
+        startDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        endDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        reason: 'Sakit, surat dokter menyusul.',
+        status: 'Pending',
+    },
+     {
+        id: 'leave-003',
+        userId: 'user-003',
+        userName: 'Agus Setiawan',
+        branch: 'BANDUNG',
+        startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        reason: 'Keperluan pribadi mendadak.',
+        status: 'Pending',
+    }
+];
