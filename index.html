@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <link href="/vite.svg" rel="icon" type="image/svg+xml"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+
+    <!-- START: Cache Control Meta Tags -->
+    <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
+    <meta content="no-cache" http-equiv="Pragma"/>
+    <meta content="0" http-equiv="Expires"/>
+    <!-- END: Cache Control Meta Tags -->
+
+    <title>Mitra Karyawan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://rsms.me/inter/inter.css');
+        html { font-family: 'Inter', sans-serif; }
+
+        /* Dark Theme (Default) */
+        html.dark {
+          --color-primary: #39FF14;
+          --color-secondary: #FF5F1F;
+          --color-background: #121212;
+          --color-surface: #1e1e1e;
+          --color-surface-light: #2a2a2a;
+          --color-text-primary: #e0e0e0;
+          --color-text-secondary: #a0a0a0;
+          --color-border: #444444;
+        }
+
+        /* Light Theme */
+        html.light {
+          --color-primary: #006400; /* Darker Green */
+          --color-secondary: #d95f02; /* Darker Orange */
+          --color-background: #f8f9fa;
+          --color-surface: #ffffff;
+          --color-surface-light: #f1f3f4;
+          --color-text-primary: #212529;
+          --color-text-secondary: #6c757d;
+          --color-border: #dee2e6;
+        }
+
+        body {
+          background-color: var(--color-background);
+          color: var(--color-text-primary);
+          overscroll-behavior: none;
+          transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .glowing-border {
+          border: 2px solid transparent;
+          transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .glowing-border:hover, .glowing-border:focus-within {
+          border-color: var(--color-primary);
+          box-shadow: 0 0 10px 0 var(--color-primary);
+        }
+        .btn-primary {
+          background-color: var(--color-primary);
+          color: #fff; /* Changed for better contrast on dark green */
+          font-weight: bold;
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+         html.dark .btn-primary {
+           color: #000;
+         }
+        .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 20px -5px var(--color-primary);
+        }
+         .btn-secondary {
+          background-color: var(--color-secondary);
+          color: #fff; /* Changed for better contrast on dark orange */
+          font-weight: bold;
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        html.dark .btn-secondary {
+          color: #000;
+        }
+        .btn-secondary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 20px -5px var(--color-secondary);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+          darkMode: 'class',
+          theme: {
+            extend: {
+              colors: {
+                primary: 'var(--color-primary)',
+                secondary: 'var(--color-secondary)',
+                background: 'var(--color-background)',
+                surface: 'var(--color-surface)',
+                'surface-light': 'var(--color-surface-light)',
+                'text-primary': 'var(--color-text-primary)',
+                'text-secondary': 'var(--color-text-secondary)',
+                'border-color': 'var(--color-border)',
+              }
+            }
+          }
+        }
+    </script>
+    <script type="importmap">
+        {
+          "imports": {
+            "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.4",
+            "react/": "https://aistudiocdn.com/react@^19.2.0/",
+            "react": "https://aistudiocdn.com/react@^19.2.0",
+            "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+            "@heroicons/react/": "https://aistudiocdn.com/@heroicons/react@^2.2.0/",
+            "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0",
+            "react-error-boundary": "https://esm.sh/react-error-boundary@4.0.13"
+          }
+        }
+    </script>
+</head>
+<body>
+<div id="root"></div>
+</body>
+</html>
