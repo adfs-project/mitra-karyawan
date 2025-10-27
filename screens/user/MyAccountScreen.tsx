@@ -1,8 +1,28 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import { Role } from '../../types';
+import { useTheme } from '../../contexts/ThemeContext';
+
+const ThemeToggle: React.FC = () => {
+    const { theme, toggleTheme } = useTheme();
+    return (
+        <div className="flex justify-between items-center p-4 w-full text-left hover:bg-surface-light">
+            <div className="flex items-center">
+                {theme === 'dark' ? <MoonIcon className="h-6 w-6 text-primary mr-4" /> : <SunIcon className="h-6 w-6 text-primary mr-4" />}
+                <span className="text-text-primary">Mode Tampilan</span>
+            </div>
+            <div className="flex items-center space-x-2">
+                <span className="text-sm text-text-secondary">{theme === 'dark' ? 'Gelap' : 'Terang'}</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked={theme === 'dark'} onChange={toggleTheme} className="sr-only peer" />
+                    <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-800"></div>
+                </label>
+            </div>
+        </div>
+    );
+};
 
 const MyAccountScreen: React.FC = () => {
     const { user, logout } = useAuth();
@@ -33,8 +53,9 @@ const MyAccountScreen: React.FC = () => {
             </div>
             
             <div className="m-4 bg-surface rounded-lg border border-border-color">
+                <ThemeToggle />
                 {user.role === Role.HR && (
-                     <Link to={hrMenuItem.path} key={hrMenuItem.name} className="flex justify-between items-center p-4 w-full text-left border-b border-border-color bg-primary/10 hover:bg-primary/20">
+                     <Link to={hrMenuItem.path} key={hrMenuItem.name} className="flex justify-between items-center p-4 w-full text-left border-t border-border-color bg-primary/10 hover:bg-primary/20">
                         <div className="flex items-center">
                             <hrMenuItem.icon className="h-6 w-6 text-primary mr-4" />
                             <span className="text-primary font-bold">{hrMenuItem.name}</span>
@@ -42,8 +63,8 @@ const MyAccountScreen: React.FC = () => {
                         <ChevronRightIcon className="h-5 w-5 text-primary" />
                     </Link>
                 )}
-                {menuItems.map((item, index) => (
-                    <Link to={item.path} key={item.name} className={`flex justify-between items-center p-4 w-full text-left ${index < menuItems.length - 1 ? 'border-b border-border-color' : ''} hover:bg-surface-light`}>
+                {menuItems.map((item) => (
+                    <Link to={item.path} key={item.name} className={`flex justify-between items-center p-4 w-full text-left border-t border-border-color hover:bg-surface-light`}>
                         <div className="flex items-center">
                             <item.icon className="h-6 w-6 text-primary mr-4" />
                             <span className="text-text-primary">{item.name}</span>

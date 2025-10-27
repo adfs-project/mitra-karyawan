@@ -271,6 +271,34 @@ export interface EngagementAnalytics {
     quickAccessClicks: Record<string, number>; // key: item id, value: count
 }
 
+// --- START: Personalization Engine Types ---
+export type ConditionField = 'role' | 'profile.branch' | 'transactionCount';
+export type ConditionOperator = 'equals' | 'not_equals' | 'greater_than' | 'less_than';
+export type ActionType = 'PIN_ITEM' | 'SHOW_ANNOUNCEMENT';
+
+export interface PersonalizationCondition {
+    field: ConditionField;
+    operator: ConditionOperator;
+    value: string | number | Role;
+}
+
+export interface PersonalizationAction {
+    type: ActionType;
+    payload: {
+        itemId?: string; // for PIN_ITEM
+        message?: string; // for SHOW_ANNOUNCEMENT
+    };
+}
+
+export interface PersonalizationRule {
+    id: string;
+    name: string;
+    conditions: PersonalizationCondition[];
+    action: PersonalizationAction;
+    isActive: boolean;
+}
+// --- END: Personalization Engine Types ---
+
 
 // FIX: Add Achievement type for LoyaltyScreen component
 export type Achievement = 'First Purchase' | 'Punctual Payer' | 'Top Spender';

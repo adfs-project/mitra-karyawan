@@ -3,15 +3,16 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
-import ErrorBoundary from './components/common/ErrorBoundary';
 import RecoveryUI from './components/common/RecoveryUI';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { ErrorBoundary } from 'react-error-boundary';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 
 // --- START: Anti-Blank Screen Defense System ---
 
 // 1. Versioning: Should be updated with each new deployment.
 // This allows detection of an app update.
-const APP_VERSION = '2.1.0'; 
+const APP_VERSION = '2.2.0'; 
 
 // 2. Preflight Checks & Crash Loop Detection
 const runPreflightChecks = (): boolean => {
@@ -47,6 +48,29 @@ const runPreflightChecks = (): boolean => {
   }
 };
 
+// 3. Modern Error Boundary Fallback UI
+const ErrorFallback: React.FC<{ error: Error; resetErrorBoundary: () => void }> = ({ error, resetErrorBoundary }) => {
+    console.error("Caught by Error Boundary:", error);
+    return (
+        <div className="flex items-center justify-center h-screen w-screen bg-background text-text-primary p-4">
+            <div className="text-center bg-surface p-8 rounded-lg border border-border-color max-w-lg">
+                <ExclamationTriangleIcon className="h-16 w-16 text-secondary mx-auto mb-4" />
+                <h1 className="text-2xl font-bold text-primary mb-2">Oops! Terjadi Kesalahan</h1>
+                <p className="text-text-secondary mb-6">
+                    Sesuatu berjalan tidak semestinya. Tim kami telah diberitahu. Silakan coba muat ulang halaman.
+                </p>
+                <button
+                    onClick={() => window.location.reload()} // Simple and robust reload
+                    className="btn-secondary px-6 py-2 rounded-lg font-bold"
+                >
+                    Muat Ulang Halaman
+                </button>
+            </div>
+        </div>
+    );
+};
+
+
 // --- END: Anti-Blank Screen Defense System ---
 
 const rootElement = document.getElementById('root');
@@ -61,16 +85,15 @@ const preflightChecksPassed = runPreflightChecks();
 root.render(
   <React.StrictMode>
     {preflightChecksPassed ? (
-      // FIX: Added ThemeProvider to wrap the application and enable theme functionality.
-      <ThemeProvider>
-        <AuthProvider>
-          <DataProvider>
-            <ErrorBoundary>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <ThemeProvider>
+          <AuthProvider>
+            <DataProvider>
               <App />
-            </ErrorBoundary>
-          </DataProvider>
-        </AuthProvider>
-      </ThemeProvider>
+            </DataProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </ErrorBoundary>
     ) : (
       <RecoveryUI />
     )}

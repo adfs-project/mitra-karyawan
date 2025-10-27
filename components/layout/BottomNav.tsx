@@ -1,13 +1,12 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { HomeIcon, WalletIcon, BuildingStorefrontIcon, NewspaperIcon, HeartIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, WalletIcon, BuildingStorefrontIcon, NewspaperIcon, HeartIcon, UserCircleIcon, StarIcon } from '@heroicons/react/24/outline';
 
 const navItems = [
     { name: 'Home', path: '/home', icon: HomeIcon },
     { name: 'Wallet', path: '/wallet', icon: WalletIcon },
     { name: 'Market', path: '/market', icon: BuildingStorefrontIcon },
-    { name: 'Info', path: '/news', icon: NewspaperIcon },
+    { name: 'Loyalty', path: '/loyalty', icon: StarIcon },
     { name: 'Health', path: '/health', icon: HeartIcon },
     { name: 'Account', path: '/account', icon: UserCircleIcon },
 ];

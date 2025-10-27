@@ -1,9 +1,10 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { 
-    User, Transaction, Product, Order, Article, Doctor, Notification, ApiIntegration, IntegrationStatus, ScalabilityService, Budget, ScheduledPayment, Review, CartItem, Consultation, HealthChallenge, MoodEntry, HomePageConfig, AssistantLog, EngagementAnalytics, Dispute
+    User, Transaction, Product, Order, Article, Doctor, Notification, ApiIntegration, IntegrationStatus, ScalabilityService, Budget, ScheduledPayment, Review, CartItem, Consultation, HealthChallenge, MoodEntry, HomePageConfig, AssistantLog, EngagementAnalytics, Dispute,
+    PersonalizationRule, PersonalizationCondition, Role
 } from '../types';
 import { 
-    initialUsers, initialTransactions, initialProducts, initialOrders, initialArticles, initialDoctors, initialApiIntegrations, initialScalabilityServices
+    initialUsers, initialTransactions, initialProducts, initialOrders, initialArticles, initialDoctors, initialApiIntegrations, initialScalabilityServices, initialPersonalizationRules
 } from '../data/mockData';
 import { useAuth } from './AuthContext';
 import { testApiConnection } from '../services/apiService';
@@ -27,6 +28,7 @@ interface DataContextType {
     homePageConfig: HomePageConfig;
     assistantLogs: AssistantLog[];
     engagementAnalytics: EngagementAnalytics;
+    personalizationRules: PersonalizationRule[];
     
     adminWallets: { profit: number; tax: number, cash: number };
     monetizationConfig: { marketplaceCommission: number; marketingCPA: number };
@@ -68,7 +70,10 @@ interface DataContextType {
     completeConsultation: (consultationId: string, prescription: Consultation['prescription']) => void;
 
     // Admin Control Actions
-    updateHomePageConfig: (newConfig: Partial<HomePageConfig>) => void;
+    addPersonalizationRule: (rule: Omit<PersonalizationRule, 'id'>) => void;
+    updatePersonalizationRule: (rule: PersonalizationRule) => void;
+    deletePersonalizationRule: (ruleId: string) => void;
+
     logAssistantQuery: (query: string, detectedIntent: string) => void;
     logEngagementEvent: (type: keyof EngagementAnalytics, id: string) => void;
     adjustUserWallet: (userId: string, amount: number, reason: string) => Promise<{ success: boolean }>;
@@ -204,12 +209,63 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [scheduledPayments, setScheduledPayments] = usePersistentState<ScheduledPayment[]>('app_scheduled_payments', []);
     const [cart, setCart] = usePersistentState<CartItem[]>('app_cart', []);
     
-    // Admin Control States
-    const [homePageConfig, setHomePageConfig] = usePersistentState<HomePageConfig>('app_home_config', {
+    // --- START: Personalization Engine ---
+    const [baseHomePageConfig, setBaseHomePageConfig] = usePersistentState<HomePageConfig>('app_home_config', {
         pinnedItemId: null,
         quickAccessOrder: ['ppob', 'market', 'health', 'gov', 'lifestyle', 'pulsa', 'cashout', 'daily'],
         globalAnnouncement: { message: 'Selamat datang di versi baru Mitra Karyawan!', active: false },
     });
+    const [personalizationRules, setPersonalizationRules] = usePersistentState<PersonalizationRule[]>('app_personalization_rules', initialPersonalizationRules);
+    const [personalizedHomePageConfig, setPersonalizedHomePageConfig] = useState<HomePageConfig>(baseHomePageConfig);
+
+    useEffect(() => {
+        if (!user) {
+            setPersonalizedHomePageConfig(baseHomePageConfig);
+            return;
+        }
+
+        const evaluateCondition = (user: User, userTxCount: number, condition: PersonalizationCondition): boolean => {
+            let userValue: any;
+            if (condition.field === 'transactionCount') {
+                userValue = userTxCount;
+            } else if (condition.field === 'profile.branch') {
+                userValue = user.profile.branch;
+            } else {
+                userValue = user[condition.field as keyof User];
+            }
+
+            switch (condition.operator) {
+                case 'equals': return userValue == condition.value;
+                case 'not_equals': return userValue != condition.value;
+                case 'greater_than': return userValue > condition.value;
+                case 'less_than': return userValue < condition.value;
+                default: return false;
+            }
+        };
+
+        const userTxCount = transactions.filter(tx => tx.userId === user.id).length;
+        let newConfig = { ...baseHomePageConfig };
+
+        for (const rule of personalizationRules) {
+            if (rule.isActive) {
+                const allConditionsMet = rule.conditions.every(cond => evaluateCondition(user, userTxCount, cond));
+                if (allConditionsMet) {
+                    if (rule.action.type === 'PIN_ITEM' && rule.action.payload.itemId) {
+                        newConfig.pinnedItemId = rule.action.payload.itemId;
+                    } else if (rule.action.type === 'SHOW_ANNOUNCEMENT' && rule.action.payload.message) {
+                        newConfig.globalAnnouncement = {
+                            message: rule.action.payload.message,
+                            active: true,
+                        };
+                    }
+                }
+            }
+        }
+        setPersonalizedHomePageConfig(newConfig);
+    }, [user, baseHomePageConfig, personalizationRules, transactions]);
+    // --- END: Personalization Engine ---
+
+
     const [assistantLogs, setAssistantLogs] = usePersistentState<AssistantLog[]>('app_assistant_logs', []);
     const [engagementAnalytics, setEngagementAnalytics] = usePersistentState<EngagementAnalytics>('app_engagement_analytics', {
         forYouClicks: {},
@@ -762,9 +818,19 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
     // --- ADMIN CONTROL ACTIONS ---
-    const updateHomePageConfig = (newConfig: Partial<HomePageConfig>) => {
-        setHomePageConfig(prev => ({ ...prev, ...newConfig }));
+    const addPersonalizationRule = (rule: Omit<PersonalizationRule, 'id'>) => {
+        const newRule: PersonalizationRule = { ...rule, id: `rule-${Date.now()}` };
+        setPersonalizationRules(prev => [newRule, ...prev]);
     };
+
+    const updatePersonalizationRule = (updatedRule: PersonalizationRule) => {
+        setPersonalizationRules(prev => prev.map(r => r.id === updatedRule.id ? updatedRule : r));
+    };
+
+    const deletePersonalizationRule = (ruleId: string) => {
+        setPersonalizationRules(prev => prev.filter(r => r.id !== ruleId));
+    };
+
 
     const logAssistantQuery = (query: string, detectedIntent: string) => {
         if (!user) return;
@@ -791,14 +857,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         users, transactions, products, orders, articles, doctors, notifications, apiIntegrations, scalabilityServices,
         consultations, healthChallenges, disputes,
         budgets, scheduledPayments, cart,
-        homePageConfig, assistantLogs, engagementAnalytics,
+        homePageConfig: personalizedHomePageConfig, 
+        assistantLogs, engagementAnalytics, personalizationRules,
         adminWallets, monetizationConfig, taxConfig,
         addTransaction, updateUserStatus, addNotification, markNotificationsAsRead, updateApiIntegration, deactivateApiIntegration, updateScalabilityService,
         addArticle, editArticle, toggleArticleAdMonetization, addProduct, editProduct, deleteProduct, purchaseProduct,
         toggleWishlist, addToCart, removeFromCart, updateCartQuantity, clearCart, addReview,
         toggleArticleLike, addArticleComment, toggleArticleBookmark, voteOnPoll, toggleCommentLike,
         addDoctor, updateDoctor, bookConsultation, addConsultationMessage, completeConsultation,
-        updateHomePageConfig, logAssistantQuery, logEngagementEvent,
+        addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule,
+        logAssistantQuery, logEngagementEvent,
         adjustUserWallet, freezeUserWallet, reverseTransaction,
     };
 

@@ -24,6 +24,7 @@ const BookmarkedArticlesScreen = lazy(() => import('./screens/user/BookmarkedArt
 const MyConsultationsScreen = lazy(() => import('./screens/user/health/MyConsultationsScreen'));
 const ConsultationRoomScreen = lazy(() => import('./screens/user/health/ConsultationRoomScreen'));
 const DoctorDetailScreen = lazy(() => import('./screens/user/health/DoctorDetailScreen'));
+const LoyaltyScreen = lazy(() => import('./screens/user/LoyaltyScreen'));
 
 
 // Admin Screens
@@ -37,7 +38,7 @@ const AdminInfoNewsManagement = lazy(() => import('./screens/admin/AdminInfoNews
 const AdminApiIntegration = lazy(() => import('./screens/admin/AdminApiIntegration'));
 const AdminScalability = lazy(() => import('./screens/admin/AdminScalability'));
 const AdminTaxManagement = lazy(() => import('./screens/admin/AdminTaxManagement'));
-const AdminHomePageOrchestrator = lazy(() => import('./screens/admin/AdminHomePageOrchestrator'));
+const AdminPersonalizationEngine = lazy(() => import('./screens/admin/AdminPersonalizationEngine'));
 const AdminAssistantHub = lazy(() => import('./screens/admin/AdminAssistantHub'));
 
 // HR Screens
@@ -75,7 +76,7 @@ const App: React.FC = () => {
                     <Routes>
                         <Route index element={<Navigate to="/admin/dashboard" />} />
                         <Route path="admin/dashboard" element={<AdminDashboard />} />
-                        <Route path="admin/home-orchestrator" element={<AdminHomePageOrchestrator />} />
+                        <Route path="admin/personalization" element={<AdminPersonalizationEngine />} />
                         <Route path="admin/assistant-hub" element={<AdminAssistantHub />} />
                         <Route path="admin/financials" element={<AdminFinancialHub />} />
                         <Route path="admin/marketplace" element={<AdminMarketplaceOversight />} />
@@ -111,6 +112,7 @@ const App: React.FC = () => {
                     <Route path="my-consultations" element={<MyConsultationsScreen />} />
                     <Route path="consultation/:id" element={<ConsultationRoomScreen />} />
                     <Route path="doctor/:id" element={<DoctorDetailScreen />} />
+                    <Route path="loyalty" element={<LoyaltyScreen />} />
 
                     {/* HR-specific Routes, rendered within UserLayout */}
                     {user.role === Role.HR && (

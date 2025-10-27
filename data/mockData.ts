@@ -1,4 +1,4 @@
-import { User, Role, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, Article, Product, Doctor, Transaction, Order } from '../types';
+import { User, Role, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, Article, Product, Doctor, Transaction, Order, PersonalizationRule } from '../types';
 
 // Hashing the password is a backend concern. For this frontend simulation, we store it as is.
 // In a real app, this would NEVER be done.
@@ -204,3 +204,5 @@ export const initialScalabilityServices: ScalabilityService[] = [
         metadata: { shards: 1 }
     }
 ];
+
+export const initialPersonalizationRules: PersonalizationRule[] = [];
