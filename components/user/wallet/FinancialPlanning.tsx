@@ -1,20 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useData } from '../../../contexts/DataContext';
 import { Budget, ScheduledPayment } from '../../../types';
-import { PlusIcon, BanknotesIcon, CalendarDaysIcon } from '@heroicons/react/24/solid';
+import { PlusIcon, BanknotesIcon, CalendarDaysIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/solid';
+import BudgetModal from './BudgetModal';
+import ScheduledPaymentModal from './ScheduledPaymentModal';
 
-const BudgetCard: React.FC<{ budget: Budget }> = ({ budget }) => {
+const BudgetCard: React.FC<{ budget: Budget; onEdit: () => void; onDelete: () => void; }> = ({ budget, onEdit, onDelete }) => {
     const progress = (budget.spent / budget.limit) * 100;
     const isOverBudget = progress > 100;
 
     return (
         <div className="bg-surface-light p-4 rounded-lg">
-            <div className="flex justify-between items-center mb-2">
-                <span className="font-bold text-text-primary">{budget.category}</span>
-                <span className={`text-sm font-semibold ${isOverBudget ? 'text-red-400' : 'text-text-secondary'}`}>
-                    {isOverBudget ? 'Melebihi Batas!' : `${Math.floor(progress)}%`}
-                </span>
+            <div className="flex justify-between items-start mb-2">
+                <div>
+                    <span className="font-bold text-text-primary">{budget.category}</span>
+                    <span className={`block text-sm font-semibold ${isOverBudget ? 'text-red-400' : 'text-text-secondary'}`}>
+                        {isOverBudget ? 'Melebihi Batas!' : `${Math.floor(progress)}%`}
+                    </span>
+                </div>
+                <div className="flex space-x-1">
+                     <button onClick={onEdit} className="p-1 text-text-secondary hover:text-primary"><PencilIcon className="h-4 w-4" /></button>
+                     <button onClick={onDelete} className="p-1 text-text-secondary hover:text-red-500"><TrashIcon className="h-4 w-4" /></button>
+                </div>
             </div>
             <div className="w-full bg-surface rounded-full h-2.5">
                 <div 
@@ -30,7 +38,7 @@ const BudgetCard: React.FC<{ budget: Budget }> = ({ budget }) => {
     );
 };
 
-const ScheduledPaymentCard: React.FC<{ payment: ScheduledPayment }> = ({ payment }) => {
+const ScheduledPaymentCard: React.FC<{ payment: ScheduledPayment; onEdit: () => void; onDelete: () => void; }> = ({ payment, onEdit, onDelete }) => {
     return (
         <div className="bg-surface-light p-4 rounded-lg flex items-center justify-between">
             <div>
@@ -40,8 +48,16 @@ const ScheduledPaymentCard: React.FC<{ payment: ScheduledPayment }> = ({ payment
                 </p>
             </div>
             <div className="text-right">
-                <p className="text-xs text-text-secondary">Jatuh Tempo Berikutnya</p>
-                <p className="font-semibold text-text-primary">{new Date(payment.nextDueDate).toLocaleDateString()}</p>
+                <div className="flex items-center">
+                    <div>
+                        <p className="text-xs text-text-secondary">Jatuh Tempo Berikutnya</p>
+                        <p className="font-semibold text-text-primary">{new Date(payment.nextDueDate).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex flex-col ml-2">
+                        <button onClick={onEdit} className="p-1 text-text-secondary hover:text-primary"><PencilIcon className="h-4 w-4" /></button>
+                        <button onClick={onDelete} className="p-1 text-text-secondary hover:text-red-500"><TrashIcon className="h-4 w-4" /></button>
+                    </div>
+                </div>
             </div>
         </div>
     );
@@ -49,14 +65,25 @@ const ScheduledPaymentCard: React.FC<{ payment: ScheduledPayment }> = ({ payment
 
 const FinancialPlanning: React.FC = () => {
     const { user } = useAuth();
-    // In a real app, this would come from `useData`
-    const budgets: Budget[] = [
-        { id: '1', userId: user!.id, category: 'Marketplace', limit: 1000000, spent: 450000 },
-        { id: '2', userId: user!.id, category: 'PPOB', limit: 500000, spent: 550000 },
-    ];
-    const scheduledPayments: ScheduledPayment[] = [
-         { id: '1', userId: user!.id, description: 'Bayar Tagihan Listrik', amount: -250000, recurrence: 'monthly', nextDueDate: '2024-08-25T00:00:00Z' },
-    ];
+    const { budgets, scheduledPayments, deleteBudget, deleteScheduledPayment } = useData();
+
+    const [isBudgetModalOpen, setBudgetModalOpen] = useState(false);
+    const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+    const [editingPayment, setEditingPayment] = useState<ScheduledPayment | null>(null);
+
+    const userBudgets = budgets.filter(b => b.userId === user!.id);
+    const userPayments = scheduledPayments.filter(p => p.userId === user!.id);
+    
+    const handleOpenBudgetModal = (budget: Budget | null = null) => {
+        setEditingBudget(budget);
+        setBudgetModalOpen(true);
+    };
+
+    const handleOpenPaymentModal = (payment: ScheduledPayment | null = null) => {
+        setEditingPayment(payment);
+        setPaymentModalOpen(true);
+    };
 
     return (
         <div className="space-y-6">
@@ -66,10 +93,16 @@ const FinancialPlanning: React.FC = () => {
                         <BanknotesIcon className="h-5 w-5 mr-2 text-primary" />
                         Anggaran Bulanan
                     </h3>
-                    <button className="flex items-center text-sm font-semibold text-primary"><PlusIcon className="h-4 w-4 mr-1" /> Atur Baru</button>
+                    <button onClick={() => handleOpenBudgetModal()} className="flex items-center text-sm font-semibold text-primary"><PlusIcon className="h-4 w-4 mr-1" /> Atur Baru</button>
                  </div>
                  <div className="space-y-3">
-                     {budgets.map(budget => <BudgetCard key={budget.id} budget={budget} />)}
+                     {userBudgets.length > 0 ? userBudgets.map(budget => 
+                        <BudgetCard 
+                            key={budget.id} 
+                            budget={budget} 
+                            onEdit={() => handleOpenBudgetModal(budget)}
+                            onDelete={() => deleteBudget(budget.id)}
+                        />) : <p className="text-sm text-center text-text-secondary py-4">Belum ada anggaran yang diatur.</p>}
                  </div>
             </div>
 
@@ -79,12 +112,29 @@ const FinancialPlanning: React.FC = () => {
                         <CalendarDaysIcon className="h-5 w-5 mr-2 text-primary" />
                         Pembayaran Terjadwal
                     </h3>
-                    <button className="flex items-center text-sm font-semibold text-primary"><PlusIcon className="h-4 w-4 mr-1" /> Atur Baru</button>
+                    <button onClick={() => handleOpenPaymentModal()} className="flex items-center text-sm font-semibold text-primary"><PlusIcon className="h-4 w-4 mr-1" /> Atur Baru</button>
                  </div>
                   <div className="space-y-3">
-                     {scheduledPayments.map(payment => <ScheduledPaymentCard key={payment.id} payment={payment} />)}
+                     {userPayments.length > 0 ? userPayments.map(payment => 
+                        <ScheduledPaymentCard 
+                            key={payment.id} 
+                            payment={payment} 
+                            onEdit={() => handleOpenPaymentModal(payment)}
+                            onDelete={() => deleteScheduledPayment(payment.id)}
+                        />) : <p className="text-sm text-center text-text-secondary py-4">Belum ada pembayaran terjadwal.</p>}
                  </div>
             </div>
+
+            <BudgetModal 
+                isOpen={isBudgetModalOpen}
+                onClose={() => setBudgetModalOpen(false)}
+                budget={editingBudget}
+            />
+            <ScheduledPaymentModal 
+                isOpen={isPaymentModalOpen}
+                onClose={() => setPaymentModalOpen(false)}
+                payment={editingPayment}
+            />
         </div>
     );
 };

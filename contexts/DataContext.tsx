@@ -46,6 +46,8 @@ interface DataContextType {
     updateScalabilityService: (id: string, status: ScalabilityService['status'], newLog?: string, metadata?: ScalabilityService['metadata'], cost?: number) => void;
     addArticle: (article: Omit<Article, 'id' | 'timestamp' | 'likes' | 'comments' | 'author'>) => Promise<{ success: boolean; data?: Article; }>;
     editArticle: (article: Article) => Promise<{ success: boolean; data?: Article; }>;
+    // FIX: Add deleteArticle to the context type
+    deleteArticle: (articleId: string) => Promise<{ success: boolean; }>;
     toggleArticleAdMonetization: (articleId: string) => Promise<{ success: boolean }>;
     addProduct: (product: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'>) => Promise<{ success: boolean; data?: Product; }>;
     editProduct: (product: Product) => Promise<{ success: boolean; data?: Product; }>;
@@ -66,6 +68,8 @@ interface DataContextType {
     // Health Actions
     addDoctor: (doctor: Omit<Doctor, 'id'>) => Promise<{success: boolean}>;
     updateDoctor: (doctor: Doctor) => Promise<{success: boolean}>;
+    // FIX: Add deleteDoctor to the context type
+    deleteDoctor: (doctorId: string) => Promise<{success: boolean}>;
     bookConsultation: (doctorId: string, slotTime: string) => Promise<{success: boolean, consultationId?: string, message: string}>;
     addConsultationMessage: (consultationId: string, message: string, sender: 'user' | 'doctor') => void;
     completeConsultation: (consultationId: string, prescription: Consultation['prescription']) => void;
@@ -83,12 +87,23 @@ interface DataContextType {
     updateMonetizationConfig: (newConfig: { marketplaceCommission: number; marketingCPA: number }) => void;
     updateTaxConfig: (newConfig: { ppnRate: number; pph21Rate: number }) => void;
     resolveDispute: (disputeId: string, resolution: 'Refund Buyer' | 'Pay Seller') => Promise<{ success: boolean }>;
+    // FIX: Add approvePayLater and rejectPayLater to the context type
+    approvePayLater: (userId: string, limit: number) => Promise<{ success: boolean }>;
+    rejectPayLater: (userId: string) => Promise<{ success: boolean }>;
 
     // HR Actions
     createEmployee: (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData' | 'password' | 'payLater'> & {password: string}) => Promise<{ success: boolean; message: string }>;
     updateLeaveRequestStatus: (requestId: string, status: 'Approved' | 'Rejected') => Promise<{ success: boolean }>;
     submitLeaveRequest: (requestData: Omit<LeaveRequest, 'id' | 'status' | 'branch' | 'userName' | 'userId'>) => Promise<{ success: boolean }>;
     applyForPayLater: () => Promise<{ success: boolean }>;
+    
+    // FIX: Add financial planning functions to the context type
+    addBudget: (budgetData: Omit<Budget, 'id' | 'userId' | 'spent'>) => Promise<{ success: boolean }>;
+    updateBudget: (budget: Budget) => Promise<{ success: boolean }>;
+    deleteBudget: (budgetId: string) => Promise<{ success: boolean }>;
+    addScheduledPayment: (paymentData: Omit<ScheduledPayment, 'id' | 'userId'>) => Promise<{ success: boolean }>;
+    updateScheduledPayment: (payment: ScheduledPayment) => Promise<{ success: boolean }>;
+    deleteScheduledPayment: (paymentId: string) => Promise<{ success: boolean }>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -433,6 +448,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setArticles(prev => prev.map(art => art.id === updatedArticle.id ? updatedArticle : art));
         return { success: true, data: updatedArticle };
     };
+
+    // FIX: Implement deleteArticle function
+    const deleteArticle = async (articleId: string): Promise<{ success: boolean; }> => {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setArticles(prev => prev.filter(a => a.id !== articleId));
+        return { success: true };
+    };
     
     const toggleArticleAdMonetization = async (articleId: string): Promise<{ success: boolean }> => {
         await new Promise(resolve => setTimeout(resolve, 750)); // Simulate network call
@@ -722,6 +744,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { success: true };
     };
 
+    // FIX: Implement deleteDoctor function
+    const deleteDoctor = async (doctorId: string): Promise<{success: boolean}> => {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setDoctors(prev => prev.filter(d => d.id !== doctorId));
+        return { success: true };
+    };
+
     const bookConsultation = async (doctorId: string, slotTime: string): Promise<{success: boolean, consultationId?: string, message: string}> => {
         if (!user) return { success: false, message: "User not logged in." };
         const doctor = doctors.find(d => d.id === doctorId);
@@ -869,6 +898,29 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { success: true };
     };
 
+    // FIX: Implement approvePayLater and rejectPayLater functions
+    const approvePayLater = async (userId: string, limit: number): Promise<{ success: boolean }> => {
+        setUsers(prev => prev.map(u => {
+            if (u.id === userId) {
+                return { ...u, payLater: { status: 'approved', limit, used: u.payLater?.used || 0 } };
+            }
+            return u;
+        }));
+        addNotification(userId, `Congratulations! Your PayLater application has been approved with a limit of ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(limit)}.`, 'success');
+        return { success: true };
+    };
+
+    const rejectPayLater = async (userId: string): Promise<{ success: boolean }> => {
+        setUsers(prev => prev.map(u => {
+            if (u.id === userId) {
+                return { ...u, payLater: { status: 'rejected', limit: 0, used: 0 } };
+            }
+            return u;
+        }));
+        addNotification(userId, 'We regret to inform you that your PayLater application has been rejected at this time.', 'error');
+        return { success: true };
+    };
+
 
     const logAssistantQuery = (query: string, detectedIntent: string) => {
         if (!user) return;
@@ -954,6 +1006,55 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { success: true };
     };
 
+    // FIX: Implement financial planning functions
+    const addBudget = async (budgetData: Omit<Budget, 'id' | 'userId' | 'spent'>): Promise<{ success: boolean }> => {
+        if (!user) return { success: false };
+        const newBudget: Budget = {
+            ...budgetData,
+            id: `budget-${Date.now()}`,
+            userId: user.id,
+            spent: 0, 
+        };
+        const spent = transactions
+            .filter(tx => tx.userId === user.id && (tx.type === budgetData.category || budgetData.category === 'Umum'))
+            .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+        newBudget.spent = spent;
+
+        setBudgets(prev => [...prev, newBudget]);
+        return { success: true };
+    };
+
+    const updateBudget = async (updatedBudget: Budget): Promise<{ success: boolean }> => {
+        setBudgets(prev => prev.map(b => b.id === updatedBudget.id ? updatedBudget : b));
+        return { success: true };
+    };
+
+    const deleteBudget = async (budgetId: string): Promise<{ success: boolean }> => {
+        setBudgets(prev => prev.filter(b => b.id !== budgetId));
+        return { success: true };
+    };
+    
+    const addScheduledPayment = async (paymentData: Omit<ScheduledPayment, 'id' | 'userId'>): Promise<{ success: boolean }> => {
+        if (!user) return { success: false };
+        const newPayment: ScheduledPayment = {
+            ...paymentData,
+            id: `sp-${Date.now()}`,
+            userId: user.id,
+        };
+        setScheduledPayments(prev => [...prev, newPayment]);
+        return { success: true };
+    };
+
+    const updateScheduledPayment = async (updatedPayment: ScheduledPayment): Promise<{ success: boolean }> => {
+        setScheduledPayments(prev => prev.map(p => p.id === updatedPayment.id ? updatedPayment : p));
+        return { success: true };
+    };
+
+    const deleteScheduledPayment = async (paymentId: string): Promise<{ success: boolean }> => {
+        setScheduledPayments(prev => prev.filter(p => p.id !== paymentId));
+        return { success: true };
+    };
+
 
     const value = {
         users, transactions, products, orders, articles, doctors, notifications, apiIntegrations, scalabilityServices,
@@ -963,15 +1064,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         assistantLogs, engagementAnalytics, personalizationRules,
         adminWallets, monetizationConfig, taxConfig,
         addTransaction, updateUserStatus, addNotification, markNotificationsAsRead, updateApiIntegration, deactivateApiIntegration, updateScalabilityService,
-        addArticle, editArticle, toggleArticleAdMonetization, addProduct, editProduct, deleteProduct, purchaseProduct,
+        addArticle, editArticle, deleteArticle, toggleArticleAdMonetization, addProduct, editProduct, deleteProduct, purchaseProduct,
         toggleWishlist, addToCart, removeFromCart, updateCartQuantity, clearCart, addReview,
         toggleArticleLike, addArticleComment, toggleArticleBookmark, voteOnPoll, toggleCommentLike,
-        addDoctor, updateDoctor, bookConsultation, addConsultationMessage, completeConsultation,
+        addDoctor, updateDoctor, deleteDoctor, bookConsultation, addConsultationMessage, completeConsultation,
         addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule,
         logAssistantQuery, logEngagementEvent,
         adjustUserWallet, freezeUserWallet, reverseTransaction,
-        updateMonetizationConfig, updateTaxConfig, resolveDispute,
-        createEmployee, updateLeaveRequestStatus, submitLeaveRequest, applyForPayLater
+        updateMonetizationConfig, updateTaxConfig, resolveDispute, approvePayLater, rejectPayLater,
+        createEmployee, updateLeaveRequestStatus, submitLeaveRequest, applyForPayLater,
+        addBudget, updateBudget, deleteBudget, addScheduledPayment, updateScheduledPayment, deleteScheduledPayment
     };
 
     return (

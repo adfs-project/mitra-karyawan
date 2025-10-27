@@ -1,20 +1,21 @@
 
 import React, { useState } from 'react';
+import { useData } from '../../contexts/DataContext';
 
 const DeactivatedAccountScreen: React.FC = () => {
+    const { addNotification } = useData();
     const [email, setEmail] = useState('');
     const [whatsapp, setWhatsapp] = useState('');
     const [submitted, setSubmitted] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulate sending a notification to admin and an email
-        console.log(`--- SIMULATING REACTIVATION REQUEST ---`);
-        console.log(`TOAST NOTIFICATION TO ADMIN DASHBOARD: User ${email} requests account reactivation.`);
-        console.log(`EMAIL SENT TO secret3triple@gmail.com:`);
-        console.log(`Subject: Account Reactivation Request`);
-        console.log(`Body: User with email ${email} and WhatsApp ${whatsapp} has requested their account to be reactivated.`);
-        console.log(`-----------------------------------------`);
+        // Send a notification to the admin user
+        addNotification(
+            'admin-001',
+            `User ${email} requests account reactivation. Contact: ${whatsapp}`,
+            'warning'
+        );
         setSubmitted(true);
     };
 

@@ -12,14 +12,14 @@ import SmartAssistant from '../../components/user/SmartAssistant';
 import ForYouWidget from '../../components/user/ForYouWidget';
 
 const quickAccessItems = [
-    { id: 'ppob', name: 'PPOB & Tagihan', icon: BoltIcon, path: '#' },
+    { id: 'ppob', name: 'PPOB & Tagihan', icon: BoltIcon, path: '/under-construction' },
     { id: 'market', name: 'Marketplace', icon: ShoppingCartIcon, path: '/market' },
     { id: 'health', name: 'Layanan Kesehatan', icon: HeartIcon, path: '/health' },
-    { id: 'gov', name: 'Layanan Pemerintah', icon: BuildingLibraryIcon, path: '#' },
-    { id: 'lifestyle', name: 'Gaya Hidup', icon: TicketIcon, path: '#' },
-    { id: 'pulsa', name: 'Pulsa & Data', icon: PhoneIcon, path: '#' },
-    { id: 'cashout', name: 'Tarik Tunai', icon: BanknotesIcon, path: '#' },
-    { id: 'daily', name: 'Belanja Harian', icon: ShoppingCartIcon, path: '#' },
+    { id: 'gov', name: 'Layanan Pemerintah', icon: BuildingLibraryIcon, path: '/under-construction' },
+    { id: 'lifestyle', name: 'Gaya Hidup', icon: TicketIcon, path: '/under-construction' },
+    { id: 'pulsa', name: 'Pulsa & Data', icon: PhoneIcon, path: '/under-construction' },
+    { id: 'cashout', name: 'Tarik Tunai', icon: BanknotesIcon, path: '/under-construction' },
+    { id: 'daily', name: 'Belanja Harian', icon: ShoppingCartIcon, path: '/under-construction' },
 ];
 
 const GlobalAnnouncement: React.FC<{ message: string }> = ({ message }) => (

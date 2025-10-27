@@ -9,6 +9,7 @@ const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
 const LoginScreen = lazy(() => import('./screens/auth/LoginScreen'));
 const RegisterScreen = lazy(() => import('./screens/auth/RegisterScreen'));
 const DeactivatedAccountScreen = lazy(() => import('./screens/auth/DeactivatedAccountScreen'));
+const UnderConstructionScreen = lazy(() => import('./screens/common/UnderConstructionScreen'));
 
 // User Screens
 const HomeScreen = lazy(() => import('./screens/user/HomeScreen'));
@@ -113,6 +114,7 @@ const App: React.FC = () => {
                     <Route path="consultation/:id" element={<ConsultationRoomScreen />} />
                     <Route path="doctor/:id" element={<DoctorDetailScreen />} />
                     <Route path="loyalty" element={<LoyaltyScreen />} />
+                    <Route path="under-construction" element={<UnderConstructionScreen />} />
 
                     {/* HR-specific Routes, rendered within UserLayout */}
                     {user.role === Role.HR && (

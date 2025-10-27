@@ -17,6 +17,28 @@ const Toggle: React.FC<{ checked: boolean; onChange: (checked: boolean) => void;
     );
 };
 
+const ConfirmationModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    title: string;
+    children: React.ReactNode;
+}> = ({ isOpen, onClose, onConfirm, title, children }) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+            <div className="bg-surface p-6 rounded-lg shadow-lg w-full max-w-md border border-border-color">
+                <h2 className="text-xl font-bold mb-4">{title}</h2>
+                <div className="text-text-secondary mb-6">{children}</div>
+                <div className="flex justify-end space-x-4">
+                    <button onClick={onClose} className="px-4 py-2 rounded bg-surface-light hover:bg-border-color">Cancel</button>
+                    <button onClick={onConfirm} className="px-4 py-2 rounded btn-secondary">Confirm</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const YouTubeArticleModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -387,15 +409,29 @@ const ArticleModal: React.FC<{
 };
 
 const AdminInfoNewsManagement: React.FC = () => {
-    const { articles, addArticle, editArticle, toggleArticleAdMonetization } = useData();
+    const { articles, addArticle, editArticle, toggleArticleAdMonetization, deleteArticle } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isYouTubeModalOpen, setIsYouTubeModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
     const [updatingAdId, setUpdatingAdId] = useState<string | null>(null);
 
     const handleOpenModal = (article: Article | null = null) => {
         setSelectedArticle(article);
         setIsModalOpen(true);
+    };
+
+    const handleDeleteClick = (article: Article) => {
+        setSelectedArticle(article);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (selectedArticle) {
+            await deleteArticle(selectedArticle.id);
+        }
+        setIsDeleteModalOpen(false);
+        setSelectedArticle(null);
     };
     
     const handleToggleAd = async (articleId: string) => {
@@ -478,7 +514,7 @@ const AdminInfoNewsManagement: React.FC = () => {
 
                                 <div className="mt-4 flex justify-end space-x-2 border-t border-border-color pt-3">
                                     <button onClick={() => handleOpenModal(article)} className="p-2 rounded hover:bg-border-color"><PencilIcon className="h-5 w-5 text-yellow-400"/></button>
-                                    <button className="p-2 rounded hover:bg-border-color"><TrashIcon className="h-5 w-5 text-red-400"/></button>
+                                    <button onClick={() => handleDeleteClick(article)} className="p-2 rounded hover:bg-border-color"><TrashIcon className="h-5 w-5 text-red-400"/></button>
                                 </div>
                             </div>
                         )
@@ -489,6 +525,14 @@ const AdminInfoNewsManagement: React.FC = () => {
 
             <ArticleModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} article={selectedArticle} onSave={handleSave} />
             <YouTubeArticleModal isOpen={isYouTubeModalOpen} onClose={() => setIsYouTubeModalOpen(false)} onSave={handleSave} />
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Confirm Deletion"
+            >
+                Are you sure you want to delete the article "{selectedArticle?.title}"? This action cannot be undone.
+            </ConfirmationModal>
         </div>
     );
 };
