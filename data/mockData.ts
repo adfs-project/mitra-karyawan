@@ -1,4 +1,4 @@
-import { User, Role, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, Article, Product, Doctor, Transaction, Order, PersonalizationRule, LeaveRequest } from '../types';
+import { User, Role, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, Article, Product, Doctor, Transaction, Order, PersonalizationRule, LeaveRequest, Dispute } from '../types';
 
 // Hashing the password is a backend concern. For this frontend simulation, we store it as is.
 // In a real app, this would NEVER be done.
@@ -22,6 +22,7 @@ const adminUser: User = {
     loyaltyPoints: 0,
     wishlist: [],
     bookmarkedArticles: [],
+    payLater: { status: 'not_applied', limit: 0, used: 0 },
 };
 
 const hrUser: User = {
@@ -38,6 +39,7 @@ const hrUser: User = {
     },
     wallet: { balance: 100000, isFrozen: false },
     achievements: [], loyaltyPoints: 0, wishlist: [], bookmarkedArticles: [],
+    payLater: { status: 'not_applied', limit: 0, used: 0 },
 };
 
 const employeeUser: User = {
@@ -56,7 +58,8 @@ const employeeUser: User = {
     },
     wallet: { balance: 500000, isFrozen: false },
     achievements: [], loyaltyPoints: 250, wishlist: [], bookmarkedArticles: [],
-    healthData: { moodHistory: [], activeChallenges: [] }
+    healthData: { moodHistory: [], activeChallenges: [] },
+    payLater: { status: 'approved', limit: 2000000, used: 0 },
 };
 
 const employeeUser2: User = {
@@ -75,7 +78,8 @@ const employeeUser2: User = {
     },
     wallet: { balance: 1200000, isFrozen: false },
     achievements: ['First Purchase'], loyaltyPoints: 800, wishlist: [], bookmarkedArticles: [],
-    healthData: { moodHistory: [], activeChallenges: [] }
+    healthData: { moodHistory: [], activeChallenges: [] },
+    payLater: { status: 'not_applied', limit: 0, used: 0 },
 };
 
 const employeeUser3: User = {
@@ -94,7 +98,8 @@ const employeeUser3: User = {
     },
     wallet: { balance: 250000, isFrozen: false },
     achievements: [], loyaltyPoints: 150, wishlist: [], bookmarkedArticles: [],
-    healthData: { moodHistory: [], activeChallenges: [] }
+    healthData: { moodHistory: [], activeChallenges: [] },
+    payLater: { status: 'rejected', limit: 0, used: 0 },
 };
 
 
@@ -130,7 +135,32 @@ export const initialProducts: Product[] = [
         reviewCount: 18,
     }
 ];
-export const initialOrders: Order[] = [];
+export const initialOrders: Order[] = [
+    {
+        id: 'order-dispute-001',
+        buyerId: 'user-002',
+        sellerId: 'user-001',
+        items: [{ productId: 'med-001', name: 'Barang Bekas', quantity: 1, price: 75000 }],
+        total: 75000,
+        status: 'In Dispute',
+        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    }
+];
+
+export const initialDisputes: Dispute[] = [
+    {
+        id: 'disp-001',
+        orderId: 'order-dispute-001',
+        buyerId: 'user-002',
+        sellerId: 'user-001',
+        buyerName: 'Siti Aminah',
+        sellerName: 'Budi Karyawan',
+        reason: 'Barang yang diterima tidak sesuai dengan deskripsi. Kondisinya jauh lebih buruk dari yang ditampilkan di foto.',
+        status: 'Open',
+        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    }
+];
+
 export const initialArticles: Article[] = [];
 export const initialDoctors: Doctor[] = [
      {

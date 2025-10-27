@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import { Role, User } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -102,6 +102,67 @@ const LeaveRequestModal: React.FC<{
     );
 };
 
+const PayLaterModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+}> = ({ isOpen, onClose }) => {
+    const { applyForPayLater } = useData();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+
+    const handleSubmit = async () => {
+        setIsSubmitting(true);
+        await applyForPayLater();
+        setIsSubmitting(false);
+        setIsSubmitted(true);
+        setTimeout(() => {
+            onClose();
+            setIsSubmitted(false);
+        }, 3000);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+            <div className="bg-surface p-6 rounded-lg w-full max-w-lg border border-border-color">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold">Pengajuan PayLater</h2>
+                    <button onClick={onClose}><XMarkIcon className="h-6 w-6" /></button>
+                </div>
+                {isSubmitted ? (
+                    <div className="text-center p-8">
+                        <h3 className="text-xl font-bold text-primary">Pengajuan Terkirim!</h3>
+                        <p className="text-text-secondary mt-2">Terima kasih. Pengajuan Anda sedang kami proses. Anda akan menerima notifikasi jika ada pembaruan.</p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        <p className="text-sm text-text-secondary">Untuk mengajukan PayLater, kami memerlukan beberapa dokumen. Silakan unggah foto KTP dan foto selfie dengan KTP Anda.</p>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="text-sm font-bold text-text-secondary">Foto KTP</label>
+                                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border-color border-dashed rounded-md">
+                                    <button type="button" className="text-primary font-semibold">Unggah File (Simulasi)</button>
+                                </div>
+                            </div>
+                             <div>
+                                <label className="text-sm font-bold text-text-secondary">Foto Selfie dengan KTP</label>
+                                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border-color border-dashed rounded-md">
+                                    <button type="button" className="text-primary font-semibold">Gunakan Kamera (Simulasi)</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex justify-end space-x-2">
+                            <button type="button" onClick={onClose} className="px-4 py-2 rounded bg-surface-light">Batal</button>
+                            <button onClick={handleSubmit} disabled={isSubmitting} className="btn-primary px-4 py-2 rounded w-36 flex justify-center">{isSubmitting ? <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div> : 'Kirim Pengajuan'}</button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 
 const ThemeToggle: React.FC = () => {
     const { theme, toggleTheme } = useTheme();
@@ -126,17 +187,17 @@ const MyAccountScreen: React.FC = () => {
     const { user, logout } = useAuth();
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [isLeaveModalOpen, setLeaveModalOpen] = useState(false);
+    const [isPayLaterModalOpen, setPayLaterModalOpen] = useState(false);
 
     if (!user) return null;
 
     const menuItems = [
-        // Edit Profil is now a button
-        { name: 'Riwayat Konsultasi', icon: DocumentTextIcon, path: '/my-consultations', action: () => {} },
-        { name: 'Wishlist Saya', icon: HeartIcon, path: '/wishlist', action: () => {} },
-        { name: 'Toko Saya', icon: BuildingStorefrontIcon, path: '/my-products', action: () => {} },
-        { name: 'Artikel Tersimpan', icon: BookmarkIcon, path: '/bookmarked-articles', action: () => {} },
+        { name: 'Riwayat Konsultasi', icon: DocumentTextIcon, path: '/my-consultations' },
+        { name: 'Wishlist Saya', icon: HeartIcon, path: '/wishlist' },
+        { name: 'Toko Saya', icon: BuildingStorefrontIcon, path: '/my-products' },
+        { name: 'Artikel Tersimpan', icon: BookmarkIcon, path: '/bookmarked-articles' },
         { name: 'Ajukan Cuti', icon: CalendarDaysIcon, path: '#', action: () => setLeaveModalOpen(true) },
-        { name: 'Aplikasi PayLater', icon: BanknotesIcon, path: '#', action: () => alert("Fitur 'PayLater' akan segera hadir!") },
+        { name: 'Aplikasi PayLater', icon: CreditCardIcon, path: '#', action: () => setPayLaterModalOpen(true) },
     ];
     
     const hrMenuItem = { name: 'Portal HR', icon: BriefcaseIcon, path: '/hr-portal' };
@@ -154,20 +215,43 @@ const MyAccountScreen: React.FC = () => {
 
         return item.path === '#' ? <button onClick={item.action} className="w-full">{content}</button> : <Link to={item.path} className="block">{content}</Link>;
     };
+    
+    const payLaterStatusMap = {
+        not_applied: { text: "Belum Aktif", color: "text-text-secondary" },
+        pending: { text: "Menunggu Persetujuan", color: "text-yellow-400" },
+        approved: { text: "Aktif", color: "text-green-400" },
+        rejected: { text: "Ditolak", color: "text-red-400" },
+    };
+    const payLaterInfo = user.payLater ? payLaterStatusMap[user.payLater.status] : payLaterStatusMap['not_applied'];
+
 
     return (
         <div className="pb-4">
-            <div className="bg-surface p-6 flex justify-between items-center">
-                <div className="flex items-center space-x-4">
-                    <img src={user.profile.photoUrl} alt="Profile" className="w-20 h-20 rounded-full border-2 border-primary" />
-                    <div>
-                        <h1 className="text-2xl font-bold text-text-primary">{user.profile.name}</h1>
-                        <p className="text-text-secondary">{user.email}</p>
+            <div className="bg-surface p-6">
+                <div className="flex justify-between items-start">
+                    <div className="flex items-center space-x-4">
+                        <img src={user.profile.photoUrl} alt="Profile" className="w-20 h-20 rounded-full border-2 border-primary" />
+                        <div>
+                            <h1 className="text-2xl font-bold text-text-primary">{user.profile.name}</h1>
+                            <p className="text-text-secondary">{user.email}</p>
+                        </div>
                     </div>
+                     <button onClick={() => setEditModalOpen(true)} className="p-2 bg-surface-light rounded-full hover:bg-border-color">
+                        <PencilSquareIcon className="h-6 w-6 text-primary"/>
+                    </button>
                 </div>
-                 <button onClick={() => setEditModalOpen(true)} className="p-2 bg-surface-light rounded-full hover:bg-border-color">
-                    <PencilSquareIcon className="h-6 w-6 text-primary"/>
-                </button>
+                 <div className="mt-4 bg-surface-light p-3 rounded-lg flex justify-between items-center">
+                    <div>
+                        <p className="text-xs font-bold text-text-secondary">STATUS PAYLATER</p>
+                        <p className={`font-bold ${payLaterInfo.color}`}>{payLaterInfo.text}</p>
+                    </div>
+                    {user.payLater?.status === 'approved' && (
+                        <div className="text-right">
+                             <p className="text-xs font-bold text-text-secondary">LIMIT</p>
+                             <p className="font-bold text-primary">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(user.payLater.limit)}</p>
+                        </div>
+                    )}
+                </div>
             </div>
             
             <div className="m-4 bg-surface rounded-lg border border-border-color">
@@ -196,6 +280,7 @@ const MyAccountScreen: React.FC = () => {
             
             <EditProfileModal isOpen={isEditModalOpen} onClose={() => setEditModalOpen(false)} user={user} />
             <LeaveRequestModal isOpen={isLeaveModalOpen} onClose={() => setLeaveModalOpen(false)} />
+            <PayLaterModal isOpen={isPayLaterModalOpen} onClose={() => setPayLaterModalOpen(false)} />
         </div>
     );
 };

@@ -4,7 +4,7 @@ import {
     PersonalizationRule, PersonalizationCondition, Role, LeaveRequest
 } from '../types';
 import { 
-    initialUsers, initialTransactions, initialProducts, initialOrders, initialArticles, initialDoctors, initialApiIntegrations, initialScalabilityServices, initialPersonalizationRules, initialLeaveRequests
+    initialUsers, initialTransactions, initialProducts, initialOrders, initialArticles, initialDoctors, initialApiIntegrations, initialScalabilityServices, initialPersonalizationRules, initialLeaveRequests, initialDisputes
 } from '../data/mockData';
 import { useAuth } from './AuthContext';
 import { testApiConnection } from '../services/apiService';
@@ -80,11 +80,15 @@ interface DataContextType {
     adjustUserWallet: (userId: string, amount: number, reason: string) => Promise<{ success: boolean }>;
     freezeUserWallet: (userId: string, freeze: boolean) => Promise<{ success: boolean }>;
     reverseTransaction: (transactionId: string) => Promise<{ success: boolean }>;
+    updateMonetizationConfig: (newConfig: { marketplaceCommission: number; marketingCPA: number }) => void;
+    updateTaxConfig: (newConfig: { ppnRate: number; pph21Rate: number }) => void;
+    resolveDispute: (disputeId: string, resolution: 'Refund Buyer' | 'Pay Seller') => Promise<{ success: boolean }>;
 
     // HR Actions
-    createEmployee: (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData' | 'password'> & {password: string}) => Promise<{ success: boolean; message: string }>;
+    createEmployee: (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData' | 'password' | 'payLater'> & {password: string}) => Promise<{ success: boolean; message: string }>;
     updateLeaveRequestStatus: (requestId: string, status: 'Approved' | 'Rejected') => Promise<{ success: boolean }>;
     submitLeaveRequest: (requestData: Omit<LeaveRequest, 'id' | 'status' | 'branch' | 'userName' | 'userId'>) => Promise<{ success: boolean }>;
+    applyForPayLater: () => Promise<{ success: boolean }>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -120,7 +124,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [transactions, setTransactions] = usePersistentState<Transaction[]>('app_transactions', initialTransactions);
     const [products, setProducts] = usePersistentState<Product[]>('app_products', initialProducts);
     const [orders, setOrders] = usePersistentState<Order[]>('app_orders', initialOrders);
-    const [disputes, setDisputes] = usePersistentState<Dispute[]>('app_disputes', []);
+    const [disputes, setDisputes] = usePersistentState<Dispute[]>('app_disputes', initialDisputes);
     const [articles, setArticles] = usePersistentState<Article[]>('app_articles', [
         {
             id: 'promo-001',
@@ -135,6 +139,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             likes: [],
             comments: [],
             type: 'standard',
+            monetization: { enabled: true, revenueGenerated: 12500 },
         },
         {
             id: 'video-001',
@@ -837,6 +842,32 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const deletePersonalizationRule = (ruleId: string) => {
         setPersonalizationRules(prev => prev.filter(r => r.id !== ruleId));
     };
+    
+    const updateMonetizationConfig = (newConfig: { marketplaceCommission: number; marketingCPA: number }) => {
+        setMonetizationConfig(newConfig);
+    };
+
+    const updateTaxConfig = (newConfig: { ppnRate: number; pph21Rate: number }) => {
+        setTaxConfig(newConfig);
+    };
+
+    const resolveDispute = async (disputeId: string, resolution: 'Refund Buyer' | 'Pay Seller'): Promise<{ success: boolean }> => {
+        let resolvedDispute: Dispute | undefined;
+        setDisputes(prev => prev.map(d => {
+            if (d.id === disputeId) {
+                resolvedDispute = { ...d, status: `Resolved - ${resolution}` };
+                return resolvedDispute;
+            }
+            return d;
+        }));
+
+        if (resolvedDispute) {
+            setOrders(prev => prev.map(o => o.id === resolvedDispute!.orderId ? { ...o, status: 'Completed' } : o));
+            addNotification(resolvedDispute.buyerId, `Sengketa untuk pesanan ${resolvedDispute.orderId} telah diselesaikan.`, 'info');
+            addNotification(resolvedDispute.sellerId, `Sengketa untuk pesanan ${resolvedDispute.orderId} telah diselesaikan.`, 'info');
+        }
+        return { success: true };
+    };
 
 
     const logAssistantQuery = (query: string, detectedIntent: string) => {
@@ -860,8 +891,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
     };
 
-    // --- HR ACTIONS ---
-    const createEmployee = async (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData' | 'password'> & {password: string}): Promise<{ success: boolean; message: string }> => {
+    // --- HR & USER ACTIONS ---
+    const createEmployee = async (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData' | 'password' | 'payLater'> & {password: string}): Promise<{ success: boolean; message: string }> => {
         if (users.some(u => u.email.toLowerCase() === userData.email.toLowerCase())) {
             return { success: false, message: 'Email already exists.' };
         }
@@ -878,7 +909,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             healthData: {
                 moodHistory: [],
                 activeChallenges: []
-            }
+            },
+            payLater: { status: 'not_applied', limit: 0, used: 0 },
         };
         setUsers(prevUsers => [...prevUsers, newUser]);
         return { success: true, message: 'Employee created successfully.' };
@@ -913,6 +945,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addNotification(user.id, 'Permohonan cuti berhasil diajukan.', 'success');
         return { success: true };
     };
+    
+    const applyForPayLater = async (): Promise<{ success: boolean }> => {
+        if (!user) return { success: false };
+        const updatedUser = { ...user, payLater: { ...user.payLater!, status: 'pending' as 'pending' }};
+        updateCurrentUser(updatedUser);
+        addNotification(user.id, "Pengajuan PayLater Anda telah diterima dan sedang diproses.", "info");
+        return { success: true };
+    };
 
 
     const value = {
@@ -930,7 +970,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule,
         logAssistantQuery, logEngagementEvent,
         adjustUserWallet, freezeUserWallet, reverseTransaction,
-        createEmployee, updateLeaveRequestStatus, submitLeaveRequest
+        updateMonetizationConfig, updateTaxConfig, resolveDispute,
+        createEmployee, updateLeaveRequestStatus, submitLeaveRequest, applyForPayLater
     };
 
     return (

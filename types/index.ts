@@ -46,6 +46,11 @@ export interface User {
         moodHistory: MoodEntry[];
         activeChallenges: string[]; // Array of challenge IDs
     };
+    payLater?: {
+        status: 'not_applied' | 'pending' | 'approved' | 'rejected';
+        limit: number;
+        used: number;
+    };
 }
 
 export interface Transaction {
@@ -105,6 +110,8 @@ export interface Dispute {
     orderId: string;
     buyerId: string;
     sellerId: string;
+    buyerName: string;
+    sellerName: string;
     reason: string;
     status: 'Open' | 'Resolved - Refund Buyer' | 'Resolved - Pay Seller';
     timestamp: string;

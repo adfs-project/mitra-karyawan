@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
-import { Transaction } from '../../types';
-import { BanknotesIcon, ArrowTrendingUpIcon, ShieldCheckIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { Transaction, Dispute } from '../../types';
+import { BanknotesIcon, ArrowTrendingUpIcon, ShieldCheckIcon, DocumentTextIcon, ShieldExclamationIcon } from '@heroicons/react/24/outline';
 import AnomalyDetectionWidget from '../../components/admin/financial/AnomalyDetectionWidget';
 import ReportGenerator from '../../components/admin/financial/ReportGenerator';
 import AIForecasting from '../../components/admin/financial/AIForecasting';
@@ -20,13 +20,14 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.El
     </div>
 );
 
-type Tab = 'Overview' | 'Risk Management' | 'Business Intelligence';
+type Tab = 'Overview' | 'Disputes' | 'Risk Management' | 'Business Intelligence';
 
 const AdminFinancialHub: React.FC = () => {
-    const { transactions, adminWallets, reverseTransaction } = useData();
+    const { transactions, adminWallets, reverseTransaction, disputes, resolveDispute } = useData();
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<Tab>('Overview');
     const [reversingTxId, setReversingTxId] = useState<string | null>(null);
+    const [resolvingDisputeId, setResolvingDisputeId] = useState<string | null>(null);
 
     const gmv = useMemo(() => transactions
         .filter(tx => tx.type === 'Marketplace' || tx.type === 'Teleconsultation' || tx.type === 'PPOB')
@@ -39,6 +40,12 @@ const AdminFinancialHub: React.FC = () => {
             setReversingTxId(null);
         }
     };
+    
+    const handleResolveDispute = async (disputeId: string, resolution: 'Refund Buyer' | 'Pay Seller') => {
+        setResolvingDisputeId(disputeId);
+        await resolveDispute(disputeId, resolution);
+        setResolvingDisputeId(null);
+    }
 
     const filteredTransactions = transactions.filter(tx => 
         tx.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -46,16 +53,43 @@ const AdminFinancialHub: React.FC = () => {
         tx.id.toLowerCase().includes(searchTerm.toLowerCase())
     ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
+    const openDisputes = disputes.filter(d => d.status === 'Open');
+
     const renderContent = () => {
         switch (activeTab) {
+            case 'Disputes':
+                return (
+                    <div className="bg-surface p-6 rounded-lg border border-border-color">
+                        <h2 className="text-xl font-bold mb-4 flex items-center"><ShieldExclamationIcon className="h-6 w-6 mr-2 text-secondary"/> Dispute Resolution Center</h2>
+                        <div className="space-y-4">
+                            {openDisputes.length > 0 ? openDisputes.map(dispute => (
+                                <div key={dispute.id} className="bg-surface-light p-4 rounded-lg border border-border-color">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="text-xs text-text-secondary">Order ID: {dispute.orderId}</p>
+                                            <p><span className="font-bold">{dispute.buyerName}</span> vs <span className="font-bold">{dispute.sellerName}</span></p>
+                                            <p className="text-sm text-text-secondary mt-2"><strong>Reason:</strong> {dispute.reason}</p>
+                                        </div>
+                                        <div className="text-right flex-shrink-0 ml-4">
+                                            {resolvingDisputeId === dispute.id ? (
+                                                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                            ) : (
+                                                <div className="flex flex-col space-y-2">
+                                                    <button onClick={() => handleResolveDispute(dispute.id, 'Refund Buyer')} className="text-xs btn-primary px-2 py-1 rounded">Refund Buyer</button>
+                                                    <button onClick={() => handleResolveDispute(dispute.id, 'Pay Seller')} className="text-xs btn-secondary px-2 py-1 rounded">Pay Seller</button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )) : <p className="text-center text-text-secondary py-4">No open disputes.</p>}
+                        </div>
+                    </div>
+                );
             case 'Risk Management':
                 return (
                     <div className="space-y-6">
                         <AnomalyDetectionWidget />
-                        <div className="bg-surface p-6 rounded-lg border border-border-color">
-                            <h2 className="text-xl font-bold mb-4">Dispute Resolution Center</h2>
-                            <p className="text-text-secondary">This feature is under construction. It will allow admins to mediate transaction disputes between users.</p>
-                        </div>
                     </div>
                 );
             case 'Business Intelligence':
@@ -140,7 +174,7 @@ const AdminFinancialHub: React.FC = () => {
             </div>
 
             <div className="flex border-b border-border-color">
-                {(['Overview', 'Risk Management', 'Business Intelligence'] as Tab[]).map(tab => (
+                {(['Overview', 'Disputes', 'Risk Management', 'Business Intelligence'] as Tab[]).map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 font-semibold ${activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-text-secondary'}`}>
                         {tab}
                     </button>

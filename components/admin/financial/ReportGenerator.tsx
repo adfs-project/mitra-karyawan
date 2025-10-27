@@ -3,7 +3,7 @@ import { DocumentArrowDownIcon } from '@heroicons/react/24/solid';
 import { useData } from '../../../contexts/DataContext';
 
 const ReportGenerator: React.FC = () => {
-    const { transactions, users } = useData();
+    const { transactions, users, articles, taxConfig } = useData();
 
     const generateCSV = (data: any[], filename: string) => {
         if (data.length === 0) {
@@ -44,6 +44,38 @@ const ReportGenerator: React.FC = () => {
         }));
         generateCSV(data, 'user_balances.csv');
     };
+    
+    const handleExportPandL = () => {
+        const revenue = transactions
+            .filter(tx => tx.type === 'Commission')
+            .map(tx => ({ date: tx.timestamp.split('T')[0], description: tx.description, revenue: tx.amount, expense: 0, net: tx.amount }));
+            
+        const adRevenue = articles
+            .filter(a => a.monetization?.enabled)
+            .map(a => ({ date: a.timestamp.split('T')[0], description: `Ad revenue from "${a.title}"`, revenue: a.monetization?.revenueGenerated || 0, expense: 0, net: a.monetization?.revenueGenerated || 0 }));
+
+        // Simulated expenses
+        const expenses = [
+            { date: new Date().toISOString().split('T')[0], description: 'Server Costs', revenue: 0, expense: 5000000, net: -5000000 },
+            { date: new Date().toISOString().split('T')[0], description: 'API Usage Fees', revenue: 0, expense: 1500000, net: -1500000 },
+        ];
+        
+        const data = [...revenue, ...adRevenue, ...expenses].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        generateCSV(data, 'profit_and_loss.csv');
+    };
+
+    const handleExportTax = () => {
+        const data = transactions
+            .filter(tx => tx.type === 'Tax')
+            .map(tx => ({ 
+                date: tx.timestamp.split('T')[0],
+                transactionId: tx.id,
+                relatedTransactionId: tx.relatedId,
+                description: tx.description,
+                taxCollected: tx.amount,
+            }));
+        generateCSV(data, 'tax_report.csv');
+    };
 
 
     return (
@@ -59,11 +91,11 @@ const ReportGenerator: React.FC = () => {
                  <button onClick={handleExportUserBalances} className="w-full p-3 bg-surface-light rounded-lg hover:bg-border-color text-left font-semibold">
                     Export User Balances (CSV)
                 </button>
-                <button className="w-full p-3 bg-surface-light rounded-lg hover:bg-border-color text-left font-semibold disabled:opacity-50" disabled>
-                    Export Profit & Loss Report (Coming Soon)
+                <button onClick={handleExportPandL} className="w-full p-3 bg-surface-light rounded-lg hover:bg-border-color text-left font-semibold">
+                    Export Profit & Loss Report
                 </button>
-                 <button className="w-full p-3 bg-surface-light rounded-lg hover:bg-border-color text-left font-semibold disabled:opacity-50" disabled>
-                    Export Tax Report (Coming Soon)
+                 <button onClick={handleExportTax} className="w-full p-3 bg-surface-light rounded-lg hover:bg-border-color text-left font-semibold">
+                    Export Tax Report
                 </button>
             </div>
         </div>
