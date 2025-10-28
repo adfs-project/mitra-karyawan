@@ -2,6 +2,7 @@ import React, { lazy, Suspense, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { Role } from './types';
+import ToastContainer from './components/common/ToastContainer';
 
 // Lazy load components for code splitting
 const UserLayout = lazy(() => import('./components/layout/UserLayout'));
@@ -27,6 +28,12 @@ const MyConsultationsScreen = lazy(() => import('./screens/user/health/MyConsult
 const ConsultationRoomScreen = lazy(() => import('./screens/user/health/ConsultationRoomScreen'));
 const DoctorDetailScreen = lazy(() => import('./screens/user/health/DoctorDetailScreen'));
 const LoyaltyScreen = lazy(() => import('./screens/user/LoyaltyScreen'));
+const HealthRecordScreen = lazy(() => import('./screens/user/health/HealthRecordScreen'));
+const EprescriptionScreen = lazy(() => import('./screens/user/health/EprescriptionScreen'));
+const InsuranceClaimScreen = lazy(() => import('./screens/user/health/InsuranceClaimScreen'));
+const PharmacyCheckoutScreen = lazy(() => import('./screens/user/health/PharmacyCheckoutScreen'));
+const HealthPlusScreen = lazy(() => import('./screens/user/health/HealthPlusScreen'));
+const SubscriptionUpsellScreen = lazy(() => import('./screens/user/health/SubscriptionUpsellScreen'));
 
 
 // Admin Screens
@@ -42,7 +49,7 @@ const AdminScalability = lazy(() => import('./screens/admin/AdminScalability'));
 const AdminTaxManagement = lazy(() => import('./screens/admin/AdminTaxManagement'));
 const AdminPersonalizationEngine = lazy(() => import('./screens/admin/AdminPersonalizationEngine'));
 const AdminAssistantHub = lazy(() => import('./screens/admin/AdminAssistantHub'));
-const AdminDemoControlScreen = lazy(() => import('./screens/admin/AdminDemoControlScreen'));
+const AdminSystemControlsScreen = lazy(() => import('./screens/admin/AdminSystemControlsScreen'));
 
 
 // HR Screens
@@ -51,6 +58,9 @@ const HrDashboard = lazy(() => import('./screens/hr/HrDashboard'));
 const HrOnboarding = lazy(() => import('./screens/hr/HrOnboarding'));
 const HrLeaveManagement = lazy(() => import('./screens/hr/HrLeaveManagement'));
 const HrPayroll = lazy(() => import('./screens/hr/HrPayroll'));
+const HrAiCopilotScreen = lazy(() => import('./screens/hr/HrAiCopilotScreen'));
+const HrBenefitManagement = lazy(() => import('./screens/hr/HrBenefitManagement'));
+const HrWellnessManagement = lazy(() => import('./screens/hr/HrWellnessManagement'));
 
 
 const Spinner = () => (
@@ -91,7 +101,7 @@ const App: React.FC = () => {
                         <Route path="admin/tax" element={<AdminTaxManagement />} />
                         <Route path="admin/system/api" element={<AdminApiIntegration />} />
                         <Route path="admin/system/scalability" element={<AdminScalability />} />
-                        <Route path="admin/system/demo-control" element={<AdminDemoControlScreen />} />
+                        <Route path="admin/system/controls" element={<AdminSystemControlsScreen />} />
                         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
                     </Routes>
                 </AdminLayout>
@@ -118,6 +128,12 @@ const App: React.FC = () => {
                     <Route path="consultation/:id" element={<ConsultationRoomScreen />} />
                     <Route path="doctor/:id" element={<DoctorDetailScreen />} />
                     <Route path="loyalty" element={<LoyaltyScreen />} />
+                    <Route path="health-record" element={<HealthRecordScreen />} />
+                    <Route path="prescriptions" element={<EprescriptionScreen />} />
+                    <Route path="insurance-claim" element={<InsuranceClaimScreen />} />
+                    <Route path="pharmacy-checkout/:eprescriptionId" element={<PharmacyCheckoutScreen />} />
+                    <Route path="health-plus" element={<HealthPlusScreen />} />
+                    <Route path="subscribe-health-plus" element={<SubscriptionUpsellScreen />} />
                     <Route path="under-construction" element={<UnderConstructionScreen />} />
                     <Route path="placeholder/:featureName" element={<FunctionalPlaceholderScreen />} />
 
@@ -130,6 +146,9 @@ const App: React.FC = () => {
                             <Route path="hr/onboarding" element={<HrOnboarding />} />
                             <Route path="hr/leave" element={<HrLeaveManagement />} />
                             <Route path="hr/payroll" element={<HrPayroll />} />
+                            <Route path="hr/copilot" element={<HrAiCopilotScreen />} />
+                            <Route path="hr/benefits" element={<HrBenefitManagement />} />
+                            <Route path="hr/wellness" element={<HrWellnessManagement />} />
                         </>
                     )}
                     
@@ -140,19 +159,22 @@ const App: React.FC = () => {
     };
 
     return (
-        <HashRouter>
-            <Suspense fallback={<Spinner />}>
-                <Routes>
-                    {/* Public Routes */}
-                    <Route path="/login" element={user ? <Navigate to="/" /> : <LoginScreen />} />
-                    <Route path="/register" element={user ? <Navigate to="/" /> : <RegisterScreen />} />
-                    <Route path="/deactivated" element={<DeactivatedAccountScreen />} />
+        <>
+            <ToastContainer />
+            <HashRouter>
+                <Suspense fallback={<Spinner />}>
+                    <Routes>
+                        {/* Public Routes */}
+                        <Route path="/login" element={user ? <Navigate to="/" /> : <LoginScreen />} />
+                        <Route path="/register" element={user ? <Navigate to="/" /> : <RegisterScreen />} />
+                        <Route path="/deactivated" element={<DeactivatedAccountScreen />} />
 
-                    {/* Protected Routes Wrapper */}
-                    <Route path="/*" element={renderLayout()} />
-                </Routes>
-            </Suspense>
-        </HashRouter>
+                        {/* Protected Routes Wrapper */}
+                        <Route path="/*" element={renderLayout()} />
+                    </Routes>
+                </Suspense>
+            </HashRouter>
+        </>
     );
 };
 

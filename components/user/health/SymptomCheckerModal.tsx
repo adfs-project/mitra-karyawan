@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { XMarkIcon, PaperAirplaneIcon, BeakerIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
 import { buildSecurePrompt } from '../../../services/aiGuardrailService';
+import { useData } from '../../../contexts/DataContext';
 
 interface Message {
     sender: 'user' | 'ai';
@@ -13,6 +14,7 @@ const SymptomCheckerModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
 }> = ({ isOpen, onClose }) => {
+    const { showToast } = useData();
     const [messages, setMessages] = useState<Message[]>([]);
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -57,6 +59,7 @@ const SymptomCheckerModal: React.FC<{
             setMessages(prev => [...prev, aiMessage]);
         } catch (error) {
             console.error("Gemini API Error:", error);
+            showToast("Failed to contact the AI health assistant.", "error");
             const errorMessage: Message = { sender: 'ai', text: "Maaf, terjadi kesalahan. Silakan coba lagi nanti." };
             setMessages(prev => [...prev, errorMessage]);
         } finally {

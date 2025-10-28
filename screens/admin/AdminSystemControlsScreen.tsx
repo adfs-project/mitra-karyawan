@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
-import { ShieldCheckIcon, ShieldExclamationIcon, PuzzlePieceIcon } from '@heroicons/react/24/solid';
+import { ShieldCheckIcon, ShieldExclamationIcon, PuzzlePieceIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 import loggingService, { LogEntry } from '../../services/loggingService';
 
 const ToggleSwitch: React.FC<{
@@ -10,20 +10,21 @@ const ToggleSwitch: React.FC<{
     onToggle: (enabled: boolean) => void;
     Icon: React.ElementType;
     iconColor: string;
-}> = ({ label, description, enabled, onToggle, Icon, iconColor }) => {
+    disabled?: boolean;
+}> = ({ label, description, enabled, onToggle, Icon, iconColor, disabled = false }) => {
     return (
-        <div className="bg-surface-light p-4 rounded-lg border border-border-color flex justify-between items-center">
+        <div className={`bg-surface-light p-4 rounded-lg border border-border-color flex justify-between items-center ${disabled ? 'opacity-70' : ''}`}>
             <div className="flex items-start">
-                <div className={`p-2 rounded-full mr-4 ${enabled ? `${iconColor}/20` : 'bg-primary/20'}`}>
-                     <Icon className={`h-6 w-6 ${enabled ? iconColor : 'text-primary'}`} />
+                <div className={`p-2 rounded-full mr-4 ${enabled ? `${iconColor}/20` : 'bg-gray-500/20'}`}>
+                     <Icon className={`h-6 w-6 ${enabled ? iconColor : 'text-gray-500'}`} />
                 </div>
                 <div>
                     <h3 className="font-bold text-text-primary">{label}</h3>
                     <p className="text-sm text-text-secondary max-w-xl">{description}</p>
                 </div>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" checked={enabled} onChange={(e) => onToggle(e.target.checked)} className="sr-only peer" />
+            <label className={`relative inline-flex items-center ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                <input type="checkbox" checked={enabled} onChange={(e) => !disabled && onToggle(e.target.checked)} className="sr-only peer" disabled={disabled} />
                 <div className={`w-14 h-8 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border after:rounded-full after:h-6 after:w-6 after:transition-all ${enabled ? 'peer-checked:bg-secondary' : 'peer-checked:bg-primary'}`}></div>
             </label>
         </div>
@@ -35,6 +36,8 @@ const ErrorLogViewer: React.FC = () => {
 
     useEffect(() => {
         setLogs(loggingService.getRecentLogs());
+        const interval = setInterval(() => setLogs(loggingService.getRecentLogs()), 2000);
+        return () => clearInterval(interval);
     }, []);
 
     const handleClearLogs = () => {
@@ -63,10 +66,11 @@ const ErrorLogViewer: React.FC = () => {
 }
 
 
-const AdminDemoControlScreen: React.FC = () => {
+const AdminSystemControlsScreen: React.FC = () => {
     const { 
         isAiGuardrailDisabled,
         toggleAiGuardrail,
+        isDeletionLocked,
         homePageConfig,
         updateHomePageConfig
     } = useData();
@@ -86,8 +90,8 @@ const AdminDemoControlScreen: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-primary">AI, Privacy & Feature Controls</h1>
-            <p className="text-text-secondary max-w-3xl">Kelola pengaturan privasi, fungsionalitas AI, dan aktifkan fitur eksperimental di seluruh aplikasi.</p>
+            <h1 className="text-3xl font-bold text-primary">System Controls</h1>
+            <p className="text-text-secondary max-w-3xl">Kelola kontrol keamanan, privasi AI, dan fitur eksperimental di seluruh aplikasi.</p>
 
              <div className="flex border-b border-border-color">
                 <button onClick={() => setActiveTab('Settings')} className={`px-4 py-2 font-semibold ${activeTab === 'Settings' ? 'text-primary border-b-2 border-primary' : 'text-text-secondary'}`}>
@@ -100,6 +104,18 @@ const AdminDemoControlScreen: React.FC = () => {
 
             {activeTab === 'Settings' ? (
                 <div className="space-y-6">
+                    <div>
+                        <h2 className="text-xl font-bold mb-2">Data Integrity</h2>
+                        <ToggleSwitch
+                            label="Enable Deletion Lock"
+                            description="Mencegah semua aksi penghapusan data inti (produk, artikel, dll.) di seluruh aplikasi untuk menjaga integritas data. Ini adalah fitur keamanan utama dan bersifat permanen dalam mode demo."
+                            enabled={isDeletionLocked}
+                            onToggle={() => {}} // This toggle is intentionally made read-only
+                            disabled={true} // The toggle cannot be changed from the UI
+                            Icon={LockClosedIcon}
+                            iconColor="text-red-500"
+                        />
+                    </div>
                     <div>
                         <h2 className="text-xl font-bold mb-2">AI Privacy</h2>
                         <ToggleSwitch
@@ -130,4 +146,4 @@ const AdminDemoControlScreen: React.FC = () => {
     );
 };
 
-export default AdminDemoControlScreen;
+export default AdminSystemControlsScreen;

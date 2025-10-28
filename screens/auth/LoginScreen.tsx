@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -57,7 +56,10 @@ const LoginScreen: React.FC = () => {
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
             <div className="w-full max-w-md bg-surface p-8 rounded-lg shadow-lg border border-border-color">
-                <h1 className="text-3xl font-bold text-center text-primary mb-8">Mitra Karyawan</h1>
+                <div className="text-center mb-8">
+                    <h1 className="text-[28px] font-bold text-primary tracking-wider">MITRA KARYAWAN</h1>
+                    <p className="text-sm text-text-secondary tracking-widest uppercase">Super App</p>
+                </div>
 
                 {!show2FA ? (
                     <form onSubmit={handleLogin} className="space-y-6" autoComplete="off">

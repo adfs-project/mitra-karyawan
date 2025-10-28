@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingCartIcon, BellIcon, LanguageIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ShoppingCartIcon, BellIcon, LanguageIcon, XMarkIcon, StarIcon } from '@heroicons/react/24/outline';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
@@ -83,6 +83,9 @@ const Header: React.FC = () => {
                             {cartItemCount}
                         </span>
                     )}
+                </Link>
+                <Link to="/loyalty" className="relative p-2 rounded-full hover:bg-surface-light">
+                    <StarIcon className="h-6 w-6 text-text-secondary" />
                 </Link>
                 <div className="relative" ref={panelRef}>
                     <button onClick={togglePanel} className="relative p-2 rounded-full hover:bg-surface-light">

@@ -1,5 +1,3 @@
-// --- Enums ---
-
 export enum Role {
     Admin = 'Admin',
     HR = 'HR',
@@ -34,9 +32,15 @@ export interface MoodHistory {
     mood: 'Sangat Sedih' | 'Sedih' | 'Biasa' | 'Senang' | 'Sangat Senang';
 }
 
+export interface WearableData {
+    steps: { date: string, value: number }[];
+    sleep: { date: string, value: number }[]; // in hours
+}
+
 export interface HealthData {
     moodHistory: MoodHistory[];
     activeChallenges: string[];
+    wearableData?: WearableData;
 }
 
 export interface PayLater {
@@ -70,6 +74,7 @@ export interface User {
     bookmarkedArticles: string[];
     healthData: HealthData;
     payLater?: PayLater;
+    isPremium?: boolean;
 }
 
 export interface ProductReview {
@@ -137,7 +142,7 @@ export interface Transaction {
     id: string;
     userId: string;
     userName: string;
-    type: 'Marketplace' | 'Top-Up' | 'Transfer' | 'Teleconsultation' | 'PPOB' | 'Refund' | 'Reversal' | 'Commission' | 'Tax';
+    type: 'Marketplace' | 'Top-Up' | 'Transfer' | 'Teleconsultation' | 'PPOB' | 'Refund' | 'Reversal' | 'Commission' | 'Tax' | 'Operational Expense' | 'Internal Transfer' | 'Insurance Claim' | 'Obat & Resep';
     amount: number;
     description: string;
     timestamp: string;
@@ -169,6 +174,23 @@ export interface Doctor {
     availableSlots: DoctorSlot[];
 }
 
+export interface EprescriptionItem {
+    drugName: string;
+    dosage: string;
+    instructions: string;
+}
+
+export interface Eprescription {
+    id: string;
+    consultationId: string;
+    patientId: string;
+    doctorId: string;
+    doctorName: string;
+    issueDate: string;
+    items: EprescriptionItem[];
+    status: 'New' | 'Redeemed';
+}
+
 export interface Consultation {
     id: string;
     userId: string;
@@ -179,7 +201,8 @@ export interface Consultation {
     scheduledTime: string;
     status: 'Scheduled' | 'Completed' | 'Cancelled';
     notes?: string;
-    prescription?: string;
+    prescription?: string; // Kept for simple text
+    eprescriptionId?: string; // Link to the new object
 }
 
 export interface Dispute {
@@ -260,6 +283,9 @@ export interface HomePageConfig {
     };
     pinnedItemId: string;
     quickAccessOrder: string[];
+    featureFlags: {
+        aiInvestmentBot: boolean;
+    };
 }
 
 export interface AdminWallets {
@@ -325,4 +351,45 @@ export interface AssistantLog {
 export interface EngagementAnalytics {
     forYouClicks: Record<string, number>;
     quickAccessClicks: Record<string, number>;
+}
+
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+export interface Toast {
+    id: number;
+    message: string;
+    type: ToastType;
+}
+
+export interface ChatMessage {
+    sender: 'user' | 'ai';
+    text: string;
+}
+
+export interface HealthDocument {
+    id: string;
+    userId: string;
+    name: string;
+    uploadDate: string;
+    fileUrl: string; // Base64 or a mock URL
+}
+
+export interface HealthChallenge {
+    id: string;
+    title: string;
+    description: string;
+    creator: 'System' | { hrId: string; branch: string };
+    participants: { userId: string; progress: number }[]; // Progress as a percentage
+}
+
+export interface InsuranceClaim {
+    id: string;
+    userId: string;
+    userName: string;
+    branch: string;
+    type: 'Rawat Jalan' | 'Rawat Inap' | 'Kacamata';
+    amount: number;
+    submissionDate: string;
+    receiptUrl: string; // Base64
+    status: 'Pending' | 'Approved' | 'Rejected';
 }

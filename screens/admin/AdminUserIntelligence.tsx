@@ -3,6 +3,7 @@ import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { User, Role } from '../../types';
 import WalletAdjustmentModal from '../../components/admin/financial/WalletAdjustmentModal';
+import UserDetailsModal from '../../components/admin/user/UserDetailsModal';
 import { XMarkIcon, CheckIcon } from '@heroicons/react/24/solid';
 
 const Toggle: React.FC<{ checked: boolean; onChange: (checked: boolean) => void; disabled?: boolean }> = ({ checked, onChange, disabled }) => {
@@ -75,6 +76,7 @@ const AdminUserIntelligence: React.FC = () => {
     const [statusModalOpen, setStatusModalOpen] = useState(false);
     const [walletModalOpen, setWalletModalOpen] = useState(false);
     const [approveModalOpen, setApproveModalOpen] = useState(false);
+    const [detailsModalOpen, setDetailsModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [action, setAction] = useState<'activate' | 'deactivate' | null>(null);
     const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
@@ -114,6 +116,11 @@ const AdminUserIntelligence: React.FC = () => {
         setWalletModalOpen(true);
     };
     
+    const handleShowDetails = (userToShow: User) => {
+        setSelectedUser(userToShow);
+        setDetailsModalOpen(true);
+    };
+
     const handleOpenApproveModal = (user: User) => {
         setSelectedUser(user);
         setApproveModalOpen(true);
@@ -180,7 +187,7 @@ const AdminUserIntelligence: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 space-x-2">
                                         <button onClick={() => handleManageWallet(user)} className="font-medium text-primary hover:underline">Manage Wallet</button>
-                                        <button className="font-medium text-primary hover:underline">Details</button>
+                                        <button onClick={() => handleShowDetails(user)} className="font-medium text-primary hover:underline">Details</button>
                                     </td>
                                 </tr>
                             ))}
@@ -241,6 +248,11 @@ const AdminUserIntelligence: React.FC = () => {
                 isOpen={approveModalOpen}
                 onClose={() => setApproveModalOpen(false)}
                 onConfirm={handleConfirmApproval}
+                user={selectedUser}
+            />
+            <UserDetailsModal
+                isOpen={detailsModalOpen}
+                onClose={() => setDetailsModalOpen(false)}
                 user={selectedUser}
             />
         </div>

@@ -1,7 +1,7 @@
 import {
     User, Role, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration,
     IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig,
-    HomePageConfig, AdminWallets, PersonalizationRule, Order
+    HomePageConfig, AdminWallets, PersonalizationRule, Order, HealthChallenge
 } from '../types';
 
 export const initialUsers: User[] = [
@@ -53,8 +53,25 @@ export const initialUsers: User[] = [
         loyaltyPoints: 1250,
         wishlist: ['p-002'],
         bookmarkedArticles: ['a-001'],
-        healthData: { moodHistory: [], activeChallenges: [] },
-        payLater: { status: 'approved', limit: 2000000, used: 250000 }
+        healthData: { 
+            moodHistory: [
+                { date: '2023-10-25', mood: 'Biasa' },
+                { date: '2023-10-26', mood: 'Senang' },
+            ], 
+            activeChallenges: ['steps-challenge'],
+            wearableData: {
+                steps: [
+                    { date: '2023-10-25', value: 8500 },
+                    { date: '2023-10-26', value: 10200 },
+                ],
+                sleep: [
+                    { date: '2023-10-25', value: 6.5 },
+                    { date: '2023-10-26', value: 7.8 },
+                ]
+            }
+        },
+        payLater: { status: 'approved', limit: 2000000, used: 250000 },
+        isPremium: true,
     },
      {
         id: 'user-bdg-001',
@@ -166,11 +183,46 @@ export const initialDoctors: Doctor[] = [
         availableSlots: [
             { time: '13:00', isBooked: false }, { time: '14:00', isBooked: false }, { time: '15:00', isBooked: false },
         ]
+    },
+    {
+        id: 'doc-003', name: 'Dr. Rina Wulandari', specialty: 'Ahli Gizi', bio: 'Membantu Anda merencanakan diet sehat dan seimbang untuk gaya hidup yang lebih baik.',
+        imageUrl: 'https://i.pravatar.cc/150?u=doc-003', consultationFee: 120000,
+        availableSlots: [
+            { time: '10:00', isBooked: false }, { time: '11:00', isBooked: false },
+        ]
+    },
+    {
+        id: 'doc-004', name: 'Dr. Amanda Sari, Sp.KK', specialty: 'Spesialis Kulit', bio: 'Spesialis kulit dan kelamin dengan pengalaman 8 tahun di bidang dermatologi kosmetik dan klinis.',
+        imageUrl: 'https://i.pravatar.cc/150?u=doc-004', consultationFee: 250000,
+        availableSlots: [
+            { time: '14:00', isBooked: false }, { time: '14:30', isBooked: false }, { time: '15:00', isBooked: false },
+        ]
+    },
+    {
+        id: 'doc-005', name: 'Dr. David Setiawan, Sp.A', specialty: 'Spesialis Anak', bio: 'Dokter anak yang berdedikasi untuk memberikan perawatan terbaik bagi buah hati Anda, dari bayi hingga remaja.',
+        imageUrl: 'https://i.pravatar.cc/150?u=doc-005', consultationFee: 200000,
+        availableSlots: [
+            { time: '09:00', isBooked: true }, { time: '09:30', isBooked: false }, { time: '10:00', isBooked: false },
+        ]
     }
 ];
 
 export const initialConsultations: Consultation[] = [];
-export const initialDisputes: Dispute[] = [];
+
+export const initialDisputes: Dispute[] = [
+    {
+        id: 'dispute-001',
+        orderId: 'order-001',
+        buyerId: 'user-jkt-001',
+        buyerName: 'Budi Karyawan',
+        sellerId: 'user-bdg-001',
+        sellerName: 'Siti Nurhaliza',
+        reason: 'Barang yang diterima rusak.',
+        status: 'Open',
+        timestamp: new Date().toISOString()
+    }
+];
+
 
 // FIX: Added initialOrders for the admin dashboard GMV calculation.
 export const initialOrders: Order[] = [
@@ -201,8 +253,22 @@ export const initialOrders: Order[] = [
 ];
 
 export const initialApiIntegrations: ApiIntegration[] = [
-    { id: 'api-bca', name: 'Bank Central Asia (BCA)', type: 'Bank', status: IntegrationStatus.Inactive },
+    // Banks
+    { id: 'api-bca', name: 'BCA', type: 'Bank', status: IntegrationStatus.Inactive },
+    { id: 'api-jago', name: 'Bank Jago', type: 'Bank', status: IntegrationStatus.Inactive },
+    { id: 'api-mandiri', name: 'Mandiri', type: 'Bank', status: IntegrationStatus.Inactive },
+    { id: 'api-bni', name: 'BNI', type: 'Bank', status: IntegrationStatus.Inactive },
+    { id: 'api-bri', name: 'BRI', type: 'Bank', status: IntegrationStatus.Inactive },
+    
+    // E-Wallets
     { id: 'api-gopay', name: 'GoPay', type: 'E-Wallet', status: IntegrationStatus.Inactive },
+    { id: 'api-ovo', name: 'OVO', type: 'E-Wallet', status: IntegrationStatus.Inactive },
+    { id: 'api-dana', name: 'DANA', type: 'E-Wallet', status: IntegrationStatus.Inactive },
+    { id: 'api-shopeepay', name: 'ShopeePay', type: 'E-Wallet', status: IntegrationStatus.Inactive },
+    
+    // Retail
+    { id: 'api-alfamart', name: 'Alfamart', type: 'Retail', status: IntegrationStatus.Inactive },
+    { id: 'api-indomart', name: 'Indomart', type: 'Retail', status: IntegrationStatus.Inactive },
 ];
 
 export const initialScalabilityServices: ScalabilityService[] = [
@@ -235,6 +301,9 @@ export const initialHomePageConfig: HomePageConfig = {
     },
     pinnedItemId: 'p-001',
     quickAccessOrder: ['ppob', 'market', 'health', 'gov', 'lifestyle', 'pulsa', 'cashout', 'daily'],
+    featureFlags: {
+        aiInvestmentBot: false,
+    },
 };
 
 export const initialAdminWallets: AdminWallets = {
@@ -250,5 +319,18 @@ export const initialPersonalizationRules: PersonalizationRule[] = [
         conditions: [{ field: 'profile.branch', operator: 'equals', value: 'Bandung' }],
         action: { type: 'PIN_ITEM', payload: { itemId: 'p-002' } },
         isActive: true,
+    }
+];
+
+export const initialHealthChallenges: HealthChallenge[] = [
+    {
+        id: 'steps-challenge',
+        title: 'Tantangan 10.000 Langkah',
+        description: 'Jalan 10.000 langkah setiap hari selama seminggu.',
+        creator: 'System',
+        participants: [
+            { userId: 'user-jkt-001', progress: 85 },
+            { userId: 'hr-jkt-001', progress: 60 },
+        ]
     }
 ];

@@ -4,6 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import { Transaction } from '../../../types';
 import { useData } from '../../../contexts/DataContext';
 import { buildSecurePrompt } from '../../../services/aiGuardrailService';
+import loggingService from '../../../services/loggingService';
 
 interface Message {
     sender: 'user' | 'ai';
@@ -15,7 +16,7 @@ const FinancialAdvisorModal: React.FC<{
     onClose: () => void;
     userTransactions: Transaction[];
 }> = ({ isOpen, onClose, userTransactions }) => {
-    const { isAiGuardrailDisabled } = useData();
+    const { isAiGuardrailDisabled, showToast } = useData();
     const [messages, setMessages] = useState<Message[]>([]);
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -73,7 +74,8 @@ const FinancialAdvisorModal: React.FC<{
             const aiMessage: Message = { sender: 'ai', text: response.text };
             setMessages(prev => [...prev, aiMessage]);
         } catch (error) {
-            console.error("Gemini API Error:", error);
+            loggingService.logError(error as Error, { component: 'FinancialAdvisorModal' });
+            showToast("Failed to contact the AI advisor.", "error");
             const errorMessage: Message = { sender: 'ai', text: "Maaf, terjadi kesalahan saat menghubungi AI. Silakan coba lagi nanti." };
             setMessages(prev => [...prev, errorMessage]);
         } finally {

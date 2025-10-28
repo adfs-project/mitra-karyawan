@@ -2,18 +2,50 @@ import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { SparklesIcon } from '@heroicons/react/24/solid';
 import { buildSecurePrompt } from '../../../services/aiGuardrailService';
+import { useData } from '../../../contexts/DataContext';
+import { Product } from '../../../types';
+import ProductCard from './ProductCard';
+
+const FallbackRecommendations: React.FC = () => {
+    const { products, addToCart } = useData();
+
+    const topRatedProducts = [...products]
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 3);
+    
+    return (
+        <div className="bg-surface p-4 rounded-lg border border-border-color">
+            <h2 className="text-lg font-bold text-text-primary mb-2">Produk Terlaris</h2>
+            <div className="grid grid-cols-3 gap-2">
+                {topRatedProducts.map(product => (
+                    <div key={product.id} className="bg-surface-light rounded-lg overflow-hidden text-center text-xs p-2">
+                        <img src={product.imageUrl} alt={product.name} className="w-full h-16 object-cover rounded" />
+                        <p className="font-semibold truncate mt-1">{product.name}</p>
+                         <button onClick={() => addToCart(product.id, 1)} className="mt-1 w-full bg-primary/20 text-primary text-xs py-1 rounded">
+                            + Add
+                         </button>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 
 const AiRecommendations: React.FC<{ searchTerm: string }> = ({ searchTerm }) => {
     const [advice, setAdvice] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showFallback, setShowFallback] = useState(false);
 
     useEffect(() => {
         const fetchAdvice = async () => {
             if (!searchTerm.trim()) {
                 setAdvice('');
+                setShowFallback(false);
                 return;
             }
             setIsLoading(true);
+            setShowFallback(false);
 
             const securePrompt = buildSecurePrompt(
                 searchTerm,
@@ -31,6 +63,8 @@ const AiRecommendations: React.FC<{ searchTerm: string }> = ({ searchTerm }) => 
 
             } catch (error) {
                 console.error("AI Recommendation Error:", error);
+                // Graceful Degradation: Show fallback instead of an error
+                setShowFallback(true);
                 setAdvice('');
             } finally {
                 setIsLoading(false);
@@ -52,6 +86,10 @@ const AiRecommendations: React.FC<{ searchTerm: string }> = ({ searchTerm }) => 
         );
     }
     
+    if (showFallback) {
+        return <FallbackRecommendations />;
+    }
+
     if (!advice) {
         return null;
     }

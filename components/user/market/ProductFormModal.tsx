@@ -3,6 +3,7 @@ import { Product } from '../../../types';
 import { SparklesIcon, CurrencyDollarIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
 import { buildSecurePrompt } from '../../../services/aiGuardrailService';
+import { useData } from '../../../contexts/DataContext';
 
 const AILoadingSpinner: React.FC = () => (
     <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
@@ -14,6 +15,7 @@ const ProductFormModal: React.FC<{
     product: Product | null;
     onSave: (product: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'> | Product) => Promise<any>;
 }> = ({ isOpen, onClose, product, onSave }) => {
+    const { showToast } = useData();
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -54,6 +56,20 @@ const ProductFormModal: React.FC<{
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: name === 'price' || name === 'stock' ? Number(value) : value }));
     };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (loadEvent) => {
+                const result = loadEvent.target?.result;
+                if (typeof result === 'string') {
+                    setFormData(prev => ({ ...prev, imageUrl: result }));
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    };
     
     const callGemini = async (prompt: string): Promise<string | null> => {
         try {
@@ -65,14 +81,14 @@ const ProductFormModal: React.FC<{
             return response.text;
         } catch (error) {
             console.error("Gemini API call failed:", error);
-            alert("An error occurred while contacting the AI. Please check the console for details.");
+            showToast("An error occurred while contacting the AI.", "error");
             return null;
         }
     };
     
     const handleGenerateDescription = async () => {
         if (!formData.name) {
-            alert("Please provide a product name first.");
+            showToast("Please provide a product name first.", "warning");
             return;
         }
         setIsGenerating(prev => ({ ...prev, description: true }));
@@ -82,6 +98,7 @@ const ProductFormModal: React.FC<{
         );
         const result = await callGemini(securePrompt);
         if (result) {
+            // Using alert here is okay as it's showing advice, not an error
             alert(`Saran Deskripsi dari AI:\n\n${result}`);
         }
         setIsGenerating(prev => ({ ...prev, description: false }));
@@ -89,7 +106,7 @@ const ProductFormModal: React.FC<{
 
     const handleSuggestPrice = async () => {
         if (!formData.name) {
-            alert("Please provide a product name first.");
+            showToast("Please provide a product name first.", "warning");
             return;
         }
         setIsGenerating(prev => ({ ...prev, price: true }));
@@ -99,6 +116,7 @@ const ProductFormModal: React.FC<{
         );
         const result = await callGemini(securePrompt);
         if (result) {
+            // Using alert here is okay as it's showing advice, not an error
             alert(`Saran Harga dari AI:\n\n${result}`);
         }
         setIsGenerating(prev => ({ ...prev, price: false }));
@@ -107,7 +125,7 @@ const ProductFormModal: React.FC<{
 
     const handleSave = async () => {
         if (!formData.name || formData.price <= 0 || formData.stock < 0 || !formData.category) {
-            alert("Nama, kategori, harga, dan stok harus diisi dengan benar.");
+            showToast("Name, category, price, and stock must be filled correctly.", "error");
             return;
         }
         setIsSaving(true);
@@ -163,8 +181,32 @@ const ProductFormModal: React.FC<{
                         <input type="text" name="category" placeholder="Contoh: Elektronik, Fashion, Hobi" value={formData.category} onChange={handleChange} className="w-full mt-1 p-2 bg-surface-light rounded border border-border-color" />
                     </div>
                     <div>
-                        <label className="text-sm font-bold text-text-secondary">URL Gambar</label>
-                        <input type="text" name="imageUrl" value={formData.imageUrl} onChange={handleChange} className="w-full mt-1 p-2 bg-surface-light rounded border border-border-color" />
+                        <label className="text-sm font-bold text-text-secondary">Gambar Produk</label>
+                        <div className="mt-1 flex items-center space-x-2">
+                            <input 
+                                type="text" 
+                                name="imageUrl" 
+                                placeholder="Paste URL or upload file"
+                                value={formData.imageUrl} 
+                                onChange={handleChange} 
+                                className="flex-grow p-2 bg-surface-light rounded border border-border-color" 
+                            />
+                            <input 
+                                type="file"
+                                id="product-image-upload"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                            />
+                            <label htmlFor="product-image-upload" className="cursor-pointer px-4 py-2 text-sm font-semibold text-primary bg-primary/20 rounded-lg hover:bg-primary/30">
+                                Upload
+                            </label>
+                        </div>
+                        {formData.imageUrl && (
+                            <div className="mt-2">
+                                <img src={formData.imageUrl} alt="Product Preview" className="w-32 h-32 object-cover rounded-lg border border-border-color" />
+                            </div>
+                        )}
                     </div>
                      <div className="flex justify-end space-x-4 pt-4">
                         <button onClick={onClose} disabled={isSaving} className="px-4 py-2 rounded bg-surface-light hover:bg-border-color disabled:opacity-50">Batal</button>

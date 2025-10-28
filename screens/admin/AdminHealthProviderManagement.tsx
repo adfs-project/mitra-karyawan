@@ -63,7 +63,7 @@ const DoctorFormModal: React.FC<{
 };
 
 const AdminHealthProviderManagement: React.FC = () => {
-    const { doctors, consultations, addDoctor, updateDoctor, deleteDoctor } = useData();
+    const { doctors, consultations, addDoctor, updateDoctor, deleteDoctor, isDeletionLocked } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
 
@@ -117,8 +117,13 @@ const AdminHealthProviderManagement: React.FC = () => {
                                     <td className="px-6 py-4">{consultations.filter(c => c.doctorId === doc.id).length}</td>
                                     <td className="px-6 py-4 space-x-2">
                                         <button onClick={() => handleOpenModal(doc)} className="p-2 rounded hover:bg-surface-light"><PencilIcon className="h-4 w-4 text-yellow-400"/></button>
-                                        <button disabled title="Deletion is locked for stability." className="p-2 rounded cursor-not-allowed">
-                                            <LockClosedIcon className="h-4 w-4 text-gray-500"/>
+                                        <button 
+                                            onClick={() => handleDelete(doc.id)}
+                                            disabled={isDeletionLocked} 
+                                            title={isDeletionLocked ? "Deletion is locked in System Controls." : "Delete Doctor"} 
+                                            className={`p-2 rounded ${isDeletionLocked ? 'cursor-not-allowed' : 'hover:bg-surface-light'}`}
+                                        >
+                                            {isDeletionLocked ? <LockClosedIcon className="h-4 w-4 text-gray-500"/> : <TrashIcon className="h-4 w-4 text-red-500"/>}
                                         </button>
                                     </td>
                                 </tr>

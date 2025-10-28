@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mitra-karyawan-cache-v1';
+const CACHE_NAME = 'mitra-karyawan-cache-v3';
 const assetsToCache = [
     '/',
     '/index.html',

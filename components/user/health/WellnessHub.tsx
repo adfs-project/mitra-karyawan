@@ -2,26 +2,48 @@ import React from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useData } from '../../../contexts/DataContext';
 import { TrophyIcon, BookOpenIcon, SparklesIcon, FireIcon, UserGroupIcon } from '@heroicons/react/24/solid';
-import { MoodHistory } from '../../../types';
+import { MoodHistory, HealthChallenge } from '../../../types';
 
 
 const moodOptions: MoodHistory['mood'][] = ['Sangat Sedih', 'Sedih', 'Biasa', 'Senang', 'Sangat Senang'];
 const moodIcons = ['😔', '😕', '😐', '😊', '😄'];
 
+const ChallengeCard: React.FC<{ challenge: HealthChallenge }> = ({ challenge }) => {
+    const { joinHealthChallenge } = useData();
+    const { user } = useAuth();
+
+    const handleJoin = () => {
+        joinHealthChallenge(challenge.id);
+    };
+    
+    const isParticipant = challenge.participants.some(p => p.userId === user?.id);
+
+    return (
+        <div className="bg-surface-light p-4 rounded-lg">
+            <h4 className="font-bold text-text-primary">{challenge.title}</h4>
+            <p className="text-xs text-text-secondary">{challenge.description}</p>
+            {challenge.participants.length > 0 && (
+                 <div className="mt-2">
+                    <p className="text-sm font-semibold flex items-center"><UserGroupIcon className="h-4 w-4 mr-1"/> {challenge.participants.length} Peserta</p>
+                </div>
+            )}
+            <button 
+                onClick={handleJoin} 
+                disabled={isParticipant}
+                className="w-full mt-3 btn-secondary py-1 rounded-full text-sm font-bold disabled:bg-gray-600 disabled:cursor-not-allowed"
+            >
+                {isParticipant ? 'Telah Bergabung' : 'Ikut Tantangan'}
+            </button>
+        </div>
+    );
+};
+
 const WellnessHub: React.FC = () => {
     const { user } = useAuth();
-    const { addMoodEntry, addNotification } = useData();
-    // In a real app, challenges would come from useData
-    const challenges = [
-        { id: 'steps-challenge', title: 'Tantangan 10.000 Langkah', description: 'Jalan 10.000 langkah setiap hari selama seminggu.', participants: [{userName: 'Budi Karyawan', progress: 60}, {userName: 'Super Admin', progress: 85}] },
-    ];
+    const { addMoodEntry, healthChallenges, addNotification } = useData();
 
     const handleMoodClick = (mood: MoodHistory['mood']) => {
         addMoodEntry(mood);
-    };
-
-    const handleChallengeClick = () => {
-        addNotification(user!.id, 'Anda berhasil bergabung dalam tantangan!', 'success');
     };
     
     const handleRelaxationClick = () => {
@@ -33,29 +55,16 @@ const WellnessHub: React.FC = () => {
             <div className="bg-surface p-4 rounded-lg">
                 <h3 className="text-lg font-bold flex items-center mb-4">
                     <TrophyIcon className="h-5 w-5 mr-2 text-primary" />
-                    Tantangan Kesehatan
+                    Tantangan Kesehatan Perusahaan
                 </h3>
                 <div className="space-y-4">
-                    {challenges.map(challenge => (
-                        <div key={challenge.id} className="bg-surface-light p-4 rounded-lg">
-                            <h4 className="font-bold text-text-primary">{challenge.title}</h4>
-                            <p className="text-xs text-text-secondary">{challenge.description}</p>
-                            <div className="mt-2">
-                                <p className="text-sm font-semibold flex items-center"><UserGroupIcon className="h-4 w-4 mr-1"/> Papan Peringkat</p>
-                                <ul className="text-xs space-y-1 mt-1">
-                                    {challenge.participants.sort((a,b) => b.progress - a.progress).map(p => (
-                                         <li key={p.userName} className="flex justify-between items-center">
-                                            <span>{p.userName}</span>
-                                            <span className="font-bold">{p.progress}%</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                             <button onClick={handleChallengeClick} className="w-full mt-3 btn-secondary py-1 rounded-full text-sm font-bold">
-                                Ikut Tantangan
-                            </button>
-                        </div>
-                    ))}
+                    {healthChallenges.length > 0 ? (
+                        healthChallenges.map(challenge => (
+                            <ChallengeCard key={challenge.id} challenge={challenge} />
+                        ))
+                    ) : (
+                        <p className="text-sm text-center text-text-secondary py-4">Belum ada tantangan yang tersedia saat ini.</p>
+                    )}
                 </div>
             </div>
 
