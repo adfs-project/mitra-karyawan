@@ -74,7 +74,7 @@ const ArticleFormModal: React.FC<{
 
 
 const AdminInfoNewsManagement: React.FC = () => {
-    const { articles, addArticle, updateArticle, deleteArticle } = useData();
+    const { articles, addArticle, updateArticle, deleteArticle, isDeletionLocked } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingArticle, setEditingArticle] = useState<Article | null>(null);
 
@@ -132,8 +132,13 @@ const AdminInfoNewsManagement: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 space-x-2">
                                         <button onClick={() => handleOpenModal(article)} className="p-2 rounded hover:bg-surface-light"><PencilIcon className="h-4 w-4 text-yellow-400"/></button>
-                                        <button disabled title="Deletion is locked for stability." className="p-2 rounded cursor-not-allowed">
-                                            <LockClosedIcon className="h-4 w-4 text-gray-500"/>
+                                        <button 
+                                            onClick={() => handleDelete(article.id)}
+                                            disabled={isDeletionLocked} 
+                                            title={isDeletionLocked ? "Deletion is locked in System Controls." : "Delete Article"} 
+                                            className={`p-2 rounded ${isDeletionLocked ? 'cursor-not-allowed' : 'hover:bg-surface-light'}`}
+                                        >
+                                            {isDeletionLocked ? <LockClosedIcon className="h-4 w-4 text-gray-500"/> : <TrashIcon className="h-4 w-4 text-red-500"/>}
                                         </button>
                                     </td>
                                 </tr>

@@ -16,7 +16,7 @@ const navigation = [
     { name: 'System Management', children: [
         { name: 'API Integration', href: '/admin/system/api' },
         { name: 'Scalability', href: '/admin/system/scalability' },
-        { name: 'AI & Privacy', href: '/admin/system/demo-control' },
+        { name: 'System Controls', href: '/admin/system/controls' },
     ], icon: Cog6ToothIcon },
 ];
 

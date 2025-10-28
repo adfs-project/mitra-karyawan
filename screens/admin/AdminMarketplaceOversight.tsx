@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { useData } from '../../contexts/DataContext';
-import { ShoppingCartIcon, BanknotesIcon, ShieldExclamationIcon, LockClosedIcon } from '@heroicons/react/24/solid';
+import { ShoppingCartIcon, BanknotesIcon, ShieldExclamationIcon, LockClosedIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType }> = ({ title, value, icon: Icon }) => (
     <div className="bg-surface p-6 rounded-lg border border-border-color">
@@ -19,7 +19,7 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.El
 );
 
 const AdminMarketplaceOversight: React.FC = () => {
-    const { products, users, transactions, disputes, deleteProduct } = useData();
+    const { products, transactions, disputes, deleteProduct, isDeletionLocked } = useData();
     const [searchTerm, setSearchTerm] = useState('');
 
     const gmv = useMemo(() => transactions
@@ -79,8 +79,18 @@ const AdminMarketplaceOversight: React.FC = () => {
                                     <td className="px-6 py-4">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(p.price)}</td>
                                     <td className="px-6 py-4">{p.stock}</td>
                                     <td className="px-6 py-4">
-                                        <button disabled title="Deletion is locked for stability." className="font-medium text-gray-500 cursor-not-allowed flex items-center">
-                                            <LockClosedIcon className="h-4 w-4 mr-1"/> Delist
+                                        <button
+                                            onClick={() => handleDelete(p.id)}
+                                            disabled={isDeletionLocked}
+                                            title={isDeletionLocked ? "Deletion is locked in System Controls." : "Delist Product"}
+                                            className={`font-medium flex items-center ${
+                                                isDeletionLocked 
+                                                ? 'text-gray-500 cursor-not-allowed' 
+                                                : 'text-red-500 hover:underline'
+                                            }`}
+                                        >
+                                            {isDeletionLocked ? <LockClosedIcon className="h-4 w-4 mr-1"/> : <TrashIcon className="h-4 w-4 mr-1"/>} 
+                                            Delist
                                         </button>
                                     </td>
                                 </tr>

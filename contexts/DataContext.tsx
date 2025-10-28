@@ -60,12 +60,14 @@ interface DataContextType {
     orders: Order[];
     personalizationRules: PersonalizationRule[];
     isAiGuardrailDisabled: boolean;
+    isDeletionLocked: boolean;
     toasts: Toast[];
 
     // --- Methods ---
     showToast: (message: string, type: ToastType) => void;
     removeToast: (id: number) => void;
     toggleAiGuardrail: (isDisabled: boolean) => void;
+    toggleDeletionLock: (isLocked: boolean) => void;
     addTransaction: (txData: Omit<Transaction, 'id' | 'timestamp' | 'userName'>) => Promise<{ success: boolean; message: string }>;
     addNotification: (userId: string, message: string, type: Notification['type']) => void;
     markNotificationsAsRead: (userId: string) => void;
@@ -130,7 +132,7 @@ interface DataContextType {
     logEngagementEvent: (type: 'forYouClicks' | 'quickAccessClicks', itemId: string) => void;
     addPersonalizationRule: (rule: Omit<PersonalizationRule, 'id'>) => void;
     updatePersonalizationRule: (rule: PersonalizationRule) => void;
-    deletePersonalizationRule: (id: string) => void;
+    deletePersonalizationRule: (id: string) => Promise<void>;
 
     // Marketplace
     addProduct: (product: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'>) => Promise<void>;
@@ -191,10 +193,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setToasts(prev => prev.filter(toast => toast.id !== id));
     }, []);
 
-    // --- AI Guardrail State ---
+    // --- System Controls State ---
     const [isAiGuardrailDisabled, setIsAiGuardrailDisabled] = useStickyState<boolean>('app_ai_guardrail_disabled', false);
+    const [isDeletionLocked, setIsDeletionLocked] = useStickyState<boolean>('app_deletion_lock', true);
     
     const toggleAiGuardrail = (isDisabled: boolean) => setIsAiGuardrailDisabled(isDisabled);
+    const toggleDeletionLock = (isLocked: boolean) => setIsDeletionLocked(isLocked);
 
     const addNotification = useCallback((userId: string, message: string, type: Notification['type']) => {
         const newNotif: Notification = {
@@ -565,6 +569,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         showToast("Budget updated.", "success");
     };
 
+    // Note: User-specific data deletion is allowed and not part of the system lock.
     const deleteBudget = async (id: string) => {
         setBudgets(prev => prev.filter(b => b.id !== id));
         showToast("Budget deleted.", "success");
@@ -586,6 +591,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         showToast("Scheduled payment updated.", "success");
     };
 
+    // Note: User-specific data deletion is allowed and not part of the system lock.
     const deleteScheduledPayment = async (id: string) => {
         setScheduledPayments(prev => prev.filter(p => p.id !== id));
         showToast("Scheduled payment deleted.", "success");
@@ -771,9 +777,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         showToast(`Rule "${rule.name}" updated.`, "success");
     };
     
-    const deletePersonalizationRule = (id: string) => {
-        showToast("Deletion of personalization rules is locked to maintain stability.", 'warning');
-        return;
+    const deletePersonalizationRule = async (id: string) => {
+        if (isDeletionLocked) {
+            showToast("Deletion is locked by system controls.", 'warning');
+            return;
+        }
+        setPersonalizationRules(prev => prev.filter(r => r.id !== id));
+        showToast("Personalization rule deleted. (Deletion was unlocked)", "success");
     };
 
     const addProduct = async (productData: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'>) => {
@@ -797,8 +807,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const deleteProduct = async (productId: string) => {
-        showToast("Deletion of products is locked to maintain stability.", 'warning');
-        return;
+        if (isDeletionLocked) {
+            showToast("Deletion is locked by system controls.", 'warning');
+            return;
+        }
+        setProducts(prev => prev.filter(p => p.id !== productId));
+        showToast("Product deleted successfully. (Deletion was unlocked)", "success");
     };
 
     // Admin Content Management
@@ -819,8 +833,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         showToast("Article updated successfully.", "success");
     }
     const deleteArticle = async (articleId: string) => {
-        showToast("Deletion of articles is locked to maintain stability.", 'warning');
-        return;
+        if (isDeletionLocked) {
+            showToast("Deletion is locked by system controls.", 'warning');
+            return;
+        }
+        setArticles(prev => prev.filter(a => a.id !== articleId));
+        showToast("Article deleted successfully. (Deletion was unlocked)", "success");
     };
     
     const addDoctor = async (doctorData: Omit<Doctor, 'id' | 'availableSlots'>) => {
@@ -840,8 +858,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         showToast("Health provider updated.", "success");
     };
     const deleteDoctor = async (doctorId: string) => {
-        showToast("Deletion of doctors is locked to maintain stability.", 'warning');
-        return;
+        if (isDeletionLocked) {
+            showToast("Deletion is locked by system controls.", 'warning');
+            return;
+        }
+        setDoctors(prev => prev.filter(d => d.id !== doctorId));
+        showToast("Doctor deleted successfully. (Deletion was unlocked)", "success");
     };
 
 
@@ -850,10 +872,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         cart, disputes, apiIntegrations, scalabilityServices, leaveRequests, budgets,
         scheduledPayments, monetizationConfig, taxConfig, homePageConfig, assistantLogs,
         engagementAnalytics, adminWallets, personalizationRules,
-        orders, isAiGuardrailDisabled, toasts,
+        orders, isAiGuardrailDisabled, toasts, isDeletionLocked,
         
         showToast, removeToast,
-        toggleAiGuardrail,
+        toggleAiGuardrail, toggleDeletionLock,
         addTransaction, addNotification, markNotificationsAsRead, updateUserStatus,
         addToCart, removeFromCart, updateCartQuantity, clearCart, checkoutCart,
         toggleWishlist, toggleArticleBookmark,

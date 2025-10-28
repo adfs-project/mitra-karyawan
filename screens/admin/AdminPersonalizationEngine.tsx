@@ -140,7 +140,7 @@ const RuleModal: React.FC<{
 };
 
 const AdminPersonalizationEngine: React.FC = () => {
-    const { personalizationRules, addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule } = useData();
+    const { personalizationRules, addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule, isDeletionLocked } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRule, setEditingRule] = useState<PersonalizationRule | null>(null);
 
@@ -156,6 +156,10 @@ const AdminPersonalizationEngine: React.FC = () => {
             addPersonalizationRule(rule);
         }
     };
+
+    const handleDeleteRule = (id: string) => {
+        deletePersonalizationRule(id);
+    }
     
     const handleToggleActive = (rule: PersonalizationRule) => {
         updatePersonalizationRule({ ...rule, isActive: !rule.isActive });
@@ -198,7 +202,14 @@ const AdminPersonalizationEngine: React.FC = () => {
                                             <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                                         </label>
                                         <button onClick={() => handleOpenModal(rule)} className="p-2 rounded hover:bg-border-color"><PencilIcon className="h-5 w-5 text-yellow-400"/></button>
-                                        <button disabled title="Deletion is locked for stability." className="p-2 rounded cursor-not-allowed"><LockClosedIcon className="h-5 w-5 text-gray-500"/></button>
+                                        <button 
+                                            onClick={() => handleDeleteRule(rule.id)}
+                                            disabled={isDeletionLocked} 
+                                            title={isDeletionLocked ? "Deletion is locked in System Controls." : "Delete Rule"} 
+                                            className={`p-2 rounded ${isDeletionLocked ? 'cursor-not-allowed' : 'hover:bg-border-color'}`}
+                                        >
+                                            {isDeletionLocked ? <LockClosedIcon className="h-5 w-5 text-gray-500"/> : <TrashIcon className="h-5 w-5 text-red-500"/>}
+                                        </button>
                                     </div>
                                 </div>
                             </div>
