@@ -170,7 +170,21 @@ export const initialDoctors: Doctor[] = [
 ];
 
 export const initialConsultations: Consultation[] = [];
-export const initialDisputes: Dispute[] = [];
+
+export const initialDisputes: Dispute[] = [
+    {
+        id: 'dispute-001',
+        orderId: 'order-001',
+        buyerId: 'user-jkt-001',
+        buyerName: 'Budi Karyawan',
+        sellerId: 'user-bdg-001',
+        sellerName: 'Siti Nurhaliza',
+        reason: 'Barang yang diterima rusak.',
+        status: 'Open',
+        timestamp: new Date().toISOString()
+    }
+];
+
 
 // FIX: Added initialOrders for the admin dashboard GMV calculation.
 export const initialOrders: Order[] = [

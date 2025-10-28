@@ -1,5 +1,3 @@
-// --- Enums ---
-
 export enum Role {
     Admin = 'Admin',
     HR = 'HR',
@@ -137,7 +135,7 @@ export interface Transaction {
     id: string;
     userId: string;
     userName: string;
-    type: 'Marketplace' | 'Top-Up' | 'Transfer' | 'Teleconsultation' | 'PPOB' | 'Refund' | 'Reversal' | 'Commission' | 'Tax';
+    type: 'Marketplace' | 'Top-Up' | 'Transfer' | 'Teleconsultation' | 'PPOB' | 'Refund' | 'Reversal' | 'Commission' | 'Tax' | 'Operational Expense' | 'Internal Transfer';
     amount: number;
     description: string;
     timestamp: string;
@@ -325,4 +323,12 @@ export interface AssistantLog {
 export interface EngagementAnalytics {
     forYouClicks: Record<string, number>;
     quickAccessClicks: Record<string, number>;
+}
+
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+export interface Toast {
+    id: number;
+    message: string;
+    type: ToastType;
 }

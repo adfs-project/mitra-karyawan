@@ -2,6 +2,7 @@ import React, { lazy, Suspense, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { Role } from './types';
+import ToastContainer from './components/common/ToastContainer';
 
 // Lazy load components for code splitting
 const UserLayout = lazy(() => import('./components/layout/UserLayout'));
@@ -140,19 +141,22 @@ const App: React.FC = () => {
     };
 
     return (
-        <HashRouter>
-            <Suspense fallback={<Spinner />}>
-                <Routes>
-                    {/* Public Routes */}
-                    <Route path="/login" element={user ? <Navigate to="/" /> : <LoginScreen />} />
-                    <Route path="/register" element={user ? <Navigate to="/" /> : <RegisterScreen />} />
-                    <Route path="/deactivated" element={<DeactivatedAccountScreen />} />
+        <>
+            <ToastContainer />
+            <HashRouter>
+                <Suspense fallback={<Spinner />}>
+                    <Routes>
+                        {/* Public Routes */}
+                        <Route path="/login" element={user ? <Navigate to="/" /> : <LoginScreen />} />
+                        <Route path="/register" element={user ? <Navigate to="/" /> : <RegisterScreen />} />
+                        <Route path="/deactivated" element={<DeactivatedAccountScreen />} />
 
-                    {/* Protected Routes Wrapper */}
-                    <Route path="/*" element={renderLayout()} />
-                </Routes>
-            </Suspense>
-        </HashRouter>
+                        {/* Protected Routes Wrapper */}
+                        <Route path="/*" element={renderLayout()} />
+                    </Routes>
+                </Suspense>
+            </HashRouter>
+        </>
     );
 };
 

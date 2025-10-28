@@ -15,7 +15,7 @@ const FinancialAdvisorModal: React.FC<{
     onClose: () => void;
     userTransactions: Transaction[];
 }> = ({ isOpen, onClose, userTransactions }) => {
-    const { isAiGuardrailDisabled } = useData();
+    const { isAiGuardrailDisabled, showToast } = useData();
     const [messages, setMessages] = useState<Message[]>([]);
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -74,6 +74,7 @@ const FinancialAdvisorModal: React.FC<{
             setMessages(prev => [...prev, aiMessage]);
         } catch (error) {
             console.error("Gemini API Error:", error);
+            showToast("Failed to contact the AI advisor.", "error");
             const errorMessage: Message = { sender: 'ai', text: "Maaf, terjadi kesalahan saat menghubungi AI. Silakan coba lagi nanti." };
             setMessages(prev => [...prev, errorMessage]);
         } finally {

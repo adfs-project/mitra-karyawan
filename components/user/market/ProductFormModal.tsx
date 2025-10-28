@@ -3,6 +3,7 @@ import { Product } from '../../../types';
 import { SparklesIcon, CurrencyDollarIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
 import { buildSecurePrompt } from '../../../services/aiGuardrailService';
+import { useData } from '../../../contexts/DataContext';
 
 const AILoadingSpinner: React.FC = () => (
     <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
@@ -14,6 +15,7 @@ const ProductFormModal: React.FC<{
     product: Product | null;
     onSave: (product: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'> | Product) => Promise<any>;
 }> = ({ isOpen, onClose, product, onSave }) => {
+    const { showToast } = useData();
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -65,14 +67,14 @@ const ProductFormModal: React.FC<{
             return response.text;
         } catch (error) {
             console.error("Gemini API call failed:", error);
-            alert("An error occurred while contacting the AI. Please check the console for details.");
+            showToast("An error occurred while contacting the AI.", "error");
             return null;
         }
     };
     
     const handleGenerateDescription = async () => {
         if (!formData.name) {
-            alert("Please provide a product name first.");
+            showToast("Please provide a product name first.", "warning");
             return;
         }
         setIsGenerating(prev => ({ ...prev, description: true }));
@@ -82,6 +84,7 @@ const ProductFormModal: React.FC<{
         );
         const result = await callGemini(securePrompt);
         if (result) {
+            // Using alert here is okay as it's showing advice, not an error
             alert(`Saran Deskripsi dari AI:\n\n${result}`);
         }
         setIsGenerating(prev => ({ ...prev, description: false }));
@@ -89,7 +92,7 @@ const ProductFormModal: React.FC<{
 
     const handleSuggestPrice = async () => {
         if (!formData.name) {
-            alert("Please provide a product name first.");
+            showToast("Please provide a product name first.", "warning");
             return;
         }
         setIsGenerating(prev => ({ ...prev, price: true }));
@@ -99,6 +102,7 @@ const ProductFormModal: React.FC<{
         );
         const result = await callGemini(securePrompt);
         if (result) {
+            // Using alert here is okay as it's showing advice, not an error
             alert(`Saran Harga dari AI:\n\n${result}`);
         }
         setIsGenerating(prev => ({ ...prev, price: false }));
@@ -107,7 +111,7 @@ const ProductFormModal: React.FC<{
 
     const handleSave = async () => {
         if (!formData.name || formData.price <= 0 || formData.stock < 0 || !formData.category) {
-            alert("Nama, kategori, harga, dan stok harus diisi dengan benar.");
+            showToast("Name, category, price, and stock must be filled correctly.", "error");
             return;
         }
         setIsSaving(true);

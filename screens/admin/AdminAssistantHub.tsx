@@ -14,8 +14,7 @@ const AdminAssistantHub: React.FC = () => {
         }, {});
 
         return Object.entries(intentCounts)
-            // FIX: Cast b and a to numbers to allow subtraction for sorting.
-            .sort(([, a], [, b]) => (b as number) - (a as number))
+            .sort(([, a], [, b]) => b - a)
             .map(([intent, count]) => ({ intent, count }));
     }, [assistantLogs]);
 

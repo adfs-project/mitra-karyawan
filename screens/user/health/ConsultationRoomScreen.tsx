@@ -8,7 +8,7 @@ import { getConsultationTemplatePrompt } from '../../../services/aiGuardrailServ
 const ConsultationRoomScreen: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { consultations, endConsultation } = useData();
+    const { consultations, endConsultation, showToast } = useData();
     const consultation = consultations.find(c => c.id === id);
     const [time, setTime] = useState(0);
     const [isEnding, setIsEnding] = useState(false);
@@ -49,6 +49,7 @@ const ConsultationRoomScreen: React.FC = () => {
 
         } catch (err) {
             console.error("AI Consultation Template Error:", err);
+            showToast("AI template generation failed. Using fallback.", "error");
             // Fallback to a hardcoded template if AI fails
             await endConsultation(consultation.id, "[Gagal memuat templat AI]", "[Gagal memuat templat AI]");
         } finally {

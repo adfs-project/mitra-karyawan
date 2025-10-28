@@ -10,7 +10,7 @@ const SmartAssistant: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
-    const { logAssistantQuery, isAiGuardrailDisabled } = useData();
+    const { logAssistantQuery, isAiGuardrailDisabled, showToast } = useData();
     const { user } = useAuth();
 
 
@@ -54,8 +54,7 @@ const SmartAssistant: React.FC = () => {
 
         } catch (err) {
             console.error("Smart Assistant Error:", err);
-            setMessage("Maaf, terjadi kesalahan saat memproses permintaan Anda.");
-            setIsError(true);
+            showToast("Failed to contact the AI assistant.", "error");
             logAssistantQuery(query, 'ERROR');
         } finally {
             setIsLoading(false);

@@ -4,7 +4,7 @@ import {
     CartItem, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService,
     ScalabilityServiceStatus, LeaveRequest, Budget, ScheduledPayment,
     MonetizationConfig, TaxConfig, HomePageConfig, AssistantLog, EngagementAnalytics,
-    AdminWallets, PersonalizationRule, Order, MoodHistory, OrderItem
+    AdminWallets, PersonalizationRule, Order, MoodHistory, OrderItem, Toast, ToastType
 } from '../types';
 import {
     initialUsers, initialProducts, initialArticles, initialTransactions, initialNotifications,
@@ -60,8 +60,11 @@ interface DataContextType {
     orders: Order[];
     personalizationRules: PersonalizationRule[];
     isAiGuardrailDisabled: boolean;
+    toasts: Toast[];
 
     // --- Methods ---
+    showToast: (message: string, type: ToastType) => void;
+    removeToast: (id: number) => void;
     toggleAiGuardrail: (isDisabled: boolean) => void;
     addTransaction: (txData: Omit<Transaction, 'id' | 'timestamp' | 'userName'>) => Promise<{ success: boolean; message: string }>;
     addNotification: (userId: string, message: string, type: Notification['type']) => void;
@@ -118,6 +121,9 @@ interface DataContextType {
     updateMonetizationConfig: (config: MonetizationConfig) => void;
     updateTaxConfig: (config: TaxConfig) => void;
     updateHomePageConfig: (config: HomePageConfig) => void;
+    transferProfitToCash: () => Promise<void>;
+    recordTaxPayment: () => Promise<void>;
+    recordOperationalExpense: (description: string, amount: number) => Promise<void>;
 
     // Engagement & Personalization
     logAssistantQuery: (query: string, detectedIntent: string) => void;
@@ -169,6 +175,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [orders, setOrders] = useStickyState<Order[]>('app_orders', initialOrders);
     const [personalizationRules, setPersonalizationRules] = useStickyState<PersonalizationRule[]>('app_personalization_rules', initialPersonalizationRules);
     
+    // --- Toast Notification State ---
+    const [toasts, setToasts] = useState<Toast[]>([]);
+
+    const showToast = useCallback((message: string, type: ToastType) => {
+        const newToast: Toast = {
+            id: Date.now(),
+            message,
+            type,
+        };
+        setToasts(prev => [...prev, newToast]);
+    }, []);
+
+    const removeToast = useCallback((id: number) => {
+        setToasts(prev => prev.filter(toast => toast.id !== id));
+    }, []);
+
     // --- AI Guardrail State ---
     const [isAiGuardrailDisabled, setIsAiGuardrailDisabled] = useStickyState<boolean>('app_ai_guardrail_disabled', false);
     
@@ -187,12 +209,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return new Promise(resolve => {
             setTimeout(() => { // Simulate network delay
                 const userSource = users.find(u => u.id === txData.userId);
-                if (!userSource) {
+                if (!userSource && txData.userId !== 'admin-001') { // Allow system transactions
                     resolve({ success: false, message: "User not found." });
                     return;
                 }
 
-                if(txData.amount < 0 && userSource.wallet.balance < Math.abs(txData.amount)) {
+                if(txData.amount < 0 && userSource && userSource.wallet.balance < Math.abs(txData.amount)) {
                     addNotification(txData.userId, 'Transaction failed: Insufficient balance.', 'error');
                     resolve({ success: false, message: "Insufficient balance." });
                     return;
@@ -202,19 +224,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     ...txData,
                     id: `tx-${Date.now()}`,
                     timestamp: new Date().toISOString(),
-                    userName: userSource.profile.name,
+                    userName: userSource?.profile.name || 'System',
                 };
 
                 setTransactions(prev => [...prev, newTransaction]);
                 
-                // Update user wallet
-                setUsers(prevUsers => prevUsers.map(u => 
-                    u.id === txData.userId ? { ...u, wallet: { ...u.wallet, balance: u.wallet.balance + txData.amount }} : u
-                ));
+                // Update user wallet if it's not a system-only transaction
+                if(userSource) {
+                    setUsers(prevUsers => prevUsers.map(u => 
+                        u.id === txData.userId ? { ...u, wallet: { ...u.wallet, balance: u.wallet.balance + txData.amount }} : u
+                    ));
 
-                // If it's the current user, update their context
-                if (user && user.id === txData.userId) {
-                    updateCurrentUser({ ...user, wallet: { ...user.wallet, balance: user.wallet.balance + txData.amount } });
+                    // If it's the current user, update their context
+                    if (user && user.id === txData.userId) {
+                        updateCurrentUser({ ...user, wallet: { ...user.wallet, balance: user.wallet.balance + txData.amount } });
+                    }
                 }
                 
                 resolve({ success: true, message: "Transaction successful." });
@@ -228,6 +252,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const updateUserStatus = async (userId: string, status: 'active' | 'inactive'): Promise<{ success: boolean; message: string }> => {
         setUsers(prev => prev.map(u => u.id === userId ? { ...u, status, wallet: {...u.wallet, isFrozen: status === 'inactive' } } : u));
+        showToast(`User status has been updated to ${status}.`, 'success');
         return { success: true, message: "User status updated."};
     };
 
@@ -239,7 +264,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
             return [...prev, { productId, quantity }];
         });
-        addNotification(user!.id, "Item added to cart", "success");
+        showToast("Item added to cart", "success");
     };
 
     const removeFromCart = (productId: string) => {
@@ -258,121 +283,107 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const checkoutCart = async (): Promise<{ success: boolean; message: string; }> => {
         if (!user || cart.length === 0) {
-            return { success: false, message: "Keranjang kosong." };
+            return { success: false, message: "Your cart is empty." };
         }
-
-        const cartDetails = cart.map(item => {
-            const product = products.find(p => p.id === item.productId);
-            return { ...item, product };
-        }).filter(item => item.product);
-
-        const subtotal = cartDetails.reduce((sum, item) => sum + (item.product!.price * item.quantity), 0);
-        const buyer = users.find(u => u.id === user.id);
-
-        if (!buyer || buyer.wallet.balance < subtotal) {
-            return { success: false, message: "Saldo tidak cukup untuk checkout." };
-        }
-
-        // --- Prepare all state changes ---
-        const newTransactions: Transaction[] = [];
-        let totalCommission = 0;
-        const sellerPayouts: Record<string, { totalSale: number, sellerName: string }> = {};
-        const productUpdates: Record<string, number> = {}; // productId -> newStock
-
-        // 1. Process cart items
-        cartDetails.forEach(item => {
-            const product = item.product!;
-            const saleAmount = product.price * item.quantity;
-            const sellerId = product.sellerId;
-
-            if (product.stock < item.quantity) {
-                // This is a race condition check, though simple for this app
-                throw new Error(`Insufficient stock for ${product.name}`);
-            }
-            productUpdates[product.id] = product.stock - item.quantity;
-
-            if (!sellerPayouts[sellerId]) {
-                sellerPayouts[sellerId] = { totalSale: 0, sellerName: product.sellerName };
-            }
-            sellerPayouts[sellerId].totalSale += saleAmount;
-        });
-
-        // 2. Create buyer transaction
-        newTransactions.push({
-            id: `tx-${Date.now()}-buyer`,
-            userId: user.id,
-            userName: user.profile.name,
-            type: 'Marketplace',
-            amount: -subtotal,
-            description: `Pembelian ${cartDetails.length} jenis produk dari marketplace.`,
-            timestamp: new Date().toISOString(),
-            status: 'Completed'
-        });
-
-        // 3. Create seller and commission transactions
-        Object.keys(sellerPayouts).forEach(sellerId => {
-            const { totalSale, sellerName } = sellerPayouts[sellerId];
-            const commission = totalSale * monetizationConfig.marketplaceCommission;
-            const earning = totalSale - commission;
-            totalCommission += commission;
-
-            newTransactions.push({
-                id: `tx-${Date.now()}-seller-${sellerId}`,
-                userId: sellerId,
-                userName: sellerName,
-                type: 'Marketplace',
-                amount: earning,
-                description: `Hasil penjualan dari ${cartDetails.filter(i => i.product!.sellerId === sellerId).length} jenis produk.`,
-                timestamp: new Date().toISOString(),
-                status: 'Completed'
+    
+        try {
+            const cartDetails = cart.map(item => {
+                const product = products.find(p => p.id === item.productId);
+                if (!product) throw new Error(`Product with ID ${item.productId} not found.`);
+                return { ...item, product };
             });
-            addNotification(sellerId, `Produk Anda terjual! Anda menerima ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(earning)}`, 'success');
-        });
-        
-        // 4. Create a new order record
-        const newOrder: Order = {
-            id: `order-${Date.now()}`,
-            userId: user.id,
-            items: cart.map(({ productId, quantity }) => ({ productId, quantity })),
-            total: subtotal,
-            status: 'Processing',
-            timestamp: new Date().toISOString(),
-        };
-
-        // --- Apply all state changes ---
-        setUsers(prevUsers => 
-            prevUsers.map(u => {
-                if (u.id === user.id) { // Buyer
-                    return { ...u, wallet: { ...u.wallet, balance: u.wallet.balance - subtotal }};
+    
+            const subtotal = cartDetails.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+            
+            const totalPPN = subtotal * taxConfig.ppnRate;
+            const totalPayable = subtotal + totalPPN;
+            
+            const buyer = users.find(u => u.id === user.id);
+            if (!buyer || buyer.wallet.balance < totalPayable) {
+                return { success: false, message: "Insufficient balance (including VAT)." };
+            }
+    
+            const newTransactions: Transaction[] = [];
+            let totalCommission = 0;
+            const sellerPayouts: Record<string, { totalSale: number, sellerName: string }> = {};
+            const productUpdates: Record<string, number> = {};
+    
+            for (const item of cartDetails) {
+                const product = item.product;
+                if (product.stock < item.quantity) {
+                    throw new Error(`Insufficient stock for ${product.name}.`);
                 }
-                if (sellerPayouts[u.id]) { // Seller
-                    const totalSale = sellerPayouts[u.id].totalSale;
-                    const commission = totalSale * monetizationConfig.marketplaceCommission;
-                    const earning = totalSale - commission;
-                    return { ...u, wallet: { ...u.wallet, balance: u.wallet.balance + earning }};
+                productUpdates[product.id] = product.stock - item.quantity;
+    
+                const saleAmount = product.price * item.quantity;
+                if (!sellerPayouts[product.sellerId]) {
+                    sellerPayouts[product.sellerId] = { totalSale: 0, sellerName: product.sellerName };
+                }
+                sellerPayouts[product.sellerId].totalSale += saleAmount;
+            }
+    
+            const newOrderId = `order-${Date.now()}`;
+    
+            newTransactions.push({
+                id: `tx-${Date.now()}-buyer`, userId: user.id, userName: user.profile.name, type: 'Marketplace',
+                amount: -totalPayable, description: `Purchase of ${cartDetails.length} items (inc. VAT). Order: ${newOrderId}`,
+                timestamp: new Date().toISOString(), status: 'Completed'
+            });
+    
+            newTransactions.push({
+                id: `tx-${Date.now()}-tax`, userId: user.id, userName: user.profile.name, type: 'Tax',
+                amount: totalPPN, description: `VAT ${taxConfig.ppnRate * 100}% on purchase. Order: ${newOrderId}`,
+                timestamp: new Date().toISOString(), status: 'Completed', relatedId: newOrderId
+            });
+    
+            Object.entries(sellerPayouts).forEach(([sellerId, { totalSale, sellerName }]) => {
+                const commission = totalSale * monetizationConfig.marketplaceCommission;
+                const earning = totalSale - commission;
+                totalCommission += commission;
+    
+                newTransactions.push({
+                    id: `tx-${Date.now()}-seller-${sellerId}`, userId: sellerId, userName: sellerName, type: 'Marketplace',
+                    amount: earning, description: `Sale earnings. Order: ${newOrderId}`, timestamp: new Date().toISOString(), status: 'Completed'
+                });
+    
+                newTransactions.push({
+                    id: `tx-${Date.now()}-commission-${sellerId}`, userId: 'admin-001', userName: 'System', type: 'Commission',
+                    amount: commission, description: `Commission from ${sellerName} (Order ${newOrderId})`,
+                    timestamp: new Date().toISOString(), status: 'Completed', relatedId: newOrderId,
+                });
+    
+                addNotification(sellerId, `Your product was sold! You received ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(earning)}`, 'success');
+            });
+    
+            const newOrder: Order = {
+                id: newOrderId, userId: user.id, items: cart.map(({ productId, quantity }) => ({ productId, quantity })),
+                total: subtotal, status: 'Processing', timestamp: new Date().toISOString(),
+            };
+    
+            setUsers(prevUsers => prevUsers.map(u => {
+                if (u.id === user.id) return { ...u, wallet: { ...u.wallet, balance: u.wallet.balance - totalPayable } };
+                if (sellerPayouts[u.id]) {
+                    const { totalSale } = sellerPayouts[u.id];
+                    const earning = totalSale - (totalSale * monetizationConfig.marketplaceCommission);
+                    return { ...u, wallet: { ...u.wallet, balance: u.wallet.balance + earning } };
                 }
                 return u;
-            })
-        );
-
-        setProducts(prevProducts =>
-            prevProducts.map(p => 
-                productUpdates[p.id] !== undefined ? { ...p, stock: productUpdates[p.id] } : p
-            )
-        );
-
-        setAdminWallets(prev => ({
-            ...prev,
-            profit: prev.profit + totalCommission
-        }));
-
-        setTransactions(prev => [...prev, ...newTransactions]);
-        setOrders(prev => [...prev, newOrder]);
-        
-        updateCurrentUser({ ...user, wallet: { ...user.wallet, balance: user.wallet.balance - subtotal } });
-        setCart([]);
-
-        return { success: true, message: "Checkout berhasil!" };
+            }));
+    
+            setProducts(prevProducts => prevProducts.map(p => productUpdates[p.id] !== undefined ? { ...p, stock: productUpdates[p.id] } : p));
+            setAdminWallets(prev => ({ ...prev, profit: prev.profit + totalCommission, tax: prev.tax + totalPPN }));
+            setTransactions(prev => [...prev, ...newTransactions]);
+            setOrders(prev => [...prev, newOrder]);
+            updateCurrentUser({ ...user, wallet: { ...user.wallet, balance: user.wallet.balance - totalPayable } });
+            setCart([]);
+    
+            return { success: true, message: "Checkout successful!" };
+        } catch (error) {
+            console.error("Checkout failed:", error);
+            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+            showToast(`Checkout failed: ${errorMessage}`, 'error');
+            return { success: false, message: errorMessage };
+        }
     };
     
     const toggleWishlist = (productId: string) => {
@@ -463,7 +474,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             },
         };
         updateCurrentUser(updatedUser);
-        addNotification(user.id, `Mood for today recorded: ${mood}`, 'success');
+        showToast(`Mood for today recorded: ${mood}`, 'success');
     };
 
     const bookConsultation = async (doctorId: string, slotTime: string): Promise<{ success: boolean; message: string; consultationId?: string }> => {
@@ -473,6 +484,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         const txResult = await addTransaction({ userId: user.id, type: 'Teleconsultation', amount: -doctor.consultationFee, description: `Consultation with ${doctor.name}`, status: 'Completed' });
         if (!txResult.success) return { success: false, message: 'Payment failed.' };
+
+        // --- TAX CALCULATION (PPh 21) ---
+        const pph21Amount = doctor.consultationFee * taxConfig.pph21Rate;
+        setAdminWallets(prev => ({ ...prev, tax: prev.tax + pph21Amount }));
+        await addTransaction({
+            userId: 'admin-001', // System transaction
+            type: 'Tax',
+            amount: pph21Amount,
+            description: `Potongan PPh 21 ${taxConfig.pph21Rate * 100}% untuk ${doctor.name}`,
+            status: 'Completed'
+        });
+        // ---------------------------------
 
         const newConsultation: Consultation = {
             id: `consult-${Date.now()}`,
@@ -510,7 +533,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ...req,
         };
         setLeaveRequests(prev => [...prev, newReq]);
-        addNotification(user.id, 'Leave request submitted.', 'success');
+        showToast('Leave request submitted.', 'success');
         // Notify HR
         const hrUser = users.find(u => u.role === 'HR' && u.profile.branch === user.profile.branch);
         if(hrUser) {
@@ -534,14 +557,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ...budget,
         };
         setBudgets(prev => [...prev, newBudget]);
+        showToast("Budget created successfully.", "success");
     };
 
     const updateBudget = async (budget: Budget) => {
         setBudgets(prev => prev.map(b => b.id === budget.id ? budget : b));
+        showToast("Budget updated.", "success");
     };
 
     const deleteBudget = async (id: string) => {
         setBudgets(prev => prev.filter(b => b.id !== id));
+        showToast("Budget deleted.", "success");
     };
 
     const addScheduledPayment = async (payment: Omit<ScheduledPayment, 'id'|'userId'>) => {
@@ -552,14 +578,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ...payment,
         };
         setScheduledPayments(prev => [...prev, newPayment]);
+         showToast("Scheduled payment created.", "success");
     };
 
     const updateScheduledPayment = async (payment: ScheduledPayment) => {
         setScheduledPayments(prev => prev.map(p => p.id === payment.id ? payment : p));
+        showToast("Scheduled payment updated.", "success");
     };
 
     const deleteScheduledPayment = async (id: string) => {
         setScheduledPayments(prev => prev.filter(p => p.id !== id));
+        showToast("Scheduled payment deleted.", "success");
     };
     
     const applyForPayLater = async () => {
@@ -580,30 +609,96 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const adjustUserWallet = async (userId: string, amount: number, reason: string) => {
         await addTransaction({ userId, type: 'Refund', amount, description: `Adjustment: ${reason}`, status: 'Completed' });
+        showToast("Wallet adjusted successfully.", "success");
     };
 
     const freezeUserWallet = async (userId: string, freeze: boolean) => {
         setUsers(prev => prev.map(u => u.id === userId ? {...u, wallet: {...u.wallet, isFrozen: freeze }} : u));
+        showToast(`Wallet has been ${freeze ? 'frozen' : 'unfrozen'}.`, "success");
     };
 
     const reverseTransaction = async (txId: string) => {
         const tx = transactions.find(t => t.id === txId);
         if(!tx) return;
         await addTransaction({ userId: tx.userId, type: 'Reversal', amount: -tx.amount, description: `Reversal for tx: ${txId}`, status: 'Completed', relatedId: txId });
+        showToast(`Transaction ${txId} reversed.`, "success");
     };
 
     const resolveDispute = async (disputeId: string, resolution: 'Refund Buyer' | 'Pay Seller') => {
-        // ... logic to resolve dispute
+        const formatCurrency = (value: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(value);
+        const dispute = disputes.find(d => d.id === disputeId);
+        if (!dispute) {
+            showToast("Dispute not found.", "error");
+            return;
+        }
+    
+        try {
+            if (resolution === 'Pay Seller') {
+                setDisputes(prev => prev.map(d => d.id === disputeId ? { ...d, status: 'Resolved', resolution: 'Dispute closed in favor of seller.' } : d));
+                addNotification(dispute.buyerId, `Your dispute for order ${dispute.orderId} has been resolved. The payment has been released to the seller.`, 'info');
+                addNotification(dispute.sellerId, `The dispute for order ${dispute.orderId} has been resolved in your favor.`, 'success');
+                showToast("Dispute resolved in favor of seller.", "success");
+                return;
+            }
+    
+            if (resolution === 'Refund Buyer') {
+                const order = orders.find(o => o.id === dispute.orderId);
+                if (!order) {
+                    throw new Error("Order not found for this dispute.");
+                }
+    
+                const subtotal = order.total;
+                const ppn = subtotal * taxConfig.ppnRate;
+                const totalRefundAmount = subtotal + ppn;
+                const commission = subtotal * monetizationConfig.marketplaceCommission;
+                const sellerEarning = subtotal - commission;
+    
+                await addTransaction({
+                    userId: dispute.buyerId, type: 'Refund',
+                    amount: totalRefundAmount,
+                    description: `Full refund for disputed order ${dispute.orderId}`, status: 'Completed'
+                });
+    
+                await addTransaction({
+                    userId: dispute.sellerId, type: 'Reversal',
+                    amount: -sellerEarning,
+                    description: `Reversal of earnings for refunded order ${dispute.orderId}`, status: 'Completed'
+                });
+    
+                setAdminWallets(prev => ({ ...prev, profit: prev.profit - commission, tax: prev.tax - ppn }));
+    
+                await addTransaction({
+                    userId: 'admin-001', type: 'Reversal',
+                    amount: -commission, description: `Commission reversal for order ${order.id}`, status: 'Completed'
+                });
+                await addTransaction({
+                    userId: 'admin-001', type: 'Reversal',
+                    amount: -ppn, description: `PPN reversal for order ${order.id}`, status: 'Completed'
+                });
+    
+                setDisputes(prev => prev.map(d => d.id === disputeId ? { ...d, status: 'Resolved', resolution: `Full refund of ${formatCurrency(totalRefundAmount)} issued to buyer.` } : d));
+                
+                addNotification(dispute.buyerId, `Your dispute for order ${dispute.orderId} has been resolved. You have been refunded ${formatCurrency(totalRefundAmount)}.`, 'success');
+                addNotification(dispute.sellerId, `The dispute for order ${dispute.orderId} was resolved for the buyer. The amount of ${formatCurrency(sellerEarning)} has been debited from your wallet.`, 'warning');
+                showToast("Dispute resolved with a refund to the buyer.", "success");
+            }
+        } catch (error) {
+            console.error("Dispute resolution failed:", error);
+            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+            showToast(`Failed to resolve dispute: ${errorMessage}`, 'error');
+        }
     };
     
     const updateApiIntegration = async (id: string, creds: ApiIntegration['credentials']): Promise<{ success: boolean, message: string }> => {
         const result = await testApiConnection(creds);
         setApiIntegrations(prev => prev.map(api => api.id === id ? {...api, credentials: creds, status: result.success ? IntegrationStatus.Active : IntegrationStatus.Error } : api));
+        showToast(result.message, result.success ? 'success' : 'error');
         return result;
     };
     
     const deactivateApiIntegration = async (id: string) => {
         setApiIntegrations(prev => prev.map(api => api.id === id ? {...api, status: IntegrationStatus.Inactive } : api));
+        showToast("API integration deactivated.", "success");
     };
     
     const updateScalabilityService = (id: string, status: ScalabilityServiceStatus, log: string, metadata?: Record<string, any>, cost?: number) => {
@@ -619,6 +714,38 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const updateMonetizationConfig = (config: MonetizationConfig) => setMonetizationConfig(config);
     const updateTaxConfig = (config: TaxConfig) => setTaxConfig(config);
     const updateHomePageConfig = (config: HomePageConfig) => setHomePageConfig(config);
+
+    const transferProfitToCash = async () => {
+        const profitAmount = adminWallets.profit;
+        if (profitAmount <= 0) return;
+        setAdminWallets(prev => ({ ...prev, cash: prev.cash + profitAmount, profit: 0 }));
+        await addTransaction({
+            userId: 'admin-001', type: 'Internal Transfer',
+            amount: profitAmount, description: 'Profit transferred to cash', status: 'Completed'
+        });
+        showToast("Profit transferred to cash wallet.", "success");
+    };
+    
+    const recordTaxPayment = async () => {
+        const taxAmount = adminWallets.tax;
+        if (taxAmount <= 0) return;
+        setAdminWallets(prev => ({ ...prev, cash: prev.cash - taxAmount, tax: 0 }));
+        await addTransaction({
+            userId: 'admin-001', type: 'Operational Expense',
+            amount: -taxAmount, description: 'Tax payment to government', status: 'Completed'
+        });
+        showToast("Tax payment recorded.", "success");
+    };
+    
+    const recordOperationalExpense = async (description: string, amount: number) => {
+        if (amount <= 0 || !description) return;
+        setAdminWallets(prev => ({...prev, cash: prev.cash - amount}));
+        await addTransaction({
+            userId: 'admin-001', type: 'Operational Expense',
+            amount: -amount, description: `OpEx: ${description}`, status: 'Completed'
+        });
+        showToast("Operational expense recorded.", "success");
+    };
 
     const logAssistantQuery = (query: string, detectedIntent: string) => {
         if (!user) return;
@@ -636,15 +763,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const addPersonalizationRule = (rule: Omit<PersonalizationRule, 'id'>) => {
         const newRule = { ...rule, id: `pr-${Date.now()}` };
         setPersonalizationRules(prev => [newRule, ...prev]);
+        showToast("New personalization rule created.", "success");
     };
     
     const updatePersonalizationRule = (rule: PersonalizationRule) => {
         setPersonalizationRules(prev => prev.map(r => r.id === rule.id ? rule : r));
+        showToast(`Rule "${rule.name}" updated.`, "success");
     };
     
     const deletePersonalizationRule = (id: string) => {
-        console.warn("Deletion of personalization rules is locked to maintain application stability. Action prevented.");
-        addNotification('admin-001', 'Attempt to delete a personalization rule was blocked (feature locked).', 'warning');
+        showToast("Deletion of personalization rules is locked to maintain stability.", 'warning');
         return;
     };
 
@@ -660,15 +788,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             reviewCount: 0,
         };
         setProducts(prev => [newProduct, ...prev]);
+        showToast("Product listed successfully!", "success");
     };
 
     const updateProduct = async (product: Product) => {
         setProducts(prev => prev.map(p => p.id === product.id ? product : p));
+        showToast("Product updated successfully!", "success");
     };
 
     const deleteProduct = async (productId: string) => {
-        console.warn("Deletion of products is locked to maintain application stability. Action prevented.");
-        addNotification('admin-001', 'Attempt to delete a product was blocked (feature locked).', 'warning');
+        showToast("Deletion of products is locked to maintain stability.", 'warning');
         return;
     };
 
@@ -683,11 +812,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             comments: [],
         };
         setArticles(prev => [newArticle, ...prev]);
+        showToast("Article created successfully.", "success");
     };
-    const updateArticle = async (article: Article) => setArticles(prev => prev.map(a => a.id === article.id ? article : a));
+    const updateArticle = async (article: Article) => {
+        setArticles(prev => prev.map(a => a.id === article.id ? article : a));
+        showToast("Article updated successfully.", "success");
+    }
     const deleteArticle = async (articleId: string) => {
-        console.warn("Deletion of articles is locked to maintain application stability. Action prevented.");
-        addNotification('admin-001', 'Attempt to delete an article was blocked (feature locked).', 'warning');
+        showToast("Deletion of articles is locked to maintain stability.", 'warning');
         return;
     };
     
@@ -701,11 +833,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ]
         };
         setDoctors(prev => [newDoctor, ...prev]);
+        showToast("New health provider added.", "success");
     };
-    const updateDoctor = async (doctor: Doctor) => setDoctors(prev => prev.map(d => d.id === doctor.id ? doctor : d));
+    const updateDoctor = async (doctor: Doctor) => {
+        setDoctors(prev => prev.map(d => d.id === doctor.id ? doctor : d));
+        showToast("Health provider updated.", "success");
+    };
     const deleteDoctor = async (doctorId: string) => {
-        console.warn("Deletion of doctors is locked to maintain application stability. Action prevented.");
-        addNotification('admin-001', 'Attempt to delete a doctor was blocked (feature locked).', 'warning');
+        showToast("Deletion of doctors is locked to maintain stability.", 'warning');
         return;
     };
 
@@ -715,8 +850,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         cart, disputes, apiIntegrations, scalabilityServices, leaveRequests, budgets,
         scheduledPayments, monetizationConfig, taxConfig, homePageConfig, assistantLogs,
         engagementAnalytics, adminWallets, personalizationRules,
-        orders, isAiGuardrailDisabled,
+        orders, isAiGuardrailDisabled, toasts,
         
+        showToast, removeToast,
         toggleAiGuardrail,
         addTransaction, addNotification, markNotificationsAsRead, updateUserStatus,
         addToCart, removeFromCart, updateCartQuantity, clearCart, checkoutCart,
@@ -730,6 +866,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         adjustUserWallet, freezeUserWallet, reverseTransaction, resolveDispute,
         updateApiIntegration, deactivateApiIntegration, updateScalabilityService,
         updateMonetizationConfig, updateTaxConfig, updateHomePageConfig,
+        transferProfitToCash, recordTaxPayment, recordOperationalExpense,
         logAssistantQuery, logEngagementEvent,
         addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule,
         addProduct, updateProduct, deleteProduct,
