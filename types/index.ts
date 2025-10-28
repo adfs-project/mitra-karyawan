@@ -335,3 +335,8 @@ export interface Toast {
     message: string;
     type: ToastType;
 }
+
+export interface ChatMessage {
+    sender: 'user' | 'ai';
+    text: string;
+}

@@ -52,6 +52,7 @@ const HrDashboard = lazy(() => import('./screens/hr/HrDashboard'));
 const HrOnboarding = lazy(() => import('./screens/hr/HrOnboarding'));
 const HrLeaveManagement = lazy(() => import('./screens/hr/HrLeaveManagement'));
 const HrPayroll = lazy(() => import('./screens/hr/HrPayroll'));
+const HrAiCopilotScreen = lazy(() => import('./screens/hr/HrAiCopilotScreen'));
 
 
 const Spinner = () => (
@@ -131,6 +132,7 @@ const App: React.FC = () => {
                             <Route path="hr/onboarding" element={<HrOnboarding />} />
                             <Route path="hr/leave" element={<HrLeaveManagement />} />
                             <Route path="hr/payroll" element={<HrPayroll />} />
+                            <Route path="hr/copilot" element={<HrAiCopilotScreen />} />
                         </>
                     )}
                     

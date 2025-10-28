@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { Link } from 'react-router-dom';
-import { UsersIcon, CalendarDaysIcon, UserPlusIcon } from '@heroicons/react/24/solid';
+import { UsersIcon, CalendarDaysIcon, UserPlusIcon, SparklesIcon } from '@heroicons/react/24/solid';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType; to: string; }> = ({ title, value, icon: Icon, to }) => (
     <Link to={to} className="bg-surface p-6 rounded-lg border border-border-color hover:border-primary transition-all">
@@ -41,6 +41,16 @@ const HrDashboard: React.FC = () => {
                 <StatCard title="Permintaan Cuti Pending" value={pendingLeaves.length} icon={CalendarDaysIcon} to="/hr/leave" />
                 <StatCard title="Karyawan Baru Bulan Ini" value={newHires.length} icon={UserPlusIcon} to="/hr/onboarding" />
             </div>
+
+             <Link to="/hr/copilot" className="block bg-gradient-to-r from-primary/20 to-secondary/20 p-6 rounded-lg border border-primary/50 hover:border-primary transition-all">
+                <div className="flex items-center">
+                    <SparklesIcon className="h-12 w-12 text-primary mr-4" />
+                     <div>
+                        <h2 className="text-xl font-bold text-text-primary">HR AI Co-pilot</h2>
+                        <p className="text-sm text-text-secondary">Tingkatkan produktivitas Anda. Analisis moral tim, buat draf pengumuman, dan dapatkan jawaban instan dengan bantuan AI.</p>
+                    </div>
+                </div>
+            </Link>
 
             <div className="bg-surface p-6 rounded-lg border border-border-color">
                 <h2 className="text-xl font-bold mb-4">Aktivitas Terkini</h2>

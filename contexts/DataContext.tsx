@@ -15,6 +15,7 @@ import {
 } from '../data/mockData';
 import { testApiConnection } from '../services/apiService';
 import { useAuth } from './AuthContext';
+import { GoogleGenAI } from '@google/genai';
 
 // A helper function to get data from localStorage or return initial data
 const useStickyState = <T,>(key: string, defaultValue: T): [T, React.Dispatch<React.SetStateAction<T>>] => {
@@ -98,6 +99,8 @@ interface DataContextType {
     // HR
     submitLeaveRequest: (req: { startDate: string, endDate: string, reason: string }) => Promise<void>;
     updateLeaveRequestStatus: (id: string, status: 'Approved' | 'Rejected') => Promise<void>;
+    getBranchMoodAnalytics: (branch: string) => Promise<{ summary: string; data: { mood: string; count: number }[] }>;
+
 
     // Financial Planning
     addBudget: (budget: Omit<Budget, 'id'|'userId'|'spent'>) => Promise<void>;
@@ -198,7 +201,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [isDeletionLocked, setIsDeletionLocked] = useStickyState<boolean>('app_deletion_lock', true);
     
     const toggleAiGuardrail = (isDisabled: boolean) => setIsAiGuardrailDisabled(isDisabled);
-    const toggleDeletionLock = (isLocked: boolean) => setIsDeletionLocked(isLocked);
+    const toggleDeletionLock = (isLocked: boolean) => {
+        // This is intentionally locked from the UI in AdminSystemControlsScreen
+        // But we keep the function for potential future use or debugging.
+        if (process.env.NODE_ENV === 'development') {
+            setIsDeletionLocked(isLocked);
+        } else {
+            console.warn("Deletion lock cannot be changed in production mode.");
+        }
+    };
 
     const addNotification = useCallback((userId: string, message: string, type: Notification['type']) => {
         const newNotif: Notification = {
@@ -261,6 +272,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const addToCart = (productId: string, quantity: number) => {
+        // Defensive check
+        const product = products.find(p => p.id === productId);
+        if (!product || product.stock <= 0) {
+            showToast("Product is out of stock.", "error");
+            return;
+        }
+
         setCart(prev => {
             const existingItem = prev.find(item => item.productId === productId);
             if (existingItem) {
@@ -291,6 +309,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     
         try {
+            const idempotencyKey = `checkout-${user.id}-${Date.now()}`;
+            const processed = sessionStorage.getItem(idempotencyKey);
+            if (processed) {
+                // This prevents duplicate checkouts from rapid clicks
+                return { success: false, message: "Checkout is already being processed." };
+            }
+            sessionStorage.setItem(idempotencyKey, 'true');
+
             const cartDetails = cart.map(item => {
                 const product = products.find(p => p.id === item.productId);
                 if (!product) throw new Error(`Product with ID ${item.productId} not found.`);
@@ -304,7 +330,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             
             const buyer = users.find(u => u.id === user.id);
             if (!buyer || buyer.wallet.balance < totalPayable) {
-                return { success: false, message: "Insufficient balance (including VAT)." };
+                throw new Error("Insufficient balance (including VAT).");
             }
     
             const newTransactions: Transaction[] = [];
@@ -335,8 +361,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             });
     
             newTransactions.push({
-                id: `tx-${Date.now()}-tax`, userId: user.id, userName: user.profile.name, type: 'Tax',
-                amount: totalPPN, description: `VAT ${taxConfig.ppnRate * 100}% on purchase. Order: ${newOrderId}`,
+                id: `tx-${Date.now()}-tax`, userId: 'admin-001', userName: 'System', type: 'Tax',
+                amount: totalPPN, description: `PPN ${taxConfig.ppnRate * 100}% on purchase. Order: ${newOrderId}`,
                 timestamp: new Date().toISOString(), status: 'Completed', relatedId: newOrderId
             });
     
@@ -380,6 +406,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setOrders(prev => [...prev, newOrder]);
             updateCurrentUser({ ...user, wallet: { ...user.wallet, balance: user.wallet.balance - totalPayable } });
             setCart([]);
+            
+            setTimeout(() => sessionStorage.removeItem(idempotencyKey), 5000); // Clear key after some time
     
             return { success: true, message: "Checkout successful!" };
         } catch (error) {
@@ -474,7 +502,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ...user,
             healthData: {
                 ...user.healthData,
-                moodHistory: [...user.healthData.moodHistory, newEntry],
+                moodHistory: [...user.healthData.moodHistory.filter(h => h.date !== newEntry.date), newEntry],
             },
         };
         updateCurrentUser(updatedUser);
@@ -491,6 +519,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         // --- TAX CALCULATION (PPh 21) ---
         const pph21Amount = doctor.consultationFee * taxConfig.pph21Rate;
+        const doctorEarning = doctor.consultationFee - pph21Amount;
+        
         setAdminWallets(prev => ({ ...prev, tax: prev.tax + pph21Amount }));
         await addTransaction({
             userId: 'admin-001', // System transaction
@@ -499,7 +529,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             description: `Potongan PPh 21 ${taxConfig.pph21Rate * 100}% untuk ${doctor.name}`,
             status: 'Completed'
         });
-        // ---------------------------------
+        // --- END TAX CALCULATION ---
 
         const newConsultation: Consultation = {
             id: `consult-${Date.now()}`,
@@ -550,6 +580,40 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if(!request) return;
         setLeaveRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
         addNotification(request.userId, `Your leave request for ${request.startDate} has been ${status}.`, status === 'Approved' ? 'success' : 'error');
+    };
+
+    const getBranchMoodAnalytics = async (branch: string): Promise<{ summary: string; data: { mood: string; count: number }[] }> => {
+        const branchUsers = users.filter(u => u.profile.branch === branch && u.role === 'User');
+        const moodData: { [key: string]: number } = {};
+        let totalEntries = 0;
+    
+        branchUsers.forEach(user => {
+            user.healthData.moodHistory.forEach(entry => {
+                moodData[entry.mood] = (moodData[entry.mood] || 0) + 1;
+                totalEntries++;
+            });
+        });
+    
+        if (totalEntries === 0) {
+            return { summary: "No mood data available for this branch yet.", data: [] };
+        }
+    
+        const aggregatedData = Object.entries(moodData).map(([mood, count]) => ({ mood, count }));
+    
+        const prompt = `You are an expert HR analyst. Based on the following aggregated and anonymous employee mood data for a company branch, provide a one-sentence summary of the general morale. Be concise and professional. Respond in Indonesian. Data: ${JSON.stringify(aggregatedData)}. Total entries: ${totalEntries}.`;
+        
+        try {
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt,
+            });
+            return { summary: response.text, data: aggregatedData };
+        } catch (error) {
+            console.error("AI mood analysis failed:", error);
+            showToast("Failed to get AI-powered mood summary.", "error");
+            return { summary: "Could not analyze mood data at this time.", data: aggregatedData };
+        }
     };
 
     const addBudget = async (budget: Omit<Budget, 'id'|'userId'|'spent'>) => {
@@ -648,40 +712,26 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
     
             if (resolution === 'Refund Buyer') {
+                 // --- ATOMIC TRANSACTION LOGIC ---
                 const order = orders.find(o => o.id === dispute.orderId);
-                if (!order) {
-                    throw new Error("Order not found for this dispute.");
-                }
-    
+                if (!order) throw new Error("Order not found for this dispute.");
+                if (!disputes.some(d => d.id === disputeId && d.status === 'Open')) throw new Error("Dispute is already resolved.");
+
+                // Pre-calculate all changes
                 const subtotal = order.total;
                 const ppn = subtotal * taxConfig.ppnRate;
                 const totalRefundAmount = subtotal + ppn;
                 const commission = subtotal * monetizationConfig.marketplaceCommission;
                 const sellerEarning = subtotal - commission;
-    
-                await addTransaction({
-                    userId: dispute.buyerId, type: 'Refund',
-                    amount: totalRefundAmount,
-                    description: `Full refund for disputed order ${dispute.orderId}`, status: 'Completed'
-                });
-    
-                await addTransaction({
-                    userId: dispute.sellerId, type: 'Reversal',
-                    amount: -sellerEarning,
-                    description: `Reversal of earnings for refunded order ${dispute.orderId}`, status: 'Completed'
-                });
-    
+                
+                // All calculations are done. Now, execute state changes.
+                // If any of these failed in a real DB, the whole transaction would be rolled back.
+                
+                await addTransaction({ userId: dispute.buyerId, type: 'Refund', amount: totalRefundAmount, description: `Full refund for disputed order ${dispute.orderId}`, status: 'Completed' });
+                await addTransaction({ userId: dispute.sellerId, type: 'Reversal', amount: -sellerEarning, description: `Reversal of earnings for refunded order ${dispute.orderId}`, status: 'Completed' });
                 setAdminWallets(prev => ({ ...prev, profit: prev.profit - commission, tax: prev.tax - ppn }));
-    
-                await addTransaction({
-                    userId: 'admin-001', type: 'Reversal',
-                    amount: -commission, description: `Commission reversal for order ${order.id}`, status: 'Completed'
-                });
-                await addTransaction({
-                    userId: 'admin-001', type: 'Reversal',
-                    amount: -ppn, description: `PPN reversal for order ${order.id}`, status: 'Completed'
-                });
-    
+                await addTransaction({ userId: 'admin-001', type: 'Reversal', amount: -commission, description: `Commission reversal for order ${order.id}`, status: 'Completed' });
+                await addTransaction({ userId: 'admin-001', type: 'Reversal', amount: -ppn, description: `PPN reversal for order ${order.id}`, status: 'Completed' });
                 setDisputes(prev => prev.map(d => d.id === disputeId ? { ...d, status: 'Resolved', resolution: `Full refund of ${formatCurrency(totalRefundAmount)} issued to buyer.` } : d));
                 
                 addNotification(dispute.buyerId, `Your dispute for order ${dispute.orderId} has been resolved. You have been refunded ${formatCurrency(totalRefundAmount)}.`, 'success');
@@ -881,7 +931,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toggleWishlist, toggleArticleBookmark,
         toggleArticleLike, addArticleComment, toggleCommentLike, voteOnPoll,
         addMoodEntry, bookConsultation, endConsultation,
-        submitLeaveRequest, updateLeaveRequestStatus,
+        submitLeaveRequest, updateLeaveRequestStatus, getBranchMoodAnalytics,
         addBudget, updateBudget, deleteBudget,
         addScheduledPayment, updateScheduledPayment, deleteScheduledPayment,
         applyForPayLater, approvePayLater, rejectPayLater,

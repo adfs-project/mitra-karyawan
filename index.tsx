@@ -13,7 +13,7 @@ import loggingService from './services/loggingService';
 
 // 1. Versioning: Should be updated with each new deployment.
 // This allows detection of an app update.
-const APP_VERSION = '2.4.0'; 
+const APP_VERSION = '2.5.0'; 
 
 // 2. Preflight Checks & Crash Loop Detection
 const runPreflightChecks = (): boolean => {
