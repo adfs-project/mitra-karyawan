@@ -5,12 +5,13 @@ import { Link } from 'react-router-dom';
 import { Transaction } from '../../types';
 import { 
     ArrowUpRightIcon, BoltIcon, BuildingLibraryIcon, PhoneIcon, ShoppingCartIcon, BanknotesIcon, TicketIcon, HeartIcon,
-    ArrowUpCircleIcon, ArrowDownCircleIcon, MegaphoneIcon, ExclamationTriangleIcon, CpuChipIcon
+    ArrowUpCircleIcon, ArrowDownCircleIcon, MegaphoneIcon, ExclamationTriangleIcon, CpuChipIcon, NewspaperIcon
 } from '@heroicons/react/24/outline';
 import PersonalizedGreeting from '../../components/user/PersonalizedGreeting';
 import SmartAssistant from '../../components/user/SmartAssistant';
 import ForYouWidget from '../../components/user/ForYouWidget';
 import { ErrorBoundary } from 'react-error-boundary';
+import CompactArticleCard from '../../components/user/news/CompactArticleCard';
 
 const quickAccessItems = [
     { id: 'ppob', name: 'PPOB & Tagihan', icon: BoltIcon, path: '/under-construction' },
@@ -81,6 +82,38 @@ const RecentTransactions: React.FC = () => {
     );
 };
 
+// Sub-component for Latest News
+const LatestNews: React.FC = () => {
+    const { articles } = useData();
+
+    const latestArticles = articles
+        .filter(a => a.status === 'Published' && a.type !== 'Banner')
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 3);
+    
+    if (latestArticles.length === 0) return null;
+
+    return (
+        <div>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-text-primary flex items-center">
+                    <NewspaperIcon className="h-5 w-5 mr-2" />
+                    Info & Berita
+                </h2>
+                <Link to="/news" className="text-sm font-semibold text-primary hover:underline">
+                    Lihat Semua
+                </Link>
+            </div>
+            <div className="space-y-3">
+                {latestArticles.map(article => (
+                    <CompactArticleCard key={article.id} article={article} />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+
 const HomeScreen: React.FC = () => {
     const { user } = useAuth();
     const { homePageConfig, logEngagementEvent } = useData();
@@ -126,6 +159,11 @@ const HomeScreen: React.FC = () => {
 
             <ErrorBoundary FallbackComponent={WidgetErrorFallback}>
                  <RecentTransactions />
+            </ErrorBoundary>
+
+            {/* NEW: Latest News Section */}
+            <ErrorBoundary FallbackComponent={WidgetErrorFallback}>
+                 <LatestNews />
             </ErrorBoundary>
 
 
