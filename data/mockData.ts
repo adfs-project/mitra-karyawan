@@ -215,8 +215,22 @@ export const initialOrders: Order[] = [
 ];
 
 export const initialApiIntegrations: ApiIntegration[] = [
-    { id: 'api-bca', name: 'Bank Central Asia (BCA)', type: 'Bank', status: IntegrationStatus.Inactive },
+    // Banks
+    { id: 'api-bca', name: 'BCA', type: 'Bank', status: IntegrationStatus.Inactive },
+    { id: 'api-jago', name: 'Bank Jago', type: 'Bank', status: IntegrationStatus.Inactive },
+    { id: 'api-mandiri', name: 'Mandiri', type: 'Bank', status: IntegrationStatus.Inactive },
+    { id: 'api-bni', name: 'BNI', type: 'Bank', status: IntegrationStatus.Inactive },
+    { id: 'api-bri', name: 'BRI', type: 'Bank', status: IntegrationStatus.Inactive },
+    
+    // E-Wallets
     { id: 'api-gopay', name: 'GoPay', type: 'E-Wallet', status: IntegrationStatus.Inactive },
+    { id: 'api-ovo', name: 'OVO', type: 'E-Wallet', status: IntegrationStatus.Inactive },
+    { id: 'api-dana', name: 'DANA', type: 'E-Wallet', status: IntegrationStatus.Inactive },
+    { id: 'api-shopeepay', name: 'ShopeePay', type: 'E-Wallet', status: IntegrationStatus.Inactive },
+    
+    // Retail
+    { id: 'api-alfamart', name: 'Alfamart', type: 'Retail', status: IntegrationStatus.Inactive },
+    { id: 'api-indomart', name: 'Indomart', type: 'Retail', status: IntegrationStatus.Inactive },
 ];
 
 export const initialScalabilityServices: ScalabilityService[] = [
