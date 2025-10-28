@@ -56,7 +56,30 @@ const AdvancedArticleFormModal: React.FC<{
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData(prev => {
+            const newState = { ...prev, [name]: value };
+            if (name === 'imageUrl' && value) {
+                newState.youtubeId = '';
+            }
+            if (name === 'youtubeId' && value) {
+                newState.imageUrl = '';
+            }
+            return newState;
+        });
+    };
+    
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (loadEvent) => {
+                const result = loadEvent.target?.result;
+                if (typeof result === 'string') {
+                    setFormData(prev => ({ ...prev, imageUrl: result, youtubeId: '' }));
+                }
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleGenerateFromVideo = async () => {
@@ -165,11 +188,50 @@ Here is the YouTube URL: ${youtubeUrl}`;
                     </div>
 
                     <div className="p-3 bg-surface-light rounded-lg border border-border-color">
-                         <p className="text-sm font-bold text-text-secondary mb-2">Media (Pilih salah satu)</p>
-                         <div className="space-y-2">
-                            <input type="text" name="imageUrl" placeholder="Image URL (e.g., https://.../image.png)" value={formData.imageUrl} onChange={handleChange} className="w-full p-2 bg-surface rounded" disabled={!!formData.youtubeId}/>
+                        <p className="text-sm font-bold text-text-secondary mb-2">Media (Pilih salah satu)</p>
+                        <div className="space-y-2">
+                            <div>
+                                <div className="flex items-center space-x-2">
+                                    <input 
+                                        type="text" 
+                                        name="imageUrl" 
+                                        placeholder="Image URL or upload a file" 
+                                        value={formData.imageUrl} 
+                                        onChange={handleChange} 
+                                        className="w-full p-2 bg-surface rounded" 
+                                        disabled={!!formData.youtubeId}
+                                    />
+                                    <input
+                                        type="file"
+                                        id="article-image-upload"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleFileChange}
+                                        disabled={!!formData.youtubeId}
+                                    />
+                                    <label 
+                                        htmlFor="article-image-upload" 
+                                        className={`cursor-pointer px-4 py-2 text-sm font-semibold text-primary bg-primary/20 rounded-lg whitespace-nowrap ${!!formData.youtubeId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/30'}`}
+                                    >
+                                        Upload
+                                    </label>
+                                </div>
+                                {formData.imageUrl && !formData.youtubeId && (
+                                    <div className="mt-2">
+                                        <img src={formData.imageUrl} alt="Article Preview" className="w-full h-40 object-cover rounded-lg border border-border-color" />
+                                    </div>
+                                )}
+                            </div>
                             <p className="text-center text-xs text-text-secondary">ATAU</p>
-                            <input type="text" name="youtubeId" placeholder="YouTube Video ID (e.g., dQw4w9WgXcQ)" value={formData.youtubeId} onChange={handleChange} className="w-full p-2 bg-surface rounded" disabled={!!formData.imageUrl}/>
+                            <input 
+                                type="text" 
+                                name="youtubeId" 
+                                placeholder="YouTube Video ID (e.g., dQw4w9WgXcQ)" 
+                                value={formData.youtubeId} 
+                                onChange={handleChange} 
+                                className="w-full p-2 bg-surface rounded" 
+                                disabled={!!formData.imageUrl}
+                            />
                         </div>
                     </div>
                 </div>
