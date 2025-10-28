@@ -15,27 +15,25 @@ const IntegrationCard: React.FC<{
     const Icon = integration.type === 'Bank' ? BanknotesIcon : integration.type === 'E-Wallet' ? WalletIcon : BuildingStorefrontIcon;
 
     return (
-        <div className="bg-surface p-4 rounded-lg border border-border-color flex flex-col">
-            <div className="flex items-center mb-3">
+        <div className="bg-surface p-4 rounded-lg border border-border-color">
+            <div className="flex items-center mb-2">
                 <Icon className="h-6 w-6 text-primary mr-3" />
                 <h3 className="text-lg font-bold">{integration.name}</h3>
             </div>
 
             <div className="flex items-center space-x-2 mb-4">
-                <div className={`w-3 h-3 rounded-full ${isInactive ? 'bg-red-500' : 'bg-green-400'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${isInactive ? 'bg-red-500' : 'bg-green-400'}`}></div>
                 <p className={`text-sm font-semibold ${isInactive ? 'text-red-500' : 'text-green-400'}`}>
                    {integration.status}
                 </p>
             </div>
             
-            <div className="mt-auto">
-                <button 
-                    onClick={() => onManage(integration)} 
-                    className="w-full text-sm px-3 py-1.5 rounded bg-surface-light hover:bg-border-color text-center font-semibold"
-                >
-                    Manage
-                </button>
-            </div>
+            <button 
+                onClick={() => onManage(integration)} 
+                className="w-full text-sm py-2 rounded bg-surface-light border border-border-color text-text-secondary hover:bg-border-color hover:text-text-primary transition-colors font-medium"
+            >
+                Manage
+            </button>
         </div>
     );
 }
@@ -138,7 +136,7 @@ const AdminApiIntegration: React.FC = () => {
     const renderIntegrations = (type: 'Bank' | 'E-Wallet' | 'Retail') => (
         <div>
             <h2 className="text-2xl font-bold mb-4 text-secondary">{type} Integrations</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {apiIntegrations.filter(api => api.type === type).map(api => (
                     <IntegrationCard 
                         key={api.id} 
