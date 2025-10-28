@@ -55,6 +55,7 @@ export const getConsultationTemplatePrompt = (): string => {
         **Task:**
         Generate a JSON object with two keys: "notes" and "prescription".
         - The value for "notes" MUST be: "[Dokter untuk mengisi ringkasan gejala dan diagnosis di sini]".
-        - The value for "prescription" MUST be: "[Dokter untuk mengisi nama obat, dosis, dan instruksi di sini]".
+        // FIX: Correct the prompt to request an empty array for the prescription, matching the JSON schema.
+        - The value for "prescription" MUST be an empty array, like this: [].
     `;
 };

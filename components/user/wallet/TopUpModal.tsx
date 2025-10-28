@@ -27,7 +27,7 @@ const TopUpModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpe
             type: 'Top-Up',
             amount: amount,
             description: `Top-Up via ${selectedMethod}`,
-            status: 'Pending',
+            status: 'Completed',
         });
         
         if(result.success) {

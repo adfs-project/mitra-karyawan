@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { ChartBarIcon, UserPlusIcon, CalendarDaysIcon, BanknotesIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import { ChartBarIcon, UserPlusIcon, CalendarDaysIcon, BanknotesIcon, SparklesIcon, GiftIcon, HeartIcon } from '@heroicons/react/24/solid';
 
 const navigation = [
     { name: 'Dashboard', href: '/hr/dashboard', icon: ChartBarIcon },
@@ -8,6 +8,8 @@ const navigation = [
     { name: 'Onboarding', href: '/hr/onboarding', icon: UserPlusIcon },
     { name: 'Leave Management', href: '/hr/leave', icon: CalendarDaysIcon },
     { name: 'Payroll', href: '/hr/payroll', icon: BanknotesIcon },
+    { name: 'Benefit Management', href: '/hr/benefits', icon: GiftIcon },
+    { name: 'Wellness Management', href: '/hr/wellness', icon: HeartIcon },
 ];
 
 const HrSidebar: React.FC = () => {

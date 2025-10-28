@@ -28,6 +28,12 @@ const MyConsultationsScreen = lazy(() => import('./screens/user/health/MyConsult
 const ConsultationRoomScreen = lazy(() => import('./screens/user/health/ConsultationRoomScreen'));
 const DoctorDetailScreen = lazy(() => import('./screens/user/health/DoctorDetailScreen'));
 const LoyaltyScreen = lazy(() => import('./screens/user/LoyaltyScreen'));
+const HealthRecordScreen = lazy(() => import('./screens/user/health/HealthRecordScreen'));
+const EprescriptionScreen = lazy(() => import('./screens/user/health/EprescriptionScreen'));
+const InsuranceClaimScreen = lazy(() => import('./screens/user/health/InsuranceClaimScreen'));
+const PharmacyCheckoutScreen = lazy(() => import('./screens/user/health/PharmacyCheckoutScreen'));
+const HealthPlusScreen = lazy(() => import('./screens/user/health/HealthPlusScreen'));
+const SubscriptionUpsellScreen = lazy(() => import('./screens/user/health/SubscriptionUpsellScreen'));
 
 
 // Admin Screens
@@ -53,6 +59,8 @@ const HrOnboarding = lazy(() => import('./screens/hr/HrOnboarding'));
 const HrLeaveManagement = lazy(() => import('./screens/hr/HrLeaveManagement'));
 const HrPayroll = lazy(() => import('./screens/hr/HrPayroll'));
 const HrAiCopilotScreen = lazy(() => import('./screens/hr/HrAiCopilotScreen'));
+const HrBenefitManagement = lazy(() => import('./screens/hr/HrBenefitManagement'));
+const HrWellnessManagement = lazy(() => import('./screens/hr/HrWellnessManagement'));
 
 
 const Spinner = () => (
@@ -120,6 +128,12 @@ const App: React.FC = () => {
                     <Route path="consultation/:id" element={<ConsultationRoomScreen />} />
                     <Route path="doctor/:id" element={<DoctorDetailScreen />} />
                     <Route path="loyalty" element={<LoyaltyScreen />} />
+                    <Route path="health-record" element={<HealthRecordScreen />} />
+                    <Route path="prescriptions" element={<EprescriptionScreen />} />
+                    <Route path="insurance-claim" element={<InsuranceClaimScreen />} />
+                    <Route path="pharmacy-checkout/:eprescriptionId" element={<PharmacyCheckoutScreen />} />
+                    <Route path="health-plus" element={<HealthPlusScreen />} />
+                    <Route path="subscribe-health-plus" element={<SubscriptionUpsellScreen />} />
                     <Route path="under-construction" element={<UnderConstructionScreen />} />
                     <Route path="placeholder/:featureName" element={<FunctionalPlaceholderScreen />} />
 
@@ -133,6 +147,8 @@ const App: React.FC = () => {
                             <Route path="hr/leave" element={<HrLeaveManagement />} />
                             <Route path="hr/payroll" element={<HrPayroll />} />
                             <Route path="hr/copilot" element={<HrAiCopilotScreen />} />
+                            <Route path="hr/benefits" element={<HrBenefitManagement />} />
+                            <Route path="hr/wellness" element={<HrWellnessManagement />} />
                         </>
                     )}
                     

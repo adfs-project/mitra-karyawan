@@ -4,12 +4,14 @@ import { useData } from '../../../contexts/DataContext';
 import { VideoCameraIcon, PhoneIcon, ChatBubbleLeftRightIcon, DocumentTextIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI, Type } from "@google/genai";
 import { getConsultationTemplatePrompt } from '../../../services/aiGuardrailService';
+import { EprescriptionItem } from '../../../types';
 
 const ConsultationRoomScreen: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { consultations, endConsultation, showToast } = useData();
+    const { consultations, endConsultation, showToast, eprescriptions } = useData();
     const consultation = consultations.find(c => c.id === id);
+    const eprescription = consultation?.eprescriptionId ? eprescriptions.find(e => e.id === consultation.eprescriptionId) : null;
     const [time, setTime] = useState(0);
     const [isEnding, setIsEnding] = useState(false);
 
@@ -37,21 +39,37 @@ const ConsultationRoomScreen: React.FC = () => {
                         type: Type.OBJECT,
                         properties: {
                             notes: { type: Type.STRING },
-                            prescription: { type: Type.STRING }
+                            prescription: {
+                                type: Type.ARRAY,
+                                items: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        drugName: { type: Type.STRING },
+                                        dosage: { type: Type.STRING },
+                                        instructions: { type: Type.STRING }
+                                    },
+                                    required: ['drugName', 'dosage', 'instructions']
+                                }
+                            }
                         },
                         required: ['notes', 'prescription']
                     }
                 }
             });
 
-            const result = JSON.parse(response.text);
+            const result: { notes: string; prescription: EprescriptionItem[] } = JSON.parse(response.text);
             await endConsultation(consultation.id, result.notes, result.prescription);
 
         } catch (err) {
             console.error("AI Consultation Template Error:", err);
             showToast("AI template generation failed. Using fallback.", "error");
             // Fallback to a hardcoded template if AI fails
-            await endConsultation(consultation.id, "[Gagal memuat templat AI]", "[Gagal memuat templat AI]");
+            const fallbackPrescription: EprescriptionItem[] = [{
+                drugName: '[Gagal Memuat Resep AI]',
+                dosage: 'N/A',
+                instructions: 'Silakan hubungi dokter kembali.'
+            }]
+            await endConsultation(consultation.id, "[Gagal memuat templat AI]", fallbackPrescription);
         } finally {
             setIsEnding(false);
         }
@@ -119,10 +137,14 @@ const ConsultationRoomScreen: React.FC = () => {
                                 <h3 className="font-bold">Catatan Dokter</h3>
                                 <p className="text-sm text-text-secondary">{consultation.notes || "Tidak ada catatan."}</p>
                                 <h3 className="font-bold pt-2 border-t border-border-color">Resep</h3>
-                                {isSafetyAlert ? (
-                                    <div className="bg-red-500/20 border border-red-500 p-4 rounded-lg">
-                                        <h3 className="font-bold text-red-400">PERINGATAN KEAMANAN</h3>
-                                        <p className="text-sm text-red-300 whitespace-pre-wrap">{consultation.prescription?.replace('SAFETY_ALERT:', '').trim()}</p>
+                                {eprescription ? (
+                                    <div className="space-y-2">
+                                        {eprescription.items.map((item, index) => (
+                                            <div key={index} className="text-sm">
+                                                <p className="font-semibold text-text-primary">{item.drugName} - {item.dosage}</p>
+                                                <p className="text-xs text-text-secondary">{item.instructions}</p>
+                                            </div>
+                                        ))}
                                     </div>
                                 ) : (
                                     <p className="text-sm text-text-secondary whitespace-pre-wrap">{consultation.prescription || "Tidak ada resep."}</p>

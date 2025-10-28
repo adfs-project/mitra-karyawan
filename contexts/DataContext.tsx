@@ -4,14 +4,14 @@ import {
     CartItem, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService,
     ScalabilityServiceStatus, LeaveRequest, Budget, ScheduledPayment,
     MonetizationConfig, TaxConfig, HomePageConfig, AssistantLog, EngagementAnalytics,
-    AdminWallets, PersonalizationRule, Order, MoodHistory, OrderItem, Toast, ToastType
+    AdminWallets, PersonalizationRule, Order, MoodHistory, OrderItem, Toast, ToastType, Eprescription, EprescriptionItem, HealthDocument, HealthChallenge, InsuranceClaim
 } from '../types';
 import {
     initialUsers, initialProducts, initialArticles, initialTransactions, initialNotifications,
     initialDoctors, initialConsultations, initialDisputes, initialApiIntegrations,
     initialScalabilityServices, initialLeaveRequests, initialMonetizationConfig,
     initialTaxConfig, initialHomePageConfig, initialAdminWallets, initialPersonalizationRules,
-    initialOrders
+    initialOrders, initialHealthChallenges
 } from '../data/mockData';
 import { testApiConnection } from '../services/apiService';
 import { useAuth } from './AuthContext';
@@ -45,6 +45,7 @@ interface DataContextType {
     notifications: Notification[];
     doctors: Doctor[];
     consultations: Consultation[];
+    eprescriptions: Eprescription[];
     cart: CartItem[];
     disputes: Dispute[];
     apiIntegrations: ApiIntegration[];
@@ -60,6 +61,9 @@ interface DataContextType {
     adminWallets: AdminWallets;
     orders: Order[];
     personalizationRules: PersonalizationRule[];
+    healthDocuments: HealthDocument[];
+    healthChallenges: HealthChallenge[];
+    insuranceClaims: InsuranceClaim[];
     isAiGuardrailDisabled: boolean;
     isDeletionLocked: boolean;
     toasts: Toast[];
@@ -94,13 +98,19 @@ interface DataContextType {
     // Health
     addMoodEntry: (mood: MoodHistory['mood']) => void;
     bookConsultation: (doctorId: string, slotTime: string) => Promise<{ success: boolean; message: string; consultationId?: string }>;
-    endConsultation: (consultationId: string, notes: string, prescription: string) => Promise<void>;
+    endConsultation: (consultationId: string, notes: string, prescriptionItems: EprescriptionItem[]) => Promise<void>;
+    addHealthDocument: (doc: Omit<HealthDocument, 'id' | 'userId' | 'uploadDate'>) => Promise<void>;
+    deleteHealthDocument: (docId: string) => Promise<void>;
+    joinHealthChallenge: (challengeId: string) => Promise<void>;
+    submitInsuranceClaim: (claim: Omit<InsuranceClaim, 'id' | 'userId' | 'userName' | 'branch' | 'submissionDate' | 'status'>) => Promise<void>;
+    subscribeToHealthPlus: () => Promise<void>;
+    redeemPrescription: (eprescriptionId: string, totalCost: number) => Promise<{ success: boolean; message: string; }>;
     
     // HR
     submitLeaveRequest: (req: { startDate: string, endDate: string, reason: string }) => Promise<void>;
     updateLeaveRequestStatus: (id: string, status: 'Approved' | 'Rejected') => Promise<void>;
     getBranchMoodAnalytics: (branch: string) => Promise<{ summary: string; data: { mood: string; count: number }[] }>;
-
+    createHealthChallenge: (challenge: Omit<HealthChallenge, 'id' | 'creator' | 'participants'>) => Promise<void>;
 
     // Financial Planning
     addBudget: (budget: Omit<Budget, 'id'|'userId'|'spent'>) => Promise<void>;
@@ -164,6 +174,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [notifications, setNotifications] = useStickyState<Notification[]>('app_notifications', initialNotifications);
     const [doctors, setDoctors] = useStickyState<Doctor[]>('app_doctors', initialDoctors);
     const [consultations, setConsultations] = useStickyState<Consultation[]>('app_consultations', initialConsultations);
+    const [eprescriptions, setEprescriptions] = useStickyState<Eprescription[]>('app_eprescriptions', []);
     const [cart, setCart] = useStickyState<CartItem[]>('app_cart', []);
     const [disputes, setDisputes] = useStickyState<Dispute[]>('app_disputes', initialDisputes);
     const [apiIntegrations, setApiIntegrations] = useStickyState<ApiIntegration[]>('app_api_integrations', initialApiIntegrations);
@@ -179,6 +190,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [adminWallets, setAdminWallets] = useStickyState<AdminWallets>('app_admin_wallets', initialAdminWallets);
     const [orders, setOrders] = useStickyState<Order[]>('app_orders', initialOrders);
     const [personalizationRules, setPersonalizationRules] = useStickyState<PersonalizationRule[]>('app_personalization_rules', initialPersonalizationRules);
+    const [healthDocuments, setHealthDocuments] = useStickyState<HealthDocument[]>('app_health_documents', []);
+    const [healthChallenges, setHealthChallenges] = useStickyState<HealthChallenge[]>('app_health_challenges', initialHealthChallenges);
+    const [insuranceClaims, setInsuranceClaims] = useStickyState<InsuranceClaim[]>('app_insurance_claims', []);
     
     // --- Toast Notification State ---
     const [toasts, setToasts] = useState<Toast[]>([]);
@@ -548,13 +562,74 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { success: true, message: 'Booking confirmed!', consultationId: newConsultation.id };
     };
     
-    const endConsultation = async (consultationId: string, notes: string, prescription: string) => {
+    const endConsultation = async (consultationId: string, notes: string, prescriptionItems: EprescriptionItem[]) => {
+        const consultation = consultations.find(c => c.id === consultationId);
+        if (!consultation) return;
+
+        let eprescriptionId: string | undefined = undefined;
+        let prescriptionText = "Tidak ada resep.";
+
+        if (prescriptionItems && prescriptionItems.length > 0 && prescriptionItems.some(p => p.drugName)) {
+            const newEprescription: Eprescription = {
+                id: `epres-${Date.now()}`,
+                consultationId,
+                patientId: consultation.userId,
+                doctorId: consultation.doctorId,
+                doctorName: consultation.doctorName,
+                issueDate: new Date().toISOString(),
+                items: prescriptionItems,
+                status: 'New'
+            };
+            setEprescriptions(prev => [...prev, newEprescription]);
+            eprescriptionId = newEprescription.id;
+            prescriptionText = prescriptionItems.map(p => `${p.drugName} (${p.dosage})`).join(', ');
+        } else if (typeof prescriptionItems === 'string') { // Handle legacy string
+            prescriptionText = prescriptionItems;
+        }
+
+
         setConsultations(prev => prev.map(c => 
             c.id === consultationId 
-            ? { ...c, status: 'Completed', notes, prescription } 
+            ? { ...c, status: 'Completed', notes, eprescriptionId, prescription: prescriptionText } 
             : c
         ));
     };
+
+    const subscribeToHealthPlus = async () => {
+        if (!user) return;
+        const updatedUser = { ...user, isPremium: true };
+        updateCurrentUser(updatedUser);
+        setUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
+    };
+
+    const redeemPrescription = async (eprescriptionId: string, totalCost: number): Promise<{ success: boolean; message: string; }> => {
+        const prescription = eprescriptions.find(e => e.id === eprescriptionId);
+        if (!user || !prescription) {
+            return { success: false, message: "Resep tidak ditemukan." };
+        }
+        if (user.wallet.balance < totalCost) {
+            return { success: false, message: "Saldo tidak cukup." };
+        }
+
+        const txResult = await addTransaction({
+            userId: user.id,
+            type: 'Obat & Resep',
+            amount: -totalCost,
+            description: `Pembelian obat dari resep #${eprescriptionId.slice(-6)}`,
+            status: 'Completed',
+        });
+
+        if (txResult.success) {
+            setEprescriptions(prev => prev.map(e => e.id === eprescriptionId ? { ...e, status: 'Redeemed' } : e));
+            // Simulate payment to pharmacy and commission
+            const commission = totalCost * 0.03; // 3% commission for platform
+            setAdminWallets(prev => ({ ...prev, profit: prev.profit + commission }));
+            return { success: true, message: "Pembayaran berhasil!" };
+        } else {
+            return { success: false, message: "Gagal memproses pembayaran." };
+        }
+    };
+
 
     const submitLeaveRequest = async (req: { startDate: string, endDate: string, reason: string }) => {
         if (!user) return;
@@ -615,6 +690,67 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return { summary: "Could not analyze mood data at this time.", data: aggregatedData };
         }
     };
+    
+    const addHealthDocument = async (doc: Omit<HealthDocument, 'id' | 'userId' | 'uploadDate'>) => {
+        if (!user) return;
+        const newDoc: HealthDocument = {
+            ...doc,
+            id: `doc-${Date.now()}`,
+            userId: user.id,
+            uploadDate: new Date().toISOString(),
+        };
+        setHealthDocuments(prev => [newDoc, ...prev]);
+        showToast("Document uploaded successfully.", "success");
+    };
+
+    const deleteHealthDocument = async (docId: string) => {
+        setHealthDocuments(prev => prev.filter(doc => doc.id !== docId));
+        showToast("Document deleted.", "success");
+    };
+    
+    const createHealthChallenge = async (challenge: Omit<HealthChallenge, 'id' | 'creator' | 'participants'>) => {
+        if (!user || user.role !== 'HR') return;
+        const newChallenge: HealthChallenge = {
+            ...challenge,
+            id: `hc-${Date.now()}`,
+            creator: { hrId: user.id, branch: user.profile.branch || 'N/A' },
+            participants: [],
+        };
+        setHealthChallenges(prev => [newChallenge, ...prev]);
+        showToast("New wellness challenge created!", "success");
+    };
+
+    const joinHealthChallenge = async (challengeId: string) => {
+        if (!user) return;
+        setHealthChallenges(prev => prev.map(c => {
+            if (c.id === challengeId && !c.participants.some(p => p.userId === user.id)) {
+                return { ...c, participants: [...c.participants, { userId: user.id, progress: 0 }] };
+            }
+            return c;
+        }));
+        showToast("You have joined the challenge!", "success");
+    };
+    
+    const submitInsuranceClaim = async (claimData: Omit<InsuranceClaim, 'id' | 'userId' | 'userName' | 'branch' | 'submissionDate' | 'status'>) => {
+        if (!user) return;
+        const newClaim: InsuranceClaim = {
+            ...claimData,
+            id: `ic-${Date.now()}`,
+            userId: user.id,
+            userName: user.profile.name,
+            branch: user.profile.branch || 'N/A',
+            submissionDate: new Date().toISOString(),
+            status: 'Pending',
+        };
+        setInsuranceClaims(prev => [newClaim, ...prev]);
+        showToast("Insurance claim submitted.", "success");
+
+        const hrUser = users.find(u => u.role === 'HR' && u.profile.branch === user.profile.branch);
+        if (hrUser) {
+            addNotification(hrUser.id, `${user.profile.name} has submitted a new insurance claim.`, 'info');
+        }
+    };
+
 
     const addBudget = async (budget: Omit<Budget, 'id'|'userId'|'spent'>) => {
         if(!user) return;
@@ -918,11 +1054,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
     const value: DataContextType = {
-        users, products, articles, transactions, notifications, doctors, consultations,
+        users, products, articles, transactions, notifications, doctors, consultations, eprescriptions,
         cart, disputes, apiIntegrations, scalabilityServices, leaveRequests, budgets,
         scheduledPayments, monetizationConfig, taxConfig, homePageConfig, assistantLogs,
         engagementAnalytics, adminWallets, personalizationRules,
-        orders, isAiGuardrailDisabled, toasts, isDeletionLocked,
+        orders, healthDocuments, healthChallenges, insuranceClaims,
+        isAiGuardrailDisabled, toasts, isDeletionLocked,
         
         showToast, removeToast,
         toggleAiGuardrail, toggleDeletionLock,
@@ -931,7 +1068,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toggleWishlist, toggleArticleBookmark,
         toggleArticleLike, addArticleComment, toggleCommentLike, voteOnPoll,
         addMoodEntry, bookConsultation, endConsultation,
-        submitLeaveRequest, updateLeaveRequestStatus, getBranchMoodAnalytics,
+        addHealthDocument, deleteHealthDocument, joinHealthChallenge, submitInsuranceClaim,
+        subscribeToHealthPlus, redeemPrescription,
+        submitLeaveRequest, updateLeaveRequestStatus, getBranchMoodAnalytics, createHealthChallenge,
         addBudget, updateBudget, deleteBudget,
         addScheduledPayment, updateScheduledPayment, deleteScheduledPayment,
         applyForPayLater, approvePayLater, rejectPayLater,
