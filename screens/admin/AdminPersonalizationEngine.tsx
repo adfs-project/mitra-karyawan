@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { PersonalizationRule, PersonalizationCondition, ConditionField, ConditionOperator, ActionType, Role } from '../../types';
-import { PlusIcon, PencilIcon, TrashIcon, SparklesIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { PlusIcon, PencilIcon, TrashIcon, SparklesIcon, XMarkIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 
 const emptyRule: Omit<PersonalizationRule, 'id'> = {
     name: '',
@@ -198,7 +198,7 @@ const AdminPersonalizationEngine: React.FC = () => {
                                             <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                                         </label>
                                         <button onClick={() => handleOpenModal(rule)} className="p-2 rounded hover:bg-border-color"><PencilIcon className="h-5 w-5 text-yellow-400"/></button>
-                                        <button onClick={() => deletePersonalizationRule(rule.id)} className="p-2 rounded hover:bg-border-color"><TrashIcon className="h-5 w-5 text-red-400"/></button>
+                                        <button disabled title="Deletion is locked for stability." className="p-2 rounded cursor-not-allowed"><LockClosedIcon className="h-5 w-5 text-gray-500"/></button>
                                     </div>
                                 </div>
                             </div>

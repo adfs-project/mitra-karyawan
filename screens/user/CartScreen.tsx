@@ -5,7 +5,7 @@ import { ShoppingCartIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outl
 import { useAuth } from '../../contexts/AuthContext';
 
 const CartScreen: React.FC = () => {
-    const { cart, products, removeFromCart, updateCartQuantity, clearCart, addTransaction, addNotification } = useData();
+    const { cart, products, removeFromCart, updateCartQuantity, checkoutCart, addNotification } = useData();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -24,26 +24,14 @@ const CartScreen: React.FC = () => {
     const handleCheckout = async () => {
         if (!user || subtotal <= 0) return;
 
-        if (user.wallet.balance < subtotal) {
-            addNotification(user.id, "Saldo tidak cukup untuk checkout.", "error");
-            return;
-        }
-
         setIsCheckingOut(true);
-        const result = await addTransaction({
-            userId: user.id,
-            type: 'Marketplace',
-            amount: -subtotal,
-            description: `Pembelian ${cartDetails.length} jenis produk dari keranjang`,
-            status: 'Pending',
-        });
+        const result = await checkoutCart();
 
         if (result.success) {
             addNotification(user.id, "Checkout berhasil! Pesanan Anda sedang diproses.", "success");
-            clearCart();
             navigate('/wallet');
         } else {
-             addNotification(user.id, "Checkout gagal. Silakan coba lagi.", "error");
+             addNotification(user.id, `Checkout gagal: ${result.message}`, "error");
         }
         setIsCheckingOut(false);
     };

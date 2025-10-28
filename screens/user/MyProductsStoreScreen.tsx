@@ -1,9 +1,10 @@
 
+
 import React, { useState } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Product } from '../../types';
-import { BuildingStorefrontIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { BuildingStorefrontIcon, PlusIcon, PencilIcon, TrashIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import ProductFormModal from '../../components/user/market/ProductFormModal';
 
 const MyProductsStoreScreen: React.FC = () => {
@@ -58,8 +59,8 @@ const MyProductsStoreScreen: React.FC = () => {
                                 <button onClick={() => handleOpenModal(product)} className="p-2 bg-surface-light rounded-full hover:bg-border-color">
                                     <PencilIcon className="h-5 w-5 text-yellow-400" />
                                 </button>
-                                <button onClick={() => handleDeleteProduct(product.id)} className="p-2 bg-surface-light rounded-full hover:bg-border-color">
-                                    <TrashIcon className="h-5 w-5 text-red-500" />
+                                <button disabled title="Deletion is locked for stability." className="p-2 bg-surface-light rounded-full cursor-not-allowed">
+                                    <LockClosedIcon className="h-5 w-5 text-gray-500" />
                                 </button>
                             </div>
                         </div>

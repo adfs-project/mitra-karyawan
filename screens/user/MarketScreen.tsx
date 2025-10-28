@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useLocation } from 'react-router-dom';
@@ -8,7 +7,7 @@ import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import AiRecommendations from '../../components/user/market/AiRecommendations';
 
 const MarketScreen: React.FC = () => {
-    const { products } = useData();
+    const { products, addToCart } = useData();
     const location = useLocation();
     const [searchTerm, setSearchTerm] = useState(location.state?.searchQuery || '');
     const [categoryFilter, setCategoryFilter] = useState('All');
@@ -25,8 +24,7 @@ const MarketScreen: React.FC = () => {
     }, [products, searchTerm, categoryFilter]);
     
     const handleBuyClick = (product: Product) => {
-        // In a real app, this might navigate to a product detail page or open a purchase modal
-        alert(`Navigating to purchase flow for ${product.name}`);
+        addToCart(product.id, 1);
     };
 
     return (

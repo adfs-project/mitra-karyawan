@@ -10,6 +10,7 @@ const LoginScreen = lazy(() => import('./screens/auth/LoginScreen'));
 const RegisterScreen = lazy(() => import('./screens/auth/RegisterScreen'));
 const DeactivatedAccountScreen = lazy(() => import('./screens/auth/DeactivatedAccountScreen'));
 const UnderConstructionScreen = lazy(() => import('./screens/common/UnderConstructionScreen'));
+const FunctionalPlaceholderScreen = lazy(() => import('./screens/common/FunctionalPlaceholderScreen'));
 
 // User Screens
 const HomeScreen = lazy(() => import('./screens/user/HomeScreen'));
@@ -41,6 +42,8 @@ const AdminScalability = lazy(() => import('./screens/admin/AdminScalability'));
 const AdminTaxManagement = lazy(() => import('./screens/admin/AdminTaxManagement'));
 const AdminPersonalizationEngine = lazy(() => import('./screens/admin/AdminPersonalizationEngine'));
 const AdminAssistantHub = lazy(() => import('./screens/admin/AdminAssistantHub'));
+const AdminDemoControlScreen = lazy(() => import('./screens/admin/AdminDemoControlScreen'));
+
 
 // HR Screens
 const HrPortalScreen = lazy(() => import('./screens/hr/HrPortalScreen'));
@@ -88,6 +91,7 @@ const App: React.FC = () => {
                         <Route path="admin/tax" element={<AdminTaxManagement />} />
                         <Route path="admin/system/api" element={<AdminApiIntegration />} />
                         <Route path="admin/system/scalability" element={<AdminScalability />} />
+                        <Route path="admin/system/demo-control" element={<AdminDemoControlScreen />} />
                         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
                     </Routes>
                 </AdminLayout>
@@ -115,6 +119,8 @@ const App: React.FC = () => {
                     <Route path="doctor/:id" element={<DoctorDetailScreen />} />
                     <Route path="loyalty" element={<LoyaltyScreen />} />
                     <Route path="under-construction" element={<UnderConstructionScreen />} />
+                    <Route path="placeholder/:featureName" element={<FunctionalPlaceholderScreen />} />
+
 
                     {/* HR-specific Routes, rendered within UserLayout */}
                     {user.role === Role.HR && (
