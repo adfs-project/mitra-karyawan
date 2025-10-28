@@ -42,6 +42,8 @@ const Header: React.FC = () => {
     const { notifications, cart, markNotificationsAsRead } = useData();
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
+    const [language, setLanguage] = useState<'ID' | 'EN'>('ID');
+
 
     const userNotifications = notifications.filter(n => n.userId === user?.id);
     const unreadCount = userNotifications.filter(n => !n.read).length;
@@ -52,6 +54,10 @@ const Header: React.FC = () => {
             markNotificationsAsRead(user.id);
         }
         setIsPanelOpen(!isPanelOpen);
+    };
+
+    const handleLanguageToggle = () => {
+        setLanguage(prev => prev === 'ID' ? 'EN' : 'ID');
     };
 
     useEffect(() => {
@@ -67,7 +73,7 @@ const Header: React.FC = () => {
     return (
         <header className="bg-surface sticky top-0 z-10 p-4 flex justify-between items-center border-b border-border-color">
             <div className="text-xl font-bold text-primary">
-                Mitra Karyawan
+                {language === 'ID' ? 'Mitra Karyawan' : 'Employee Partner'}
             </div>
             <div className="flex items-center space-x-4">
                 <Link to="/cart" className="relative p-2 rounded-full hover:bg-surface-light">
@@ -93,7 +99,7 @@ const Header: React.FC = () => {
                         notifications={userNotifications}
                     />
                 </div>
-                <button className="p-2 rounded-full hover:bg-surface-light">
+                <button onClick={handleLanguageToggle} className="p-2 rounded-full hover:bg-surface-light">
                     <LanguageIcon className="h-6 w-6 text-text-secondary" />
                 </button>
             </div>

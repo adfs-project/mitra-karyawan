@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { ChartBarIcon, CurrencyDollarIcon, BuildingStorefrontIcon, UsersIcon, HeartIcon, Cog6ToothIcon, WrenchScrewdriverIcon, ArchiveBoxIcon, SparklesIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid';
+import { ChartBarIcon, CurrencyDollarIcon, BuildingStorefrontIcon, UsersIcon, HeartIcon, Cog6ToothIcon, WrenchScrewdriverIcon, ArchiveBoxIcon, SparklesIcon, ChatBubbleLeftRightIcon, PlayCircleIcon } from '@heroicons/react/24/solid';
 
 const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: ChartBarIcon },
@@ -16,6 +16,7 @@ const navigation = [
     { name: 'System Management', children: [
         { name: 'API Integration', href: '/admin/system/api' },
         { name: 'Scalability', href: '/admin/system/scalability' },
+        { name: 'AI Settings', href: '/admin/system/demo-control' },
     ], icon: Cog6ToothIcon },
 ];
 

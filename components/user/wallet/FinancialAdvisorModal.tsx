@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { XMarkIcon, PaperAirplaneIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
 import { Transaction } from '../../../types';
+import { useData } from '../../../contexts/DataContext';
 import { buildSecurePrompt } from '../../../services/aiGuardrailService';
 
 interface Message {
@@ -12,23 +13,32 @@ interface Message {
 const FinancialAdvisorModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-    userTransactions: Transaction[]; // Prop still received but will not be used by AI
-}> = ({ isOpen, onClose }) => {
+    userTransactions: Transaction[];
+}> = ({ isOpen, onClose, userTransactions }) => {
+    const { isAiGuardrailDisabled } = useData();
     const [messages, setMessages] = useState<Message[]>([]);
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const initialGreeting = {
-        sender: 'ai' as 'ai',
-        text: 'Halo! Saya adalah penasihat keuangan AI. Saya bisa memberikan saran umum tentang keuangan, seperti cara berhemat atau membuat anggaran. Saya tidak memiliki akses ke data transaksi Anda demi privasi Anda.',
+    const getInitialGreeting = () => {
+        if (isAiGuardrailDisabled) {
+            return {
+                sender: 'ai' as 'ai',
+                text: 'Halo! Saya adalah penasihat keuangan AI Anda. Saya telah menganalisis data transaksi Anda secara anonim. Silakan bertanya untuk mendapatkan saran yang dipersonalisasi, misalnya "Di mana pengeluaran terbesar saya bulan ini?" atau "Berikan saya tips berhemat berdasarkan kebiasaan saya."',
+            };
+        }
+        return {
+            sender: 'ai' as 'ai',
+            text: 'Halo! Saya adalah penasihat keuangan AI. Saya bisa memberikan saran umum tentang keuangan, seperti cara berhemat atau membuat anggaran. Saya tidak memiliki akses ke data transaksi Anda demi privasi Anda.',
+        };
     };
 
     useEffect(() => {
         if (isOpen) {
-            setMessages([initialGreeting]);
+            setMessages([getInitialGreeting()]);
         }
-    }, [isOpen]);
+    }, [isOpen, isAiGuardrailDisabled]);
     
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,16 +52,22 @@ const FinancialAdvisorModal: React.FC<{
         setQuery('');
         setIsLoading(true);
 
-        const securePrompt = buildSecurePrompt(
-            userMessage.text,
-            "You are a generic financial advisor. If the user asks a safe, generic financial question (e.g., 'How can I save more money?', 'What is a budget?'), provide a helpful, general-purpose answer in Indonesian. Do not ask for their personal data to improve your answer."
-        );
+        let prompt;
+        if (isAiGuardrailDisabled) {
+            const transactionSummary = userTransactions.slice(0, 20).map(t => `${t.type} (${t.description}): ${t.amount}`).join('\n');
+            prompt = `You are a financial advisor AI. Analyze the following anonymous transaction data for a user and answer their question. Provide actionable insights and suggestions based on the data. Be friendly and respond in Indonesian.\n\nTransaction Data:\n${transactionSummary}\n\nUser Question: "${userMessage.text}"`;
+        } else {
+             prompt = buildSecurePrompt(
+                userMessage.text,
+                "You are a generic financial advisor. If the user asks a safe, generic financial question (e.g., 'How can I save more money?', 'What is a budget?'), provide a helpful, general-purpose answer in Indonesian. Do not ask for their personal data to improve your answer."
+            );
+        }
 
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
-                contents: securePrompt,
+                contents: prompt,
             });
 
             const aiMessage: Message = { sender: 'ai', text: response.text };
@@ -109,7 +125,7 @@ const FinancialAdvisorModal: React.FC<{
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="Tanya saran keuangan umum..."
+                            placeholder={isAiGuardrailDisabled ? "Tanya tentang keuangan pribadi Anda..." : "Tanya saran keuangan umum..."}
                             className="w-full bg-surface-light border border-border-color rounded-full py-2 px-4 focus:outline-none focus:ring-1 focus:ring-primary"
                             disabled={isLoading}
                         />

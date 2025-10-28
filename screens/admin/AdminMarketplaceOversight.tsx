@@ -1,7 +1,8 @@
 
+
 import React, { useMemo, useState } from 'react';
 import { useData } from '../../contexts/DataContext';
-import { ShoppingCartIcon, BanknotesIcon, ShieldExclamationIcon } from '@heroicons/react/24/solid';
+import { ShoppingCartIcon, BanknotesIcon, ShieldExclamationIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType }> = ({ title, value, icon: Icon }) => (
     <div className="bg-surface p-6 rounded-lg border border-border-color">
@@ -78,8 +79,8 @@ const AdminMarketplaceOversight: React.FC = () => {
                                     <td className="px-6 py-4">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(p.price)}</td>
                                     <td className="px-6 py-4">{p.stock}</td>
                                     <td className="px-6 py-4">
-                                        <button onClick={() => handleDelete(p.id)} className="font-medium text-red-500 hover:underline">
-                                            Delist
+                                        <button disabled title="Deletion is locked for stability." className="font-medium text-gray-500 cursor-not-allowed flex items-center">
+                                            <LockClosedIcon className="h-4 w-4 mr-1"/> Delist
                                         </button>
                                     </td>
                                 </tr>

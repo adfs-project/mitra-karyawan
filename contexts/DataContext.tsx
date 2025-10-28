@@ -1,12 +1,10 @@
-
-
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import {
     User, Product, Article, Transaction, Notification, Doctor, Consultation,
     CartItem, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService,
     ScalabilityServiceStatus, LeaveRequest, Budget, ScheduledPayment,
     MonetizationConfig, TaxConfig, HomePageConfig, AssistantLog, EngagementAnalytics,
-    AdminWallets, PersonalizationRule, Order
+    AdminWallets, PersonalizationRule, Order, MoodHistory, OrderItem
 } from '../types';
 import {
     initialUsers, initialProducts, initialArticles, initialTransactions, initialNotifications,
@@ -61,8 +59,10 @@ interface DataContextType {
     adminWallets: AdminWallets;
     orders: Order[];
     personalizationRules: PersonalizationRule[];
+    isAiGuardrailDisabled: boolean;
 
     // --- Methods ---
+    toggleAiGuardrail: (isDisabled: boolean) => void;
     addTransaction: (txData: Omit<Transaction, 'id' | 'timestamp' | 'userName'>) => Promise<{ success: boolean; message: string }>;
     addNotification: (userId: string, message: string, type: Notification['type']) => void;
     markNotificationsAsRead: (userId: string) => void;
@@ -73,6 +73,7 @@ interface DataContextType {
     removeFromCart: (productId: string) => void;
     updateCartQuantity: (productId: string, quantity: number) => void;
     clearCart: () => void;
+    checkoutCart: () => Promise<{ success: boolean; message: string; }>;
     
     // Wishlist & Bookmarks
     toggleWishlist: (productId: string) => void;
@@ -85,6 +86,7 @@ interface DataContextType {
     voteOnPoll: (articleId: string, optionIndex: number) => void;
     
     // Health
+    addMoodEntry: (mood: MoodHistory['mood']) => void;
     bookConsultation: (doctorId: string, slotTime: string) => Promise<{ success: boolean; message: string; consultationId?: string }>;
     endConsultation: (consultationId: string, notes: string, prescription: string) => Promise<void>;
     
@@ -128,6 +130,14 @@ interface DataContextType {
     addProduct: (product: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'>) => Promise<void>;
     updateProduct: (product: Product) => Promise<void>;
     deleteProduct: (productId: string) => Promise<void>;
+    
+    // Admin Content
+    addArticle: (article: Omit<Article, 'id' | 'author' | 'timestamp' | 'likes' | 'comments' | 'pollOptions'>) => Promise<void>;
+    updateArticle: (article: Article) => Promise<void>;
+    deleteArticle: (articleId: string) => Promise<void>;
+    addDoctor: (doctor: Omit<Doctor, 'id' | 'availableSlots'>) => Promise<void>;
+    updateDoctor: (doctor: Doctor) => Promise<void>;
+    deleteDoctor: (doctorId: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -158,6 +168,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [adminWallets, setAdminWallets] = useStickyState<AdminWallets>('app_admin_wallets', initialAdminWallets);
     const [orders, setOrders] = useStickyState<Order[]>('app_orders', initialOrders);
     const [personalizationRules, setPersonalizationRules] = useStickyState<PersonalizationRule[]>('app_personalization_rules', initialPersonalizationRules);
+    
+    // --- AI Guardrail State ---
+    const [isAiGuardrailDisabled, setIsAiGuardrailDisabled] = useStickyState<boolean>('app_ai_guardrail_disabled', false);
+    
+    const toggleAiGuardrail = (isDisabled: boolean) => setIsAiGuardrailDisabled(isDisabled);
 
     const addNotification = useCallback((userId: string, message: string, type: Notification['type']) => {
         const newNotif: Notification = {
@@ -240,6 +255,125 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const clearCart = () => setCart([]);
+
+    const checkoutCart = async (): Promise<{ success: boolean; message: string; }> => {
+        if (!user || cart.length === 0) {
+            return { success: false, message: "Keranjang kosong." };
+        }
+
+        const cartDetails = cart.map(item => {
+            const product = products.find(p => p.id === item.productId);
+            return { ...item, product };
+        }).filter(item => item.product);
+
+        const subtotal = cartDetails.reduce((sum, item) => sum + (item.product!.price * item.quantity), 0);
+        const buyer = users.find(u => u.id === user.id);
+
+        if (!buyer || buyer.wallet.balance < subtotal) {
+            return { success: false, message: "Saldo tidak cukup untuk checkout." };
+        }
+
+        // --- Prepare all state changes ---
+        const newTransactions: Transaction[] = [];
+        let totalCommission = 0;
+        const sellerPayouts: Record<string, { totalSale: number, sellerName: string }> = {};
+        const productUpdates: Record<string, number> = {}; // productId -> newStock
+
+        // 1. Process cart items
+        cartDetails.forEach(item => {
+            const product = item.product!;
+            const saleAmount = product.price * item.quantity;
+            const sellerId = product.sellerId;
+
+            if (product.stock < item.quantity) {
+                // This is a race condition check, though simple for this app
+                throw new Error(`Insufficient stock for ${product.name}`);
+            }
+            productUpdates[product.id] = product.stock - item.quantity;
+
+            if (!sellerPayouts[sellerId]) {
+                sellerPayouts[sellerId] = { totalSale: 0, sellerName: product.sellerName };
+            }
+            sellerPayouts[sellerId].totalSale += saleAmount;
+        });
+
+        // 2. Create buyer transaction
+        newTransactions.push({
+            id: `tx-${Date.now()}-buyer`,
+            userId: user.id,
+            userName: user.profile.name,
+            type: 'Marketplace',
+            amount: -subtotal,
+            description: `Pembelian ${cartDetails.length} jenis produk dari marketplace.`,
+            timestamp: new Date().toISOString(),
+            status: 'Completed'
+        });
+
+        // 3. Create seller and commission transactions
+        Object.keys(sellerPayouts).forEach(sellerId => {
+            const { totalSale, sellerName } = sellerPayouts[sellerId];
+            const commission = totalSale * monetizationConfig.marketplaceCommission;
+            const earning = totalSale - commission;
+            totalCommission += commission;
+
+            newTransactions.push({
+                id: `tx-${Date.now()}-seller-${sellerId}`,
+                userId: sellerId,
+                userName: sellerName,
+                type: 'Marketplace',
+                amount: earning,
+                description: `Hasil penjualan dari ${cartDetails.filter(i => i.product!.sellerId === sellerId).length} jenis produk.`,
+                timestamp: new Date().toISOString(),
+                status: 'Completed'
+            });
+            addNotification(sellerId, `Produk Anda terjual! Anda menerima ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(earning)}`, 'success');
+        });
+        
+        // 4. Create a new order record
+        const newOrder: Order = {
+            id: `order-${Date.now()}`,
+            userId: user.id,
+            items: cart.map(({ productId, quantity }) => ({ productId, quantity })),
+            total: subtotal,
+            status: 'Processing',
+            timestamp: new Date().toISOString(),
+        };
+
+        // --- Apply all state changes ---
+        setUsers(prevUsers => 
+            prevUsers.map(u => {
+                if (u.id === user.id) { // Buyer
+                    return { ...u, wallet: { ...u.wallet, balance: u.wallet.balance - subtotal }};
+                }
+                if (sellerPayouts[u.id]) { // Seller
+                    const totalSale = sellerPayouts[u.id].totalSale;
+                    const commission = totalSale * monetizationConfig.marketplaceCommission;
+                    const earning = totalSale - commission;
+                    return { ...u, wallet: { ...u.wallet, balance: u.wallet.balance + earning }};
+                }
+                return u;
+            })
+        );
+
+        setProducts(prevProducts =>
+            prevProducts.map(p => 
+                productUpdates[p.id] !== undefined ? { ...p, stock: productUpdates[p.id] } : p
+            )
+        );
+
+        setAdminWallets(prev => ({
+            ...prev,
+            profit: prev.profit + totalCommission
+        }));
+
+        setTransactions(prev => [...prev, ...newTransactions]);
+        setOrders(prev => [...prev, newOrder]);
+        
+        updateCurrentUser({ ...user, wallet: { ...user.wallet, balance: user.wallet.balance - subtotal } });
+        setCart([]);
+
+        return { success: true, message: "Checkout berhasil!" };
+    };
     
     const toggleWishlist = (productId: string) => {
         if (!user) return;
@@ -313,6 +447,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
             return a;
         }));
+    };
+
+    const addMoodEntry = (mood: MoodHistory['mood']) => {
+        if (!user) return;
+        const newEntry: MoodHistory = {
+            date: new Date().toISOString().split('T')[0],
+            mood: mood,
+        };
+        const updatedUser = {
+            ...user,
+            healthData: {
+                ...user.healthData,
+                moodHistory: [...user.healthData.moodHistory, newEntry],
+            },
+        };
+        updateCurrentUser(updatedUser);
+        addNotification(user.id, `Mood for today recorded: ${mood}`, 'success');
     };
 
     const bookConsultation = async (doctorId: string, slotTime: string): Promise<{ success: boolean; message: string; consultationId?: string }> => {
@@ -492,7 +643,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     
     const deletePersonalizationRule = (id: string) => {
-        setPersonalizationRules(prev => prev.filter(r => r.id !== id));
+        console.warn("Deletion of personalization rules is locked to maintain application stability. Action prevented.");
+        addNotification('admin-001', 'Attempt to delete a personalization rule was blocked (feature locked).', 'warning');
+        return;
     };
 
     const addProduct = async (productData: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'>) => {
@@ -514,21 +667,62 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const deleteProduct = async (productId: string) => {
-        setProducts(prev => prev.filter(p => p.id !== productId));
+        console.warn("Deletion of products is locked to maintain application stability. Action prevented.");
+        addNotification('admin-001', 'Attempt to delete a product was blocked (feature locked).', 'warning');
+        return;
     };
+
+    // Admin Content Management
+    const addArticle = async (articleData: Omit<Article, 'id' | 'author' | 'timestamp' | 'likes' | 'comments' | 'pollOptions'>) => {
+        const newArticle: Article = {
+            ...articleData,
+            id: `a-${Date.now()}`,
+            author: 'Admin',
+            timestamp: new Date().toISOString(),
+            likes: [],
+            comments: [],
+        };
+        setArticles(prev => [newArticle, ...prev]);
+    };
+    const updateArticle = async (article: Article) => setArticles(prev => prev.map(a => a.id === article.id ? article : a));
+    const deleteArticle = async (articleId: string) => {
+        console.warn("Deletion of articles is locked to maintain application stability. Action prevented.");
+        addNotification('admin-001', 'Attempt to delete an article was blocked (feature locked).', 'warning');
+        return;
+    };
+    
+    const addDoctor = async (doctorData: Omit<Doctor, 'id' | 'availableSlots'>) => {
+        const newDoctor: Doctor = {
+            ...doctorData,
+            id: `doc-${Date.now()}`,
+            availableSlots: [
+                { time: '09:00', isBooked: false }, { time: '10:00', isBooked: false }, { time: '11:00', isBooked: false },
+                { time: '13:00', isBooked: false }, { time: '14:00', isBooked: false }, { time: '15:00', isBooked: false },
+            ]
+        };
+        setDoctors(prev => [newDoctor, ...prev]);
+    };
+    const updateDoctor = async (doctor: Doctor) => setDoctors(prev => prev.map(d => d.id === doctor.id ? doctor : d));
+    const deleteDoctor = async (doctorId: string) => {
+        console.warn("Deletion of doctors is locked to maintain application stability. Action prevented.");
+        addNotification('admin-001', 'Attempt to delete a doctor was blocked (feature locked).', 'warning');
+        return;
+    };
+
 
     const value: DataContextType = {
         users, products, articles, transactions, notifications, doctors, consultations,
         cart, disputes, apiIntegrations, scalabilityServices, leaveRequests, budgets,
         scheduledPayments, monetizationConfig, taxConfig, homePageConfig, assistantLogs,
         engagementAnalytics, adminWallets, personalizationRules,
-        orders,
+        orders, isAiGuardrailDisabled,
         
+        toggleAiGuardrail,
         addTransaction, addNotification, markNotificationsAsRead, updateUserStatus,
-        addToCart, removeFromCart, updateCartQuantity, clearCart,
+        addToCart, removeFromCart, updateCartQuantity, clearCart, checkoutCart,
         toggleWishlist, toggleArticleBookmark,
         toggleArticleLike, addArticleComment, toggleCommentLike, voteOnPoll,
-        bookConsultation, endConsultation,
+        addMoodEntry, bookConsultation, endConsultation,
         submitLeaveRequest, updateLeaveRequestStatus,
         addBudget, updateBudget, deleteBudget,
         addScheduledPayment, updateScheduledPayment, deleteScheduledPayment,
@@ -538,7 +732,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateMonetizationConfig, updateTaxConfig, updateHomePageConfig,
         logAssistantQuery, logEngagementEvent,
         addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule,
-        addProduct, updateProduct, deleteProduct
+        addProduct, updateProduct, deleteProduct,
+        addArticle, updateArticle, deleteArticle,
+        addDoctor, updateDoctor, deleteDoctor,
     };
 
     return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

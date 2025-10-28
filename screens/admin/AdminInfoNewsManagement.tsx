@@ -1,19 +1,57 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { Article } from '../../types';
-import { PlusIcon, PencilIcon, TrashIcon, ArchiveBoxIcon } from '@heroicons/react/24/solid';
+import { PlusIcon, PencilIcon, TrashIcon, ArchiveBoxIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 
-// A simplified modal for demonstration. In a real app, this would be more complex.
 const ArticleFormModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
     article: Article | null;
-}> = ({ isOpen, onClose, article }) => {
-    const [title, setTitle] = useState(article?.title || '');
+    onSave: (data: Article | Omit<Article, 'id' | 'author' | 'timestamp' | 'likes' | 'comments' | 'pollOptions'>) => void;
+}> = ({ isOpen, onClose, article, onSave }) => {
+    const [formData, setFormData] = useState({
+        title: '',
+        summary: '',
+        content: '',
+        category: '',
+        status: 'Published' as 'Published' | 'Draft',
+        type: 'standard' as 'standard' | 'poll' | 'qa' | 'Banner',
+        imageUrl: '',
+        youtubeId: ''
+    });
+
+    useEffect(() => {
+        if (article) {
+            setFormData({
+                title: article.title,
+                summary: article.summary,
+                content: article.content,
+                category: article.category,
+                status: article.status,
+                type: article.type,
+                imageUrl: article.imageUrl || '',
+                youtubeId: article.youtubeId || ''
+            });
+        } else {
+             setFormData({
+                title: '',
+                summary: '',
+                content: '',
+                category: '',
+                status: 'Published',
+                type: 'standard',
+                imageUrl: '',
+                youtubeId: ''
+            });
+        }
+    }, [article, isOpen]);
     
     const handleSave = () => {
-        alert(`Saving article: ${title}`);
+        if (article) {
+            onSave({ ...article, ...formData });
+        } else {
+            onSave(formData);
+        }
         onClose();
     };
 
@@ -23,7 +61,7 @@ const ArticleFormModal: React.FC<{
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
             <div className="bg-surface p-6 rounded-lg w-full max-w-2xl">
                 <h2 className="text-xl font-bold mb-4">{article ? 'Edit Article' : 'Create New Article'}</h2>
-                <input type="text" placeholder="Article Title" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 bg-surface-light rounded" />
+                <input type="text" placeholder="Article Title" value={formData.title} onChange={e => setFormData(f => ({...f, title: e.target.value}))} className="w-full p-2 bg-surface-light rounded" />
                 {/* Other form fields like content, category, imageUrl would go here */}
                 <div className="flex justify-end space-x-2 mt-4">
                     <button onClick={onClose} className="px-4 py-2 rounded bg-surface-light">Cancel</button>
@@ -36,13 +74,27 @@ const ArticleFormModal: React.FC<{
 
 
 const AdminInfoNewsManagement: React.FC = () => {
-    const { articles } = useData();
+    const { articles, addArticle, updateArticle, deleteArticle } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingArticle, setEditingArticle] = useState<Article | null>(null);
 
     const handleOpenModal = (article: Article | null = null) => {
         setEditingArticle(article);
         setIsModalOpen(true);
+    };
+
+    const handleSave = (data: Article | Omit<Article, 'id' | 'author' | 'timestamp' | 'likes' | 'comments' | 'pollOptions'>) => {
+        if ('id' in data) {
+            updateArticle(data);
+        } else {
+            addArticle(data);
+        }
+    };
+
+    const handleDelete = (articleId: string) => {
+        if (window.confirm("Are you sure you want to delete this article?")) {
+            deleteArticle(articleId);
+        }
     };
 
     return (
@@ -80,7 +132,9 @@ const AdminInfoNewsManagement: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 space-x-2">
                                         <button onClick={() => handleOpenModal(article)} className="p-2 rounded hover:bg-surface-light"><PencilIcon className="h-4 w-4 text-yellow-400"/></button>
-                                        <button className="p-2 rounded hover:bg-surface-light"><TrashIcon className="h-4 w-4 text-red-400"/></button>
+                                        <button disabled title="Deletion is locked for stability." className="p-2 rounded cursor-not-allowed">
+                                            <LockClosedIcon className="h-4 w-4 text-gray-500"/>
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -93,6 +147,7 @@ const AdminInfoNewsManagement: React.FC = () => {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 article={editingArticle}
+                onSave={handleSave}
             />
         </div>
     );

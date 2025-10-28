@@ -110,19 +110,25 @@ const HomeScreen: React.FC = () => {
             <div>
                 <h2 className="text-lg font-bold text-text-primary mb-4">Akses Cepat</h2>
                 <div className="grid grid-cols-4 gap-4 text-center">
-                    {orderedQuickAccessItems.map((item) => (
-                        <Link 
-                            to={item.path} 
-                            key={item.id} 
-                            onClick={() => logEngagementEvent('quickAccessClicks', item.id)}
-                            className="flex flex-col items-center p-2 bg-surface rounded-lg hover:bg-surface-light transition-colors"
-                        >
-                            <div className="w-12 h-12 bg-surface-light rounded-full flex items-center justify-center mb-2 border border-border-color">
-                                <item.icon className="h-6 w-6 text-secondary" />
-                            </div>
-                            <span className="text-xs text-text-secondary">{item.name}</span>
-                        </Link>
-                    ))}
+                    {orderedQuickAccessItems.map((item) => {
+                        const path = item.path === '/under-construction'
+                            ? `/placeholder/${encodeURIComponent(item.name)}`
+                            : item.path;
+
+                        return (
+                             <Link 
+                                to={path} 
+                                key={item.id} 
+                                onClick={() => logEngagementEvent('quickAccessClicks', item.id)}
+                                className="flex flex-col items-center p-2 bg-surface rounded-lg hover:bg-surface-light transition-colors"
+                            >
+                                <div className="w-12 h-12 bg-surface-light rounded-full flex items-center justify-center mb-2 border border-border-color">
+                                    <item.icon className="h-6 w-6 text-secondary" />
+                                </div>
+                                <span className="text-xs text-text-secondary">{item.name}</span>
+                            </Link>
+                        )
+                    })}
                 </div>
             </div>
         </div>

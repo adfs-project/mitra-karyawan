@@ -1,20 +1,48 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { Doctor } from '../../types';
-import { PlusIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/react/24/solid';
+import { PlusIcon, PencilIcon, TrashIcon, UserGroupIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 
-// This would be a more complex modal in a real app
 const DoctorFormModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
     doctor: Doctor | null;
-}> = ({ isOpen, onClose, doctor }) => {
-    // Dummy state and save function for demonstration
-    const [name, setName] = useState(doctor?.name || '');
+    onSave: (data: Doctor | Omit<Doctor, 'id' | 'availableSlots'>) => void;
+}> = ({ isOpen, onClose, doctor, onSave }) => {
+    const [formData, setFormData] = useState({
+        name: '',
+        specialty: '',
+        bio: '',
+        imageUrl: '',
+        consultationFee: 0,
+    });
+
+    useEffect(() => {
+        if (doctor) {
+            setFormData({
+                name: doctor.name,
+                specialty: doctor.specialty,
+                bio: doctor.bio,
+                imageUrl: doctor.imageUrl,
+                consultationFee: doctor.consultationFee,
+            });
+        } else {
+            setFormData({
+                name: '',
+                specialty: '',
+                bio: '',
+                imageUrl: `https://i.pravatar.cc/150?u=doc-${Date.now()}`,
+                consultationFee: 50000,
+            });
+        }
+    }, [doctor, isOpen]);
     
-    const handleSave = () => {
-        alert(`Saving doctor: ${name}`);
+    const handleSaveClick = () => {
+        if (doctor) {
+            onSave({ ...doctor, ...formData });
+        } else {
+            onSave(formData);
+        }
         onClose();
     };
 
@@ -23,11 +51,11 @@ const DoctorFormModal: React.FC<{
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
             <div className="bg-surface p-6 rounded-lg w-full max-w-md">
                 <h2 className="text-xl font-bold mb-4">{doctor ? 'Edit Doctor' : 'Add New Doctor'}</h2>
-                <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full p-2 bg-surface-light rounded" />
+                <input type="text" placeholder="Name" value={formData.name} onChange={e => setFormData(f => ({...f, name: e.target.value}))} className="w-full p-2 bg-surface-light rounded" />
                 {/* Add other fields here */}
                 <div className="flex justify-end space-x-2 mt-4">
                     <button onClick={onClose} className="px-4 py-2 rounded bg-surface-light">Cancel</button>
-                    <button onClick={handleSave} className="btn-primary px-4 py-2 rounded">Save</button>
+                    <button onClick={handleSaveClick} className="btn-primary px-4 py-2 rounded">Save</button>
                 </div>
             </div>
         </div>
@@ -35,13 +63,27 @@ const DoctorFormModal: React.FC<{
 };
 
 const AdminHealthProviderManagement: React.FC = () => {
-    const { doctors, consultations } = useData();
+    const { doctors, consultations, addDoctor, updateDoctor, deleteDoctor } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
 
     const handleOpenModal = (doctor: Doctor | null = null) => {
         setEditingDoctor(doctor);
         setIsModalOpen(true);
+    };
+
+    const handleSave = (data: Doctor | Omit<Doctor, 'id' | 'availableSlots'>) => {
+        if ('id' in data) {
+            updateDoctor(data);
+        } else {
+            addDoctor(data);
+        }
+    };
+
+    const handleDelete = (doctorId: string) => {
+        if (window.confirm("Are you sure you want to delete this doctor?")) {
+            deleteDoctor(doctorId);
+        }
     };
 
     return (
@@ -75,7 +117,9 @@ const AdminHealthProviderManagement: React.FC = () => {
                                     <td className="px-6 py-4">{consultations.filter(c => c.doctorId === doc.id).length}</td>
                                     <td className="px-6 py-4 space-x-2">
                                         <button onClick={() => handleOpenModal(doc)} className="p-2 rounded hover:bg-surface-light"><PencilIcon className="h-4 w-4 text-yellow-400"/></button>
-                                        <button className="p-2 rounded hover:bg-surface-light"><TrashIcon className="h-4 w-4 text-red-400"/></button>
+                                        <button disabled title="Deletion is locked for stability." className="p-2 rounded cursor-not-allowed">
+                                            <LockClosedIcon className="h-4 w-4 text-gray-500"/>
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -88,6 +132,7 @@ const AdminHealthProviderManagement: React.FC = () => {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 doctor={editingDoctor}
+                onSave={handleSave}
             />
         </div>
     );

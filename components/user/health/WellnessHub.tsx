@@ -2,16 +2,31 @@ import React from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useData } from '../../../contexts/DataContext';
 import { TrophyIcon, BookOpenIcon, SparklesIcon, FireIcon, UserGroupIcon } from '@heroicons/react/24/solid';
+import { MoodHistory } from '../../../types';
 
-const moodOptions = ['Sangat Sedih', 'Sedih', 'Biasa', 'Senang', 'Sangat Senang'];
+
+const moodOptions: MoodHistory['mood'][] = ['Sangat Sedih', 'Sedih', 'Biasa', 'Senang', 'Sangat Senang'];
 const moodIcons = ['😔', '😕', '😐', '😊', '😄'];
 
 const WellnessHub: React.FC = () => {
     const { user } = useAuth();
+    const { addMoodEntry, addNotification } = useData();
     // In a real app, challenges would come from useData
     const challenges = [
         { id: 'steps-challenge', title: 'Tantangan 10.000 Langkah', description: 'Jalan 10.000 langkah setiap hari selama seminggu.', participants: [{userName: 'Budi Karyawan', progress: 60}, {userName: 'Super Admin', progress: 85}] },
     ];
+
+    const handleMoodClick = (mood: MoodHistory['mood']) => {
+        addMoodEntry(mood);
+    };
+
+    const handleChallengeClick = () => {
+        addNotification(user!.id, 'Anda berhasil bergabung dalam tantangan!', 'success');
+    };
+    
+    const handleRelaxationClick = () => {
+        addNotification(user!.id, 'Sesi relaksasi dimulai.', 'info');
+    }
 
     return (
         <div className="space-y-6">
@@ -36,7 +51,7 @@ const WellnessHub: React.FC = () => {
                                     ))}
                                 </ul>
                             </div>
-                             <button className="w-full mt-3 btn-secondary py-1 rounded-full text-sm font-bold">
+                             <button onClick={handleChallengeClick} className="w-full mt-3 btn-secondary py-1 rounded-full text-sm font-bold">
                                 Ikut Tantangan
                             </button>
                         </div>
@@ -52,7 +67,7 @@ const WellnessHub: React.FC = () => {
                 <p className="text-sm text-text-secondary mb-3">Bagaimana perasaan Anda hari ini?</p>
                 <div className="flex justify-around">
                     {moodIcons.map((icon, index) => (
-                        <button key={moodOptions[index]} title={moodOptions[index]} className="text-3xl p-2 rounded-full hover:bg-surface-light transition-transform hover:scale-125">
+                        <button key={moodOptions[index]} title={moodOptions[index]} onClick={() => handleMoodClick(moodOptions[index])} className="text-3xl p-2 rounded-full hover:bg-surface-light transition-transform hover:scale-125">
                             {icon}
                         </button>
                     ))}
@@ -66,8 +81,8 @@ const WellnessHub: React.FC = () => {
                 </h3>
                 <p className="text-sm text-text-secondary mb-3">Ambil waktu sejenak untuk menenangkan pikiran Anda.</p>
                 <div className="space-y-2">
-                    <button className="w-full text-left p-3 bg-surface-light rounded-lg hover:bg-primary/20">Meditasi Terpandu (5 Menit)</button>
-                    <button className="w-full text-left p-3 bg-surface-light rounded-lg hover:bg-primary/20">Latihan Pernapasan</button>
+                    <button onClick={handleRelaxationClick} className="w-full text-left p-3 bg-surface-light rounded-lg hover:bg-primary/20">Meditasi Terpandu (5 Menit)</button>
+                    <button onClick={handleRelaxationClick} className="w-full text-left p-3 bg-surface-light rounded-lg hover:bg-primary/20">Latihan Pernapasan</button>
                 </div>
             </div>
         </div>
