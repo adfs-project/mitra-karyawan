@@ -5,11 +5,12 @@ import { Link } from 'react-router-dom';
 import { Transaction } from '../../types';
 import { 
     ArrowUpRightIcon, BoltIcon, BuildingLibraryIcon, PhoneIcon, ShoppingCartIcon, BanknotesIcon, TicketIcon, HeartIcon,
-    ArrowUpCircleIcon, ArrowDownCircleIcon, MegaphoneIcon
+    ArrowUpCircleIcon, ArrowDownCircleIcon, MegaphoneIcon, ExclamationTriangleIcon, CpuChipIcon
 } from '@heroicons/react/24/outline';
 import PersonalizedGreeting from '../../components/user/PersonalizedGreeting';
 import SmartAssistant from '../../components/user/SmartAssistant';
 import ForYouWidget from '../../components/user/ForYouWidget';
+import { ErrorBoundary } from 'react-error-boundary';
 
 const quickAccessItems = [
     { id: 'ppob', name: 'PPOB & Tagihan', icon: BoltIcon, path: '/under-construction' },
@@ -20,6 +21,7 @@ const quickAccessItems = [
     { id: 'pulsa', name: 'Pulsa & Data', icon: PhoneIcon, path: '/under-construction' },
     { id: 'cashout', name: 'Tarik Tunai', icon: BanknotesIcon, path: '/under-construction' },
     { id: 'daily', name: 'Belanja Harian', icon: ShoppingCartIcon, path: '/under-construction' },
+    { id: 'ai-invest', name: 'AI Investasi', icon: CpuChipIcon, path: '/under-construction', featureFlag: 'aiInvestmentBot' },
 ];
 
 const GlobalAnnouncement: React.FC<{ message: string }> = ({ message }) => (
@@ -28,6 +30,16 @@ const GlobalAnnouncement: React.FC<{ message: string }> = ({ message }) => (
         <p className="font-semibold text-sm">{message}</p>
     </div>
 );
+
+const WidgetErrorFallback: React.FC<{ error: Error }> = ({ error }) => {
+    return (
+        <div className="bg-red-500/10 border border-red-500 text-red-400 p-3 rounded-lg text-center">
+            <ExclamationTriangleIcon className="h-8 w-8 mx-auto mb-2" />
+            <h3 className="font-bold">Gagal Memuat Widget</h3>
+            <p className="text-xs">{error.message}</p>
+        </div>
+    );
+};
 
 
 // Sub-component for Recent Transactions
@@ -73,7 +85,14 @@ const HomeScreen: React.FC = () => {
     const { user } = useAuth();
     const { homePageConfig, logEngagementEvent } = useData();
     
-    const orderedQuickAccessItems = [...quickAccessItems].sort((a, b) => {
+    const visibleQuickAccessItems = quickAccessItems.filter(item => {
+        if (item.featureFlag) {
+            return homePageConfig.featureFlags[item.featureFlag as keyof typeof homePageConfig.featureFlags];
+        }
+        return true;
+    });
+
+    const orderedQuickAccessItems = [...visibleQuickAccessItems].sort((a, b) => {
         return homePageConfig.quickAccessOrder.indexOf(a.id) - homePageConfig.quickAccessOrder.indexOf(b.id);
     });
 
@@ -104,7 +123,11 @@ const HomeScreen: React.FC = () => {
             </div>
             
             <ForYouWidget />
-            <RecentTransactions />
+
+            <ErrorBoundary FallbackComponent={WidgetErrorFallback}>
+                 <RecentTransactions />
+            </ErrorBoundary>
+
 
             {/* Quick Access Grid */}
             <div>

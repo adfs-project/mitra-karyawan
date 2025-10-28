@@ -258,6 +258,9 @@ export interface HomePageConfig {
     };
     pinnedItemId: string;
     quickAccessOrder: string[];
+    featureFlags: {
+        aiInvestmentBot: boolean;
+    };
 }
 
 export interface AdminWallets {

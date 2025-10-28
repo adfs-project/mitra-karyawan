@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
@@ -7,12 +7,13 @@ import RecoveryUI from './components/common/RecoveryUI';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
+import loggingService from './services/loggingService';
 
 // --- START: Anti-Blank Screen Defense System ---
 
 // 1. Versioning: Should be updated with each new deployment.
 // This allows detection of an app update.
-const APP_VERSION = '2.3.0'; 
+const APP_VERSION = '2.4.0'; 
 
 // 2. Preflight Checks & Crash Loop Detection
 const runPreflightChecks = (): boolean => {
@@ -44,13 +45,18 @@ const runPreflightChecks = (): boolean => {
     return true; // All checks passed.
   } catch (error) {
     console.error("Error during preflight checks:", error);
+    loggingService.logError(error as Error, { component: 'PreflightChecks' });
     return false; // Fail safe, render recovery UI.
   }
 };
 
 // 3. Modern Error Boundary Fallback UI
 const ErrorFallback: React.FC<{ error: Error; resetErrorBoundary: () => void }> = ({ error, resetErrorBoundary }) => {
-    console.error("Caught by Error Boundary:", error);
+    
+    useEffect(() => {
+        loggingService.logError(error, { component: 'ErrorBoundary' });
+    }, [error]);
+
     return (
         <div className="flex items-center justify-center h-screen w-screen bg-background text-text-primary p-4">
             <div className="text-center bg-surface p-8 rounded-lg border border-border-color max-w-lg">

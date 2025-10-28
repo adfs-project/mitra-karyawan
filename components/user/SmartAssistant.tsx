@@ -4,6 +4,8 @@ import { GoogleGenAI } from "@google/genai";
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { buildSecurePrompt } from '../../services/aiGuardrailService';
+import circuitBreaker from '../../services/circuitBreakerService';
+import loggingService from '../../services/loggingService';
 
 const SmartAssistant: React.FC = () => {
     const [query, setQuery] = useState('');
@@ -21,6 +23,13 @@ const SmartAssistant: React.FC = () => {
         setIsLoading(true);
         setMessage('');
         setIsError(false);
+        
+        // --- Circuit Breaker Check ---
+        if (!circuitBreaker.allowRequest('gemini')) {
+            showToast('AI service is temporarily unavailable. Please try again later.', 'error');
+            setIsLoading(false);
+            return;
+        }
         
         let prompt;
         if (isAiGuardrailDisabled) {
@@ -42,7 +51,8 @@ const SmartAssistant: React.FC = () => {
                 model: 'gemini-2.5-flash',
                 contents: prompt,
             });
-
+            
+            circuitBreaker.recordSuccess('gemini');
             const responseText = response.text;
             
             if(responseText.startsWith('PENOLAKAN:') || responseText.startsWith('Maaf,')) {
@@ -53,7 +63,8 @@ const SmartAssistant: React.FC = () => {
             setMessage(responseText);
 
         } catch (err) {
-            console.error("Smart Assistant Error:", err);
+            circuitBreaker.recordFailure('gemini');
+            loggingService.logError(err as Error, { component: 'SmartAssistant', query });
             showToast("Failed to contact the AI assistant.", "error");
             logAssistantQuery(query, 'ERROR');
         } finally {

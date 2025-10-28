@@ -249,6 +249,9 @@ export const initialHomePageConfig: HomePageConfig = {
     },
     pinnedItemId: 'p-001',
     quickAccessOrder: ['ppob', 'market', 'health', 'gov', 'lifestyle', 'pulsa', 'cashout', 'daily'],
+    featureFlags: {
+        aiInvestmentBot: false,
+    },
 };
 
 export const initialAdminWallets: AdminWallets = {

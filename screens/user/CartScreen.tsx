@@ -25,10 +25,11 @@ const CartScreen: React.FC = () => {
         if (!user || subtotal <= 0) return;
 
         setIsCheckingOut(true);
+        // FIX: Expected 0 arguments, but got 1. The checkoutCart function does not take any arguments.
         const result = await checkoutCart();
 
         if (result.success) {
-            showToast("Checkout successful! Your order is being processed.", "success");
+            showToast(result.message, "success");
             navigate('/wallet');
         } else {
              showToast(`Checkout failed: ${result.message}`, "error");
