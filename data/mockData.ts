@@ -130,6 +130,37 @@ export const initialProducts: Product[] = [
         id: 'p-003', name: 'Buku "Atomic Habits"', description: 'Buku self-improvement oleh James Clear. Kondisi baru, segel.',
         price: 95000, stock: 5, category: 'Hobi', imageUrl: 'https://picsum.photos/seed/book/400/400',
         sellerId: 'user-jkt-001', sellerName: 'Budi Karyawan', rating: 5.0, reviewCount: 15, reviews: []
+    },
+    // Daily Needs Products
+    {
+        id: 'dn-001', name: 'Indomie Goreng (5 pcs)', description: 'Paket 5 bungkus Indomie Mie Instan Goreng.',
+        price: 15000, stock: 100, category: 'Makanan & Minuman', imageUrl: 'https://picsum.photos/seed/indomie/400/400',
+        sellerId: 'admin-001', sellerName: 'Koperasi Mitra', rating: 5.0, reviewCount: 250, reviews: []
+    },
+    {
+        id: 'dn-002', name: 'Kopi Kapal Api Special (165g)', description: 'Kopi bubuk Kapal Api Special 165g.',
+        price: 14500, stock: 80, category: 'Makanan & Minuman', imageUrl: 'https://picsum.photos/seed/kopi/400/400',
+        sellerId: 'admin-001', sellerName: 'Koperasi Mitra', rating: 4.9, reviewCount: 180, reviews: []
+    },
+    {
+        id: 'dn-003', name: 'Gulaku Gula Pasir Premium (1kg)', description: 'Gula pasir putih premium kemasan 1kg.',
+        price: 18000, stock: 120, category: 'Kebutuhan Dapur', imageUrl: 'https://picsum.photos/seed/gula/400/400',
+        sellerId: 'admin-001', sellerName: 'Koperasi Mitra', rating: 4.9, reviewCount: 210, reviews: []
+    },
+    {
+        id: 'dn-004', name: 'Sabun Mandi Lifebuoy Cair (450ml)', description: 'Sabun mandi cair anti-bakteri Lifebuoy kemasan botol 450ml.',
+        price: 22000, stock: 60, category: 'Kebersihan Diri', imageUrl: 'https://picsum.photos/seed/sabun/400/400',
+        sellerId: 'admin-001', sellerName: 'Koperasi Mitra', rating: 4.8, reviewCount: 150, reviews: []
+    },
+    {
+        id: 'dn-005', name: 'Minyak Goreng Sania (2L)', description: 'Minyak goreng kemasan pouch 2 liter.',
+        price: 35000, stock: 75, category: 'Kebutuhan Dapur', imageUrl: 'https://picsum.photos/seed/minyak/400/400',
+        sellerId: 'admin-001', sellerName: 'Koperasi Mitra', rating: 4.9, reviewCount: 195, reviews: []
+    },
+    {
+        id: 'dn-006', name: 'Teh Celup Sariwangi (Box 25)', description: 'Teh celup asli Sariwangi isi 25 kantong.',
+        price: 6500, stock: 150, category: 'Makanan & Minuman', imageUrl: 'https://picsum.photos/seed/teh/400/400',
+        sellerId: 'admin-001', sellerName: 'Koperasi Mitra', rating: 4.9, reviewCount: 230, reviews: []
     }
 ];
 
