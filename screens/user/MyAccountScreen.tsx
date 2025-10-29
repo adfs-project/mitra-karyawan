@@ -252,7 +252,7 @@ const PayslipModal: React.FC<{
         
         const gajiPokok = grossSalary;
         const insentifKinerja = 0;
-        const bpjsTkNatura = grossSalary * 0.0054; // Shown as income for tax purposes, but not cash.
+        const bpjsTkNatura = grossSalary * 0.0054;
         const totalPendapatan = gajiPokok + insentifKinerja + bpjsTkNatura;
 
         const pajakPph21 = grossSalary * 0.025;
@@ -264,7 +264,6 @@ const PayslipModal: React.FC<{
         const bpjsPensiunPerusahaan = grossSalary * 0.02;
         const bpjsTkPerusahaan = grossSalary * 0.037;
         
-        // Take home pay is cash income minus deductions.
         const takeHomePay = (gajiPokok + insentifKinerja) - totalPotongan;
 
         return {
@@ -276,40 +275,46 @@ const PayslipModal: React.FC<{
     }, [user]);
 
     const payslipContent = useMemo(() => {
-        if (!payroll) return null;
-        
-        const LABEL_WIDTH = 28;
-        const VALUE_WIDTH = 15;
-        const TOTAL_COLUMN_WIDTH = LABEL_WIDTH + 4 + VALUE_WIDTH;
-        const SEPARATOR = ' '.repeat(4);
-        const LINE_SEPARATOR = '-'.repeat(TOTAL_COLUMN_WIDTH * 2 + SEPARATOR.length);
+        if (!payroll) return '';
 
-        const formatLine = (label: string, value: number | null): string => {
-            const paddedLabel = label.padEnd(LABEL_WIDTH);
-            if (value === null || isNaN(value)) {
-                return ''.padEnd(TOTAL_COLUMN_WIDTH);
+        const col1Width = 50;
+        const col2Width = 45;
+        const lineSeparator = '-'.repeat(col1Width + col2Width);
+        
+        const formatLine = (label: string, value: number | null, labelWidth = 28, amountWidth = 12) => {
+            if (value === null) {
+                return ''.padEnd(labelWidth + 4 + amountWidth);
             }
             const formattedValue = new Intl.NumberFormat('id-ID').format(value);
-            return `${paddedLabel}Rp. ${formattedValue.padStart(VALUE_WIDTH)}`;
+            return `${label.padEnd(labelWidth)} Rp. ${formattedValue.padStart(amountWidth)}`;
+        };
+        
+        const formatRow = (leftLabel: string, leftValue: number | null, rightLabel: string, rightValue: number | null) => {
+            const left = formatLine(leftLabel, leftValue);
+            const right = formatLine(rightLabel, rightValue);
+            return `${left.padEnd(col1Width)}${right}`;
         };
 
-        let content = '';
-        content += `A. PENDAPATAN`.padEnd(TOTAL_COLUMN_WIDTH) + SEPARATOR + `B. POTONGAN\n`;
-        content += `${formatLine('   Basic Salary', payroll.gajiPokok)}${SEPARATOR}${formatLine('   Tax', payroll.pajakPph21)}\n`;
-        content += `${formatLine('   Performance Incentive', payroll.insentifKinerja)}${SEPARATOR}${formatLine('   BPJS TK Kary. (2%)', payroll.bpjsTkKaryawan2)}\n`;
-        content += `${formatLine('   BPJS TK (0.54%)', payroll.bpjsTkNatura)}${SEPARATOR}${formatLine('   BPJS TK (0.54%)', payroll.bpjsTkKaryawan054)}\n`;
-        content += `${formatLine('', null)}${SEPARATOR}${formatLine('   BPJS Pensiun Kary (1%)', payroll.bpjsPensiunKaryawan)}\n`;
-        content += LINE_SEPARATOR + '\n';
-        content += `${formatLine('TOTAL PENDAPATAN (A):', payroll.totalPendapatan)}${SEPARATOR}${formatLine('TOTAL POTONGAN (B):', payroll.totalPotongan)}\n`;
-        content += LINE_SEPARATOR + '\n';
-        content += `LAIN LAIN (C):`.padEnd(TOTAL_COLUMN_WIDTH) + SEPARATOR + `SALDO PINJAMAN\n`;
-        content += `${formatLine('   BPJS Pensiun Persh (2%)', payroll.bpjsPensiunPerusahaan)}${SEPARATOR}${formatLine('', payroll.saldoPinjaman)}\n`;
-        content += `${formatLine('   BPJS TK Persh (3,7%)', payroll.bpjsTkPerusahaan)}\n`;
-        content += LINE_SEPARATOR + '\n';
-        content += ' '.repeat(TOTAL_COLUMN_WIDTH + SEPARATOR.length) + `YANG DIBAYARKAN (A - B) = Rp. ${new Intl.NumberFormat('id-ID').format(payroll.takeHomePay).padStart(VALUE_WIDTH)}\n`;
-        content += LINE_SEPARATOR + '\n';
-        content += 'BSM';
-        return content;
+        let content = `
+A. PENDAPATAN${' '.repeat(col1Width - "A. PENDAPATAN".length)}B. POTONGAN
+${formatRow('Basic Salary', payroll.gajiPokok, 'Tax', payroll.pajakPph21)}
+${formatRow('Performance Incentive', payroll.insentifKinerja, 'BPJS TK Kary. (2%)', payroll.bpjsTkKaryawan2)}
+${formatRow('BPJS TK (0.54%)', payroll.bpjsTkNatura, 'BPJS TK (0.54%)', payroll.bpjsTkKaryawan054)}
+${formatRow('', null, 'BPJS Pensiun Kary (1%)', payroll.bpjsPensiunKaryawan)}
+${lineSeparator}
+${formatRow('TOTAL PENDAPATAN (A):', payroll.totalPendapatan, 'TOTAL POTONGAN (B):', payroll.totalPotongan)}
+${lineSeparator}
+
+LAIN LAIN (C):${' '.repeat(col1Width - "LAIN LAIN (C):".length)}SALDO PINJAMAN
+${formatRow('BPJS Pensiun Persh (2%)', payroll.bpjsPensiunPerusahaan, '', payroll.saldoPinjaman)}
+${formatRow('BPJS TK Persh (3,7%)', payroll.bpjsTkPerusahaan, '', null)}
+${lineSeparator}
+${' '.repeat(col1Width)}YANG DIBAYARKAN (A - B) = ${formatLine('', payroll.takeHomePay, 0)}
+${lineSeparator}
+BSM
+`;
+        return content.trim();
+
     }, [payroll]);
 
 
@@ -317,7 +322,7 @@ const PayslipModal: React.FC<{
         const printContents = document.getElementById('user-payslip-to-print')?.innerHTML;
         const originalContents = document.body.innerHTML;
         if(printContents) {
-            document.body.innerHTML = `<pre style="font-family: monospace; font-size: 10px; white-space: pre;">${printContents.replace(/<br\s*\/?>/gi, '\n')}</pre>`;
+            document.body.innerHTML = `<pre style="font-family: 'Courier New', Courier, monospace; font-size: 12px; white-space: pre;">${printContents.replace(/<br\s*\/?>/gi, '\n')}</pre>`;
             window.print();
             document.body.innerHTML = originalContents;
             window.location.reload();
@@ -345,25 +350,25 @@ const PayslipModal: React.FC<{
                 {!payroll ? (
                      <p className="text-center text-text-secondary py-8">Informasi gaji tidak tersedia untuk akun ini.</p>
                 ) : (
-                    <div className="bg-white text-black p-8 font-mono text-xs mx-auto border border-gray-300">
+                    <div className="bg-white text-black p-8 font-mono text-xs mx-auto border border-gray-300" style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '12px' }}>
                         <div className="flex justify-between items-start border-b-2 border-black pb-2">
                             <h1 className="text-2xl font-bold">PT. Mitra Karyawan</h1>
                             <p className="font-bold tracking-widest">CONFIDENTIAL</p>
                         </div>
                         <div className="flex justify-between mt-4 text-sm">
-                            <pre className="p-0 m-0">
+                            <pre className="p-0 m-0 leading-relaxed" style={{ fontFamily: "inherit" }}>
                                 {`COST CENTER : ${user.profile.branch || 'N/A'}\n`}
                                 {`NIK         : ${user.id}\n`}
                                 {`NAMA        : ${user.profile.name}`}
                             </pre>
-                             <pre className="p-0 m-0 text-right">
+                             <pre className="p-0 m-0 text-right leading-relaxed" style={{ fontFamily: "inherit" }}>
                                 {`SLIP PEMBAYARAN\n`}
                                 {`PERIODE : ${new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })}\n`}
                                 {`NPWP    : N/A`}
                             </pre>
                         </div>
                         <div className="mt-6" id="user-payslip-to-print">
-                             <pre className="text-sm p-0 m-0 leading-relaxed whitespace-pre">{payslipContent}</pre>
+                             <pre className="text-sm p-0 m-0 leading-relaxed whitespace-pre" style={{ fontFamily: "inherit" }}>{payslipContent}</pre>
                         </div>
                         <div className="mt-8 text-center text-xs font-bold">
                             #PAYSLIP INI DICETAK MELALUI SISTEM, TIDAK MEMERLUKAN STAMP ATAU TANDA TANGAN#
