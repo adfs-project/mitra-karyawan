@@ -686,21 +686,34 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const branchHr = appData.users.find(u => u.role === Role.HR && u.profile.branch === user.profile.branch);
         const recipientId = branchHr ? branchHr.id : 'admin-001';
         addNotification(recipientId, `${user.profile.name} has applied for PayLater.`, 'info');
-        updateCurrentUser({ ...user, payLater: { status: 'pending', limit: 0, used: 0 }});
+        updateCurrentUser({ ...user, payLater: { status: 'pending', limit: 0, used: 0 } });
+        showToast("Pengajuan PayLater Anda telah terkirim.", "success");
     };
     const approvePayLater = async (userId: string, limit: number) => {
-        const fullUser = vaultService.findUserByEmail(appData.users.find(u => u.id === userId)!.email)!;
+        const userToUpdate = appData.users.find(u => u.id === userId);
+        if (!userToUpdate) {
+            showToast("User not found.", "error");
+            return;
+        }
+        const fullUser = vaultService.findUserByEmail(userToUpdate.email)!;
         fullUser.payLater = { status: 'approved', limit, used: 0 };
         vaultService.updateUser(fullUser);
         setAppData(vaultService.getSanitizedData());
         addNotification(userId, `Congratulations! Your PayLater application has been approved with a limit of ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(limit)}.`, 'success');
+        showToast(`PayLater for ${fullUser.profile.name} has been approved.`, 'success');
     };
     const rejectPayLater = async (userId: string) => {
-        const fullUser = vaultService.findUserByEmail(appData.users.find(u => u.id === userId)!.email)!;
+        const userToUpdate = appData.users.find(u => u.id === userId);
+        if (!userToUpdate) {
+            showToast("User not found.", "error");
+            return;
+        }
+        const fullUser = vaultService.findUserByEmail(userToUpdate.email)!;
         fullUser.payLater = { status: 'rejected', limit: 0, used: 0 };
         vaultService.updateUser(fullUser);
         setAppData(vaultService.getSanitizedData());
         addNotification(userId, `We regret to inform you that your PayLater application has been rejected at this time.`, 'error');
+        showToast(`PayLater for ${fullUser.profile.name} has been rejected.`, 'success');
     };
     const adjustUserWallet = async (userId: string, amount: number, reason: string) => {
         await addTransaction({ userId, type: 'Refund', amount, description: `Adjustment: ${reason}`, status: 'Completed' });
