@@ -37,13 +37,21 @@ const PharmacyCheckoutScreen = lazy(() => import('./screens/user/health/Pharmacy
 const HealthPlusScreen = lazy(() => import('./screens/user/health/HealthPlusScreen'));
 const SubscriptionUpsellScreen = lazy(() => import('./screens/user/health/SubscriptionUpsellScreen'));
 
-// New Placeholder Screens
+// Main Placeholder Screens
 const PPOBScreen = lazy(() => import('./screens/user/placeholders/PPOBScreen'));
 const GovernmentServicesScreen = lazy(() => import('./screens/user/placeholders/GovernmentServicesScreen'));
 const LifestyleScreen = lazy(() => import('./screens/user/placeholders/LifestyleScreen'));
 const MobileTopUpScreen = lazy(() => import('./screens/user/placeholders/MobileTopUpScreen'));
 const CashOutScreen = lazy(() => import('./screens/user/placeholders/CashOutScreen'));
 const DailyNeedsScreen = lazy(() => import('./screens/user/placeholders/DailyNeedsScreen'));
+
+// Detailed Placeholder Screens
+const CinemaTicketScreen = lazy(() => import('./screens/user/placeholders/lifestyle/CinemaTicketScreen'));
+const GameVoucherScreen = lazy(() => import('./screens/user/placeholders/lifestyle/GameVoucherScreen'));
+const DonationScreen = lazy(() => import('./screens/user/placeholders/lifestyle/DonationScreen'));
+const PbbTaxScreen = lazy(() => import('./screens/user/placeholders/government/PbbTaxScreen'));
+const ESamsatScreen = lazy(() => import('./screens/user/placeholders/government/ESamsatScreen'));
+const MpnG3Screen = lazy(() => import('./screens/user/placeholders/government/MpnG3Screen'));
 
 
 // Admin Screens
@@ -162,7 +170,7 @@ const App: React.FC = () => {
                     <Route path="subscribe-health-plus" element={<SubscriptionUpsellScreen />} />
                     <Route path="under-construction" element={<UnderConstructionScreen />} />
                     
-                    {/* New placeholder routes */}
+                    {/* Main placeholder routes */}
                     <Route path="ppob" element={<PPOBScreen />} />
                     <Route path="government-services" element={<GovernmentServicesScreen />} />
                     <Route path="lifestyle" element={<LifestyleScreen />} />
@@ -170,6 +178,14 @@ const App: React.FC = () => {
                     <Route path="cash-out" element={<CashOutScreen />} />
                     <Route path="daily-needs" element={<DailyNeedsScreen />} />
                     
+                    {/* Detailed placeholder routes */}
+                    <Route path="lifestyle/cinema" element={<CinemaTicketScreen />} />
+                    <Route path="lifestyle/game-voucher" element={<GameVoucherScreen />} />
+                    <Route path="lifestyle/donation" element={<DonationScreen />} />
+                    <Route path="government/pbb" element={<PbbTaxScreen />} />
+                    <Route path="government/samsat" element={<ESamsatScreen />} />
+                    <Route path="government/mpn" element={<MpnG3Screen />} />
+
                     <Route path="placeholder/:featureName" element={<FunctionalPlaceholderScreen />} />
 
 
