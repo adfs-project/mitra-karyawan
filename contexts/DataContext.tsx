@@ -165,7 +165,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // FIX: Cast 'value' to 'any' to resolve a mismatch between the readonly type from the component's state
         // and the mutable type expected by the vaultService. This is a safe cast because the values passed
         // to updateState are always new, mutable objects/arrays.
-        vaultService.setData(key, value as any);
+        // FIX: Explicitly provide generic type `K` to `setData` to fix TypeScript's inference issue, which was incorrectly typing `key`.
+        vaultService.setData<K>(key, value as any);
         setAppData(vaultService.getSanitizedData());
     };
 
