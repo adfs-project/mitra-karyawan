@@ -2,18 +2,8 @@ import React from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftIcon, ClipboardDocumentListIcon, MapPinIcon } from '@heroicons/react/24/solid';
-import { Coordinates } from '../../types';
-
-const LocationInfo: React.FC<{ location?: Coordinates }> = ({ location }) => {
-    if (!location) return null;
-    return (
-        <p className="text-xs text-text-secondary mt-1 flex items-center">
-            <MapPinIcon className="h-3 w-3 mr-1" />
-            {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
-        </p>
-    );
-};
+import { ArrowLeftIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/solid';
+import LocationName from '../../components/common/LocationName';
 
 const AttendanceHistoryScreen: React.FC = () => {
     const { user } = useAuth();
@@ -57,12 +47,12 @@ const AttendanceHistoryScreen: React.FC = () => {
                                     <div>
                                         <p className="text-text-secondary">Masuk</p>
                                         <p className="font-semibold">{formatTime(record.clockInTime)}</p>
-                                        <LocationInfo location={record.clockInLocation} />
+                                        <LocationName location={record.clockInLocation} />
                                     </div>
                                     <div className="text-right">
                                         <p className="text-text-secondary">Keluar</p>
                                         <p className="font-semibold">{formatTime(record.clockOutTime)}</p>
-                                        <LocationInfo location={record.clockOutLocation} />
+                                        <LocationName location={record.clockOutLocation} />
                                     </div>
                                 </div>
                             </div>

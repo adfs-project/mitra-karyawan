@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { AttendanceRecord, Coordinates } from '../../types';
+import LocationName from '../../components/common/LocationName';
 
 const HrAttendanceManagement: React.FC = () => {
     const { user: hrUser } = useAuth();
@@ -39,11 +40,6 @@ const HrAttendanceManagement: React.FC = () => {
         return new Date(timeString).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
     };
 
-    const formatLocation = (location?: Coordinates) => {
-        if (!location) return '-';
-        return `${location.latitude.toFixed(3)}, ${location.longitude.toFixed(3)}`;
-    };
-
     return (
         <div className="p-4 space-y-6">
             <h1 className="text-3xl font-bold text-primary">Manajemen Absensi</h1>
@@ -77,9 +73,13 @@ const HrAttendanceManagement: React.FC = () => {
                                     <td className="px-6 py-4 font-medium text-text-primary">{employee.profile.name}</td>
                                     <td className="px-6 py-4">{getStatus(record)}</td>
                                     <td className="px-6 py-4">{formatTime(record?.clockInTime)}</td>
-                                    <td className="px-6 py-4 font-mono text-xs">{formatLocation(record?.clockInLocation)}</td>
+                                    <td className="px-6 py-4">
+                                        <LocationName location={record?.clockInLocation} />
+                                    </td>
                                     <td className="px-6 py-4">{formatTime(record?.clockOutTime)}</td>
-                                    <td className="px-6 py-4 font-mono text-xs">{formatLocation(record?.clockOutLocation)}</td>
+                                    <td className="px-6 py-4">
+                                        <LocationName location={record?.clockOutLocation} />
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
