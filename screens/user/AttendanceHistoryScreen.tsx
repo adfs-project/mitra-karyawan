@@ -1,18 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/solid';
+import { ArrowLeftIcon, ClipboardDocumentListIcon, CameraIcon } from '@heroicons/react/24/solid';
 import LocationName from '../../components/common/LocationName';
+import PhotoViewerModal from '../../components/common/PhotoViewerModal';
 
 const AttendanceHistoryScreen: React.FC = () => {
     const { user } = useAuth();
     const { attendanceRecords } = useData();
     const navigate = useNavigate();
+    const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+    const [viewingPhotoUrl, setViewingPhotoUrl] = useState<string | null>(null);
 
     const userRecords = attendanceRecords
         .filter(r => r.userId === user?.id)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const openPhotoModal = (url: string) => {
+        setViewingPhotoUrl(url);
+        setIsPhotoModalOpen(true);
+    };
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('id-ID', {
@@ -26,56 +34,67 @@ const AttendanceHistoryScreen: React.FC = () => {
     };
 
     return (
-        <div className="p-4 space-y-6">
-            <div className="flex items-center">
-                <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-surface-light mr-2">
-                    <ArrowLeftIcon className="h-6 w-6"/>
-                </button>
-                <h1 className="text-2xl font-bold text-primary flex items-center">
-                    <ClipboardDocumentListIcon className="h-6 w-6 mr-2"/>
-                    Riwayat Absensi
-                </h1>
-            </div>
+        <>
+            <div className="p-4 space-y-6">
+                <div className="flex items-center">
+                    <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-surface-light mr-2">
+                        <ArrowLeftIcon className="h-6 w-6"/>
+                    </button>
+                    <h1 className="text-2xl font-bold text-primary flex items-center">
+                        <ClipboardDocumentListIcon className="h-6 w-6 mr-2"/>
+                        Riwayat Absensi
+                    </h1>
+                </div>
 
-            <div className="bg-surface p-4 rounded-lg border border-border-color">
-                {userRecords.length > 0 ? (
-                    <div className="space-y-3">
-                        {userRecords.map(record => (
-                            <div key={record.id} className="bg-surface-light p-4 rounded-lg">
-                                <p className="font-bold text-text-primary">{formatDate(record.date)}</p>
-                                <div className="flex justify-between items-start mt-2 text-sm">
-                                    <div>
-                                        <p className="text-text-secondary">Masuk</p>
-                                        <p className="font-semibold">{formatTime(record.clockInTime)}</p>
-                                        <LocationName location={record.clockInLocation} />
-                                        {record.clockInLocation && (
-                                            <p className="text-xs text-text-secondary opacity-75 mt-1">
-                                                ({record.clockInLocation.latitude.toFixed(5)}, {record.clockInLocation.longitude.toFixed(5)})
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-text-secondary">Keluar</p>
-                                        <p className="font-semibold">{formatTime(record.clockOutTime)}</p>
-                                        <LocationName location={record.clockOutLocation} />
-                                        {record.clockOutLocation && (
-                                            <p className="text-xs text-text-secondary opacity-75 mt-1">
-                                                ({record.clockOutLocation.latitude.toFixed(5)}, {record.clockOutLocation.longitude.toFixed(5)})
-                                            </p>
-                                        )}
+                <div className="bg-surface p-4 rounded-lg border border-border-color">
+                    {userRecords.length > 0 ? (
+                        <div className="space-y-3">
+                            {userRecords.map(record => (
+                                <div key={record.id} className="bg-surface-light p-4 rounded-lg">
+                                    <p className="font-bold text-text-primary">{formatDate(record.date)}</p>
+                                    <div className="flex justify-between items-start mt-2 text-sm">
+                                        <div>
+                                            <p className="text-text-secondary">Masuk</p>
+                                            <p className="font-semibold">{formatTime(record.clockInTime)}</p>
+                                            <div className="flex items-center space-x-1">
+                                                <LocationName location={record.clockInLocation} />
+                                                {record.clockInPhotoUrl && (
+                                                    <button onClick={() => openPhotoModal(record.clockInPhotoUrl!)} className="p-1 rounded-full hover:bg-black/10" aria-label="Lihat foto selfie masuk">
+                                                        <CameraIcon className="h-4 w-4 text-primary" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-text-secondary">Keluar</p>
+                                            <p className="font-semibold">{formatTime(record.clockOutTime)}</p>
+                                             <div className="flex items-center justify-end space-x-1">
+                                                <LocationName location={record.clockOutLocation} />
+                                                {record.clockOutPhotoUrl && (
+                                                    <button onClick={() => openPhotoModal(record.clockOutPhotoUrl!)} className="p-1 rounded-full hover:bg-black/10" aria-label="Lihat foto selfie keluar">
+                                                        <CameraIcon className="h-4 w-4 text-primary" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-12">
-                        <ClipboardDocumentListIcon className="h-16 w-16 mx-auto text-text-secondary opacity-50"/>
-                        <p className="mt-4 text-text-secondary">Anda belum memiliki riwayat absensi.</p>
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-12">
+                            <ClipboardDocumentListIcon className="h-16 w-16 mx-auto text-text-secondary opacity-50"/>
+                            <p className="mt-4 text-text-secondary">Anda belum memiliki riwayat absensi.</p>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
+            <PhotoViewerModal
+                isOpen={isPhotoModalOpen}
+                onClose={() => setIsPhotoModalOpen(false)}
+                imageUrl={viewingPhotoUrl}
+            />
+        </>
     );
 };
 
