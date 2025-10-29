@@ -394,6 +394,23 @@ export interface Toast {
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
+export interface Coordinates {
+    latitude: number;
+    longitude: number;
+}
+
+export interface AttendanceRecord {
+    id: string;
+    userId: string;
+    userName: string;
+    branch: string;
+    date: string; // YYYY-MM-DD
+    clockInTime?: string; // ISO String
+    clockInLocation?: Coordinates;
+    clockOutTime?: string; // ISO String
+    clockOutLocation?: Coordinates;
+}
+
 export interface ChatMessage {
     sender: 'user' | 'ai';
     text: string;

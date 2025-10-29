@@ -37,6 +37,8 @@ const InsuranceClaimScreen = lazy(() => import('./screens/user/health/InsuranceC
 const PharmacyCheckoutScreen = lazy(() => import('./screens/user/health/PharmacyCheckoutScreen'));
 const HealthPlusScreen = lazy(() => import('./screens/user/health/HealthPlusScreen'));
 const SubscriptionUpsellScreen = lazy(() => import('./screens/user/health/SubscriptionUpsellScreen'));
+const AttendanceHistoryScreen = lazy(() => import('./screens/user/AttendanceHistoryScreen'));
+
 
 // Main Placeholder Screens
 const PPOBScreen = lazy(() => import('./screens/user/placeholders/PPOBScreen'));
@@ -83,6 +85,7 @@ const HrPayLaterManagement = lazy(() => import('./screens/hr/HrPayLaterManagemen
 const HrAiCopilotScreen = lazy(() => import('./screens/hr/HrAiCopilotScreen'));
 const HrBenefitManagement = lazy(() => import('./screens/hr/HrBenefitManagement'));
 const HrWellnessManagement = lazy(() => import('./screens/hr/HrWellnessManagement'));
+const HrAttendanceManagement = lazy(() => import('./screens/hr/HrAttendanceManagement'));
 
 
 const Spinner = () => (
@@ -105,6 +108,7 @@ const HrRoutes: React.FC = () => (
                 <Route path="copilot" element={<HrAiCopilotScreen />} />
                 <Route path="benefits" element={<HrBenefitManagement />} />
                 <Route path="wellness" element={<HrWellnessManagement />} />
+                <Route path="attendance" element={<HrAttendanceManagement />} />
                 <Route path="*" element={<Navigate to="dashboard" />} />
             </Routes>
         </HrLayout>
@@ -195,6 +199,7 @@ const App: React.FC = () => {
                     <Route path="pharmacy-checkout/:eprescriptionId" element={<PharmacyCheckoutScreen />} />
                     <Route path="health-plus" element={<HealthPlusScreen />} />
                     <Route path="subscribe-health-plus" element={<SubscriptionUpsellScreen />} />
+                    <Route path="attendance-history" element={<AttendanceHistoryScreen />} />
                     <Route path="under-construction" element={<UnderConstructionScreen />} />
                     
                     {/* Main placeholder routes */}

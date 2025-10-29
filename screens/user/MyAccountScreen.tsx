@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import { Role, User } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -418,6 +418,7 @@ const MyAccountScreen: React.FC = () => {
         { name: 'Wishlist Saya', icon: HeartIcon, path: '/wishlist' },
         { name: 'Toko Saya', icon: BuildingStorefrontIcon, path: '/my-products' },
         { name: 'Artikel Tersimpan', icon: BookmarkIcon, path: '/bookmarked-articles' },
+        { name: 'Riwayat Absensi', icon: ClipboardDocumentListIcon, path: '/attendance-history' },
         { name: 'Ajukan Cuti', icon: CalendarDaysIcon, path: '#', action: () => setLeaveModalOpen(true) },
         { name: 'Aplikasi PayLater', icon: CreditCardIcon, path: '#', action: () => setPayLaterModalOpen(true) },
         { name: 'Ubah Password', icon: KeyIcon, path: '#', action: () => setChangePasswordModalOpen(true) },

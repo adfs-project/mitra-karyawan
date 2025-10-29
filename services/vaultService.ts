@@ -14,7 +14,8 @@ import {
     MonetizationConfig, TaxConfig, HomePageConfig, AssistantLog, EngagementAnalytics,
     AdminWallets, PersonalizationRule, Order, Eprescription, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap,
     // FIX: Import IntegrationStatus type
-    IntegrationStatus
+    IntegrationStatus,
+    AttendanceRecord
 } from '../types';
 
 import {
@@ -22,7 +23,7 @@ import {
     initialDoctors, initialConsultations, initialDisputes, initialApiIntegrations,
     initialScalabilityServices, initialLeaveRequests, initialMonetizationConfig,
     initialTaxConfig, initialHomePageConfig, initialAdminWallets, initialPersonalizationRules,
-    initialOrders, initialHealthChallenges, initialInsuranceClaims
+    initialOrders, initialHealthChallenges, initialInsuranceClaims, initialAttendanceRecords
 } from '../data/mockData';
 
 type AppData = {
@@ -52,6 +53,7 @@ type AppData = {
     healthDocuments: HealthDocument[];
     healthChallenges: HealthChallenge[];
     insuranceClaims: InsuranceClaim[];
+    attendanceRecords: AttendanceRecord[];
     serviceLinkage: ServiceLinkageMap;
     isAiGuardrailDisabled: boolean;
 };
@@ -99,7 +101,7 @@ class VaultService {
         }));
 
         return {
-            users: this._deobfuscate<User[]>('app_all_users', initialUsersWithHashedPasswords),
+            users: this._deobfuscate<User[]>('app_users', initialUsersWithHashedPasswords),
             products: this._deobfuscate<Product[]>('app_products', initialProducts),
             articles: this._deobfuscate<Article[]>('app_articles', initialArticles),
             transactions: this._deobfuscate<Transaction[]>('app_transactions', initialTransactions),
@@ -125,6 +127,7 @@ class VaultService {
             healthDocuments: this._deobfuscate<HealthDocument[]>('app_health_documents', []),
             healthChallenges: this._deobfuscate<HealthChallenge[]>('app_health_challenges', initialHealthChallenges),
             insuranceClaims: this._deobfuscate<InsuranceClaim[]>('app_insurance_claims', initialInsuranceClaims),
+            attendanceRecords: this._deobfuscate<AttendanceRecord[]>('app_attendance_records', initialAttendanceRecords),
             serviceLinkage: this._deobfuscate<ServiceLinkageMap>('app_service_linkage', {}),
             isAiGuardrailDisabled: this._deobfuscate<boolean>('app_ai_guardrail_disabled', false),
         };

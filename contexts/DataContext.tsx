@@ -4,7 +4,7 @@ import {
     CartItem, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService,
     ScalabilityServiceStatus, LeaveRequest, Budget, ScheduledPayment,
     MonetizationConfig, TaxConfig, HomePageConfig, AssistantLog, EngagementAnalytics,
-    AdminWallets, PersonalizationRule, Order, MoodHistory, OrderItem, Toast, ToastType, Eprescription, EprescriptionItem, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap, Role
+    AdminWallets, PersonalizationRule, Order, MoodHistory, OrderItem, Toast, ToastType, Eprescription, EprescriptionItem, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap, Role, AttendanceRecord, Coordinates
 } from '../types';
 import { testApiConnection } from '../services/apiService';
 import { useAuth } from './AuthContext';
@@ -12,6 +12,15 @@ import { GoogleGenAI } from '@google/genai';
 import vaultService from '../services/vaultService';
 
 // Data is now managed by VaultService. This context provides a React-friendly interface to it.
+
+// Infer the shape of the full AppData type from the vault service's private data structure via its public methods.
+// This allows us to use the specific keys for strong typing without needing to export AppData itself.
+// FIX: The original type inference using `Parameters` on a generic function `vaultService.setData` was failing,
+// causing TypeScript to resolve the generic types to `never`. This led to numerous "not assignable to type 'never'"
+// errors in all calls to `updateState`. The fix is to correctly infer the data shape from the return type of
+// `vaultService.getSanitizedData()`, which is the intended source of truth for the data structure in this context.
+type AppData = ReturnType<typeof vaultService.getSanitizedData>;
+
 
 interface DataContextType {
     users: User[];
@@ -40,6 +49,7 @@ interface DataContextType {
     healthDocuments: HealthDocument[];
     healthChallenges: HealthChallenge[];
     insuranceClaims: InsuranceClaim[];
+    attendanceRecords: AttendanceRecord[];
     serviceLinkage: ServiceLinkageMap;
     isAiGuardrailDisabled: boolean;
     toasts: Toast[];
@@ -53,6 +63,10 @@ interface DataContextType {
     updateUserStatus: (userId: string, status: 'active' | 'inactive') => Promise<{ success: boolean; message: string }>;
     generatePayslipData: (userId: string) => any; // Returns calculated payslip, not raw salary
     
+    // Attendance
+    clockIn: () => Promise<{ success: boolean; message: string; }>;
+    clockOut: () => Promise<{ success: boolean; message: string; }>;
+
     // Cart
     addToCart: (productId: string, quantity: number) => void;
     removeFromCart: (productId: string) => void;
@@ -161,14 +175,112 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, []);
     
     // Helper to update both vault and local state
-    const updateState = <K extends keyof typeof appData>(key: K, value: (typeof appData)[K]) => {
-        // FIX: Cast 'value' to 'any' to resolve a mismatch between the readonly type from the component's state
-        // and the mutable type expected by the vaultService. This is a safe cast because the values passed
-        // to updateState are always new, mutable objects/arrays.
-        // FIX: Explicitly provide generic type `K` to `setData` to fix TypeScript's inference issue, which was incorrectly typing `key`.
-        vaultService.setData<K>(key, value as any);
+    const updateState = <K extends keyof AppData>(key: K, value: AppData[K]) => {
+        // FIX: The previous generic constraint `<K extends keyof typeof appData>` was being inferred too broadly by TypeScript,
+        // causing a constraint satisfaction error when calling `vaultService.setData`.
+        // By using a more specific `keyof AppData` constraint (with `AppData` inferred from the vault service),
+        // the generic `K` is now correctly typed, and we can remove the unnecessary generic argument on `setData`.
+        // The `value as any` cast remains necessary because `updateState` is called with both mutable and readonly values,
+        // while the vault expects a strictly mutable type.
+        vaultService.setData(key, value as any);
         setAppData(vaultService.getSanitizedData());
     };
+
+    const OFFICE_LOCATION: Coordinates = { latitude: -6.2242, longitude: 106.8229 }; // Example: BEJ, Jakarta
+    const OFFICE_RADIUS_METERS = 200; // 200 meters tolerance
+
+    const getDistance = (coord1: Coordinates, coord2: Coordinates) => {
+        const R = 6371e3; // metres
+        const φ1 = coord1.latitude * Math.PI/180;
+        const φ2 = coord2.latitude * Math.PI/180;
+        const Δφ = (coord2.latitude-coord1.latitude) * Math.PI/180;
+        const Δλ = (coord2.longitude-coord1.longitude) * Math.PI/180;
+        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c; // in metres
+    };
+
+    const getCurrentPosition = (): Promise<GeolocationPosition> => {
+        return new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0,
+            });
+        });
+    };
+
+    const clockIn = async (): Promise<{ success: boolean; message: string; }> => {
+        if (!user) return { success: false, message: "User not logged in." };
+        const today = new Date().toISOString().split('T')[0];
+        const todaysRecord = appData.attendanceRecords.find(r => r.userId === user.id && r.date === today);
+
+        if (todaysRecord?.clockInTime) {
+            return { success: false, message: "Anda sudah melakukan clock-in hari ini." };
+        }
+
+        try {
+            const position = await getCurrentPosition();
+            const userLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+            const distance = getDistance(userLocation, OFFICE_LOCATION);
+
+            if (distance > OFFICE_RADIUS_METERS) {
+                return { success: false, message: `Anda berada ${Math.round(distance)} meter dari kantor. Harap mendekat untuk absen.` };
+            }
+
+            const newRecord: AttendanceRecord = {
+                id: `att-${Date.now()}`,
+                userId: user.id,
+                userName: user.profile.name,
+                branch: user.profile.branch || 'N/A',
+                date: today,
+                clockInTime: new Date().toISOString(),
+                clockInLocation: userLocation,
+            };
+            updateState('attendanceRecords', [...appData.attendanceRecords, newRecord]);
+            return { success: true, message: `Berhasil Clock In pada ${new Date().toLocaleTimeString('id-ID')}` };
+
+        } catch (error: any) {
+            if (error.code === error.PERMISSION_DENIED) {
+                return { success: false, message: "Izin lokasi ditolak. Harap izinkan akses lokasi." };
+            }
+            return { success: false, message: "Gagal mendapatkan lokasi Anda. Pastikan GPS aktif." };
+        }
+    };
+
+    const clockOut = async (): Promise<{ success: boolean; message: string; }> => {
+        if (!user) return { success: false, message: "User not logged in." };
+        const today = new Date().toISOString().split('T')[0];
+        const todaysRecord = appData.attendanceRecords.find(r => r.userId === user.id && r.date === today);
+
+        if (!todaysRecord || !todaysRecord.clockInTime) {
+            return { success: false, message: "Anda belum melakukan clock-in hari ini." };
+        }
+        if (todaysRecord.clockOutTime) {
+            return { success: false, message: "Anda sudah melakukan clock-out hari ini." };
+        }
+
+        try {
+            const position = await getCurrentPosition();
+            const userLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+            const distance = getDistance(userLocation, OFFICE_LOCATION);
+
+            if (distance > OFFICE_RADIUS_METERS) {
+                return { success: false, message: `Anda berada ${Math.round(distance)} meter dari kantor. Harap mendekat untuk absen.` };
+            }
+
+            const updatedRecord = { ...todaysRecord, clockOutTime: new Date().toISOString(), clockOutLocation: userLocation };
+            updateState('attendanceRecords', appData.attendanceRecords.map(r => r.id === updatedRecord.id ? updatedRecord : r));
+            return { success: true, message: `Berhasil Clock Out pada ${new Date().toLocaleTimeString('id-ID')}` };
+
+        } catch (error: any) {
+             if (error.code === error.PERMISSION_DENIED) {
+                return { success: false, message: "Izin lokasi ditolak. Harap izinkan akses lokasi." };
+            }
+            return { success: false, message: "Gagal mendapatkan lokasi Anda. Pastikan GPS aktif." };
+        }
+    };
+
 
     const updateServiceLinkage = (featureId: string, apiId: string | null) => {
         const newLinkage = { ...appData.serviceLinkage, [featureId]: apiId };
@@ -659,13 +771,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const value: DataContextType = {
         ...appData,
         toasts,
-        // The isAiGuardrailDisabled and toggleAiGuardrail are removed from here as they are now permanently on.
-        // We'll leave the state in the vault in case it's needed for other logic, but it won't be exposed here.
         isAiGuardrailDisabled: false, // Always false
-        toggleAiGuardrail: () => {}, // No-op
         
         showToast, removeToast,
         addTransaction, addNotification, markNotificationsAsRead, updateUserStatus, generatePayslipData,
+        clockIn, clockOut,
         addToCart, removeFromCart, updateCartQuantity, clearCart, checkoutCart,
         toggleWishlist, toggleArticleBookmark,
         toggleArticleLike, addArticleComment, toggleCommentLike, voteOnPoll,

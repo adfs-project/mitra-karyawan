@@ -1,11 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { ChartBarIcon, UserPlusIcon, CalendarDaysIcon, BanknotesIcon, SparklesIcon, GiftIcon, HeartIcon, CreditCardIcon } from '@heroicons/react/24/solid';
+import { ChartBarIcon, UserPlusIcon, CalendarDaysIcon, BanknotesIcon, SparklesIcon, GiftIcon, HeartIcon, CreditCardIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/solid';
 
 const navigation = [
     { name: 'Dashboard', href: '/hr/dashboard', icon: ChartBarIcon },
     { name: 'AI Co-pilot', href: '/hr/copilot', icon: SparklesIcon },
     { name: 'Onboarding', href: '/hr/onboarding', icon: UserPlusIcon },
+    { name: 'Attendance Mgmt', href: '/hr/attendance', icon: ClipboardDocumentCheckIcon },
     { name: 'Leave Management', href: '/hr/leave', icon: CalendarDaysIcon },
     { name: 'Payroll', href: '/hr/payroll', icon: BanknotesIcon },
     { name: 'PayLater Mgmt', href: '/hr/paylater', icon: CreditCardIcon },

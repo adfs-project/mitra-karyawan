@@ -1,4 +1,4 @@
-import { Role, User, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig, HomePageConfig, AdminWallets, PersonalizationRule, Order, HealthChallenge, InsuranceClaim } from '../types';
+import { Role, User, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig, HomePageConfig, AdminWallets, PersonalizationRule, Order, HealthChallenge, InsuranceClaim, AttendanceRecord } from '../types';
 
 export const initialUsers: User[] = [
     {
@@ -88,3 +88,4 @@ export const initialHealthChallenges: HealthChallenge[] = [
     { id: 'hc-system-01', title: 'Tantangan 10.000 Langkah Harian', description: 'Jalan kaki minimal 10.000 langkah setiap hari selama 30 hari.', creator: 'System', participants: [] }
 ];
 export const initialInsuranceClaims: InsuranceClaim[] = [];
+export const initialAttendanceRecords: AttendanceRecord[] = [];
