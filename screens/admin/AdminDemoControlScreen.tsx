@@ -65,8 +65,6 @@ const ErrorLogViewer: React.FC = () => {
 
 const AdminDemoControlScreen: React.FC = () => {
     const { 
-        isAiGuardrailDisabled,
-        toggleAiGuardrail,
         homePageConfig,
         updateHomePageConfig
     } = useData();
@@ -102,14 +100,17 @@ const AdminDemoControlScreen: React.FC = () => {
                 <div className="space-y-6">
                     <div>
                         <h2 className="text-xl font-bold mb-2">AI Privacy</h2>
-                        <ToggleSwitch
-                            label="Disable 'Zero Data Access' AI Guardrail"
-                            description="IZINKAN AI untuk mengakses data pengguna (transaksi, artikel yang disukai) untuk memberikan jawaban yang dipersonalisasi. Menonaktifkan ini akan meningkatkan kemampuan AI secara signifikan namun mengabaikan protokol privasi standar."
-                            enabled={isAiGuardrailDisabled}
-                            onToggle={toggleAiGuardrail}
-                            Icon={isAiGuardrailDisabled ? ShieldExclamationIcon : ShieldCheckIcon}
-                            iconColor="text-secondary"
-                        />
+                        <div className="bg-surface-light p-4 rounded-lg border border-border-color flex items-center">
+                            <div className="p-2 rounded-full mr-4 bg-primary/20">
+                                <ShieldCheckIcon className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-text-primary">'Zero Data Access' AI Guardrail</h3>
+                                <p className="text-sm text-text-secondary max-w-xl">
+                                    Protokol privasi AI diaktifkan secara permanen. AI tidak dapat mengakses data pengguna apa pun, memastikan privasi dan keamanan maksimum.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                      <div>
                         <h2 className="text-xl font-bold mb-2">Feature Flags</h2>

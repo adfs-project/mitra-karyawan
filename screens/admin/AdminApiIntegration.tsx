@@ -44,6 +44,8 @@ const ManageApiModal: React.FC<{
     integration: ApiIntegration | null;
 }> = ({ isOpen, onClose, integration }) => {
     const { updateApiIntegration } = useData();
+    // IMPORTANT: We do not load saved credentials into the UI for security.
+    // The fields are for entering NEW credentials only.
     const [creds, setCreds] = useState({ apiKey: '', clientId: '', secretKey: '' });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -51,15 +53,12 @@ const ManageApiModal: React.FC<{
 
     React.useEffect(() => {
         if (integration) {
-            setCreds({
-                apiKey: integration.credentials?.apiKey || '',
-                clientId: integration.credentials?.clientId || '',
-                secretKey: integration.credentials?.secretKey || '',
-            });
+            // Reset fields every time the modal opens
+            setCreds({ apiKey: '', clientId: '', secretKey: '' });
             setError('');
             setSuccessMessage('');
         }
-    }, [integration]);
+    }, [integration, isOpen]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCreds(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -93,18 +92,19 @@ const ManageApiModal: React.FC<{
                     <h2 className="text-xl font-bold">Manage API: {integration.name}</h2>
                     <button onClick={onClose} className="p-1 rounded-full hover:bg-surface-light"><XMarkIcon className="h-6 w-6" /></button>
                 </div>
+                <p className="text-sm text-text-secondary mb-4">For security, existing credentials are not shown. Enter new credentials to update.</p>
                 <div className="space-y-4">
                      <div>
                         <label className="block text-sm font-bold text-text-secondary mb-1">API Key</label>
-                        <input type="text" name="apiKey" value={creds.apiKey} onChange={handleChange} className="w-full p-2 bg-surface-light rounded border border-border-color" placeholder="Enter API Key"/>
+                        <input type="text" name="apiKey" value={creds.apiKey} onChange={handleChange} className="w-full p-2 bg-surface-light rounded border border-border-color" placeholder="Enter new API Key"/>
                     </div>
                      <div>
                         <label className="block text-sm font-bold text-text-secondary mb-1">Client ID</label>
-                        <input type="text" name="clientId" value={creds.clientId} onChange={handleChange} className="w-full p-2 bg-surface-light rounded border border-border-color" placeholder="Enter Client ID"/>
+                        <input type="text" name="clientId" value={creds.clientId} onChange={handleChange} className="w-full p-2 bg-surface-light rounded border border-border-color" placeholder="Enter new Client ID"/>
                     </div>
                      <div>
                         <label className="block text-sm font-bold text-text-secondary mb-1">Secret Key</label>
-                        <input type="password" name="secretKey" value={creds.secretKey} onChange={handleChange} className="w-full p-2 bg-surface-light rounded border border-border-color" placeholder="Enter Secret Key"/>
+                        <input type="password" name="secretKey" value={creds.secretKey} onChange={handleChange} className="w-full p-2 bg-surface-light rounded border border-border-color" placeholder="Enter new Secret Key"/>
                     </div>
                 </div>
 

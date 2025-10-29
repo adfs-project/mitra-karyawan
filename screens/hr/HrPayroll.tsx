@@ -4,40 +4,12 @@ import { useData } from '../../contexts/DataContext';
 import { User } from '../../types';
 import { BanknotesIcon, DocumentTextIcon, PrinterIcon } from '@heroicons/react/24/solid';
 
-const PayslipView: React.FC<{ employee: User; period: string }> = ({ employee, period }) => {
+const PayslipView: React.FC<{ employee: User; period: string, payrollData: any }> = ({ employee, period, payrollData }) => {
     
-    const payroll = useMemo(() => {
-        if (!employee || !employee.profile.salary) return null;
-
-        const grossSalary = employee.profile.salary;
-        
-        const gajiPokok = grossSalary;
-        const insentifKinerja = 0;
-        const bpjsTkNatura = grossSalary * 0.0054;
-        const totalPendapatan = gajiPokok + insentifKinerja + bpjsTkNatura;
-
-        const pajakPph21 = grossSalary * 0.025;
-        const bpjsTkKaryawan2 = grossSalary * 0.02;
-        const bpjsTkKaryawan054 = grossSalary * 0.0054;
-        const bpjsPensiunKaryawan = grossSalary * 0.01;
-        const totalPotongan = pajakPph21 + bpjsTkKaryawan2 + bpjsTkKaryawan054 + bpjsPensiunKaryawan;
-        
-        const bpjsPensiunPerusahaan = grossSalary * 0.02;
-        const bpjsTkPerusahaan = grossSalary * 0.037;
-        
-        const takeHomePay = (gajiPokok + insentifKinerja) - totalPotongan;
-
-        return {
-            gajiPokok, insentifKinerja, totalPendapatan, pajakPph21,
-            bpjsTkKaryawan2, bpjsTkKaryawan054, bpjsPensiunKaryawan, totalPotongan,
-            bpjsPensiunPerusahaan, bpjsTkPerusahaan, takeHomePay, saldoPinjaman: 0,
-            bpjsTkNatura
-        };
-    }, [employee]);
-
     const fullPayslipString = useMemo(() => {
         const currentUser = employee;
         const currentPeriod = period;
+        const payroll = payrollData;
 
         if (!payroll) return 'Informasi gaji tidak tersedia untuk akun ini.';
 
@@ -102,9 +74,9 @@ const PayslipView: React.FC<{ employee: User; period: string }> = ({ employee, p
         lines.push(''.padStart(padding) + footerText);
 
         return lines.join('\n');
-    }, [payroll, employee, period]);
+    }, [payrollData, employee, period]);
 
-    if (!payroll) return null;
+    if (!payrollData) return null;
 
     return (
         <div className="bg-white text-black p-4 font-mono text-xs max-w-5xl mx-auto border border-gray-300">
@@ -117,7 +89,7 @@ const PayslipView: React.FC<{ employee: User; period: string }> = ({ employee, p
 
 const HrPayroll: React.FC = () => {
     const { user: hrUser } = useAuth();
-    const { users } = useData();
+    const { users, generatePayslipData } = useData();
     const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
 
     const branchEmployees = useMemo(() => {
@@ -126,6 +98,12 @@ const HrPayroll: React.FC = () => {
     }, [users, hrUser]);
 
     const selectedEmployee = users.find(u => u.id === selectedEmployeeId);
+    const payrollDataForSelected = useMemo(() => {
+        if (selectedEmployeeId) {
+            return generatePayslipData(selectedEmployeeId);
+        }
+        return null;
+    }, [selectedEmployeeId, generatePayslipData]);
     
     const handlePrint = () => {
         const printContentNode = document.getElementById('payslip-to-print');
@@ -174,17 +152,18 @@ const HrPayroll: React.FC = () => {
                 </div>
             </div>
 
-            {selectedEmployee ? (
+            {selectedEmployee && payrollDataForSelected ? (
                 <div className="animate-fade-in-up">
                     <PayslipView 
                         employee={selectedEmployee} 
                         period={new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })} 
+                        payrollData={payrollDataForSelected}
                     />
                 </div>
             ) : (
                 <div className="text-center py-16">
                      <BanknotesIcon className="h-20 w-20 mx-auto text-text-secondary opacity-50"/>
-                     <p className="mt-4 text-text-secondary">Pilih seorang karyawan untuk memulai.</p>
+                     <p className="mt-4 text-text-secondary">{selectedEmployeeId ? 'Loading data...' : 'Pilih seorang karyawan untuk memulai.'}</p>
                 </div>
             )}
         </div>

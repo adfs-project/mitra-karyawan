@@ -12,7 +12,7 @@ const SmartAssistant: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
-    const { logAssistantQuery, isAiGuardrailDisabled, showToast } = useData();
+    const { logAssistantQuery, showToast } = useData();
     const { user } = useAuth();
 
 
@@ -31,18 +31,11 @@ const SmartAssistant: React.FC = () => {
             return;
         }
         
-        let prompt;
-        if (isAiGuardrailDisabled) {
-             const userContext = `Current user balance is: ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(user?.wallet.balance || 0)}.`;
-             prompt = `You are a helpful in-app assistant. You CAN access some user data to answer questions. Answer the user's query based on the provided context. Be concise and helpful. Respond in Indonesian. Context: ${userContext}\n\nUser Query: "${query}"`;
-             logAssistantQuery(query, 'PERSONALIZED_QUERY');
-        } else {
-             prompt = buildSecurePrompt(
-                query, 
-                "Your ONLY function is to provide GENERIC descriptions of the app's features. For example, if asked 'What can I do in the wallet?', explain the wallet features generally."
-            );
-            logAssistantQuery(query, 'GENERIC_QUERY');
-        }
+        const prompt = buildSecurePrompt(
+            query, 
+            "Your ONLY function is to provide GENERIC descriptions of the app's features. For example, if asked 'What can I do in the wallet?', explain the wallet features generally. You MUST politely refuse to answer any questions not related to the app's features."
+        );
+        logAssistantQuery(query, 'GENERIC_QUERY');
 
 
         try {
@@ -81,7 +74,7 @@ const SmartAssistant: React.FC = () => {
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder={isAiGuardrailDisabled ? "Tanya apa saja (misal: 'saldo saya')" : "Tanya tentang fitur aplikasi..."}
+                    placeholder="Tanya tentang fitur aplikasi..."
                     className="w-full bg-surface border-2 border-transparent text-text-primary rounded-full py-3 pl-11 pr-24 focus:outline-none"
                     disabled={isLoading}
                 />

@@ -46,7 +46,6 @@ const HrOnboarding: React.FC = () => {
                                 <th className="px-6 py-3">Nama Karyawan</th>
                                 <th className="px-6 py-3">Email</th>
                                 <th className="px-6 py-3">Tanggal Bergabung</th>
-                                <th className="px-6 py-3">Gaji Pokok</th>
                                 <th className="px-6 py-3">Status</th>
                                 <th className="px-6 py-3 text-center">Aksi</th>
                             </tr>
@@ -57,7 +56,6 @@ const HrOnboarding: React.FC = () => {
                                     <td className="px-6 py-4 font-medium text-text-primary">{emp.profile.name}</td>
                                     <td className="px-6 py-4">{emp.email}</td>
                                     <td className="px-6 py-4">{emp.profile.joinDate ? new Date(emp.profile.joinDate).toLocaleDateString() : 'N/A'}</td>
-                                    <td className="px-6 py-4">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(emp.profile.salary || 0)}</td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${emp.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                                             {emp.status}

@@ -49,7 +49,7 @@ const AiRecommendations: React.FC<{ searchTerm: string }> = ({ searchTerm }) => 
 
             const securePrompt = buildSecurePrompt(
                 searchTerm,
-                `Your only role is to provide generic shopping tips. Provide 2-3 short, general tips for finding a good product in the category related to the user's search query. For example, for "keyboard", suggest "Pertimbangkan jenis switch (mechanical vs. membrane)" or "Cek opsi konektivitas nirkabel". Respond only with the tips, formatted nicely in Indonesian.`
+                `Your ONLY function is to provide generic shopping tips related to the user's search query. Provide 2-3 short, general tips for finding a good product within that category. For example, for "keyboard", suggest "Pertimbangkan jenis switch". You MUST politely refuse to answer any questions not related to shopping tips for that product category, such as comparing prices with other websites or giving off-topic advice. Respond only with the tips, formatted nicely in Indonesian.`
             );
             
             try {

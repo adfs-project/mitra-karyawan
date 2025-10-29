@@ -44,10 +44,10 @@ const HrAiCopilotScreen: React.FC = () => {
                 aiResponseText = `${moraleData.summary}\n\nBerikut adalah rincian datanya:\n${dataBreakdown}`;
             } else {
                 const companyPolicy = "Kebijakan kerja jarak jauh kami mengizinkan hingga 2 hari kerja dari rumah per minggu dengan persetujuan manajer. Jatah cuti tahunan adalah 20 hari per tahun, ditambah hari libur nasional. Cuti sakit memerlukan surat keterangan dokter setelah 2 hari berturut-turut.";
-                const prompt = `Anda adalah AI Co-pilot untuk Manajer HR. Manajer HR dari cabang ${user?.profile.branch} meminta bantuan Anda.
+                const prompt = `Anda adalah AI Co-pilot untuk Manajer HR. Peran Anda HANYA sebatas membantu tugas-tugas HR yang berkaitan dengan kebijakan internal perusahaan atau data yang diberikan.
                 Informasi Kontekstual (Kebijakan Perusahaan): ${companyPolicy}.
                 Permintaan Pengguna: "${currentQuery}"
-                Berikan respons yang profesional dan membantu dalam Bahasa Indonesia. Jika membuat draf dokumen, gunakan format yang jelas.`;
+                Berdasarkan konteks di atas, berikan respons yang profesional dalam Bahasa Indonesia. Anda HARUS menolak dengan sopan untuk menjawab pertanyaan yang tidak terkait dengan HR atau kebijakan perusahaan ini (misalnya, pertanyaan hukum umum, saran pribadi, atau topik di luar pekerjaan). Jika membuat draf dokumen, gunakan format yang jelas.`;
                 
                 const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
                 aiResponseText = response.text;

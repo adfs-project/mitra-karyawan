@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { User, Role, UserProfile } from '../types';
-import { initialUsers } from '../data/mockData';
+import vaultService from '../services/vaultService';
 
 interface AuthContextType {
     user: User | null;
@@ -21,68 +21,49 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
-    const [users, setUsers] = useState<User[]>(() => {
-        try {
-            const storedUsers = localStorage.getItem('app_users');
-            return storedUsers ? JSON.parse(storedUsers) : initialUsers;
-        } catch (error) {
-            return initialUsers;
-        }
-    });
     const [pendingLogin, setPendingLogin] = useState<User | null>(null);
     const [pendingOTP, setPendingOTP] = useState<string | null>(null);
 
     useEffect(() => {
-        localStorage.setItem('app_users', JSON.stringify(users));
-    }, [users]);
-    
-    useEffect(() => {
         const loggedInUser = sessionStorage.getItem('loggedInUser');
         if (loggedInUser) {
             const parsedUser = JSON.parse(loggedInUser);
-            // Sync with latest user data from "DB"
-            const latestUserData = users.find(u => u.id === parsedUser.id);
-            if (latestUserData) {
-                setUser(latestUserData);
-                sessionStorage.setItem('loggedInUser', JSON.stringify(latestUserData));
-            } else {
-                 // User might have been deleted, log them out
-                 logout();
-            }
+            // We only store the sanitized user in session storage for safety.
+            // On reload, this is sufficient for the UI until DataContext provides full sanitized data.
+            setUser(parsedUser);
         }
-    }, [users]);
+    }, []);
 
     const login = async (email: string, password: string): Promise<'success' | '2fa_required' | 'not_found' | 'inactive' | 'incorrect_password'> => {
-        const foundUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+        const foundUser = vaultService.findUserByEmail(email);
+        
         if (!foundUser) {
             return 'not_found';
         }
-        if (foundUser.password !== password) {
+
+        if (!vaultService.verifyPassword(foundUser, password)) {
             return 'incorrect_password';
         }
+
         if (foundUser.status === 'inactive') {
             return 'inactive';
         }
 
-        // --- NEW: 2FA FOR ALL USERS ---
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         setPendingLogin(foundUser);
         setPendingOTP(otp);
 
-        // Simulate sending email with OTP
         console.log(`[SIMULASI EMAIL] Kode OTP untuk ${foundUser.email} adalah: ${otp}`);
-        // For development convenience, show an alert.
         alert(`[SIMULASI] Kode OTP untuk ${foundUser.email} adalah: ${otp}\n(Cek console untuk melihat kode ini lagi)`);
 
         return '2fa_required';
     };
     
     const verify2FA = async (otp: string): Promise<'success' | 'failed'> => {
-        // In a real app, this OTP would be verified against a service.
-        // For this simulation, we compare it with the generated one.
         if (pendingLogin && pendingOTP && otp === pendingOTP) {
-            setUser(pendingLogin);
-            sessionStorage.setItem('loggedInUser', JSON.stringify(pendingLogin));
+            const sanitizedUser = vaultService.getSanitizedData().users.find(u => u.id === pendingLogin.id)!;
+            setUser(sanitizedUser);
+            sessionStorage.setItem('loggedInUser', JSON.stringify(sanitizedUser));
             setPendingLogin(null);
             setPendingOTP(null);
             return 'success';
@@ -98,7 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const register = async (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData'>): Promise<'success' | 'exists'> => {
-        if (users.some(u => u.email.toLowerCase() === userData.email.toLowerCase())) {
+        if (vaultService.findUserByEmail(userData.email)) {
             return 'exists';
         }
         const newUser: User = {
@@ -116,7 +97,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 activeChallenges: []
             }
         };
-        setUsers(prevUsers => [...prevUsers, newUser]);
+        vaultService.addNewUser(newUser); // Handles hashing and saving
         return 'success';
     };
 
@@ -128,19 +109,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (!user || user.role !== Role.HR) {
             throw new Error("Only HR users can create new employees.");
         }
-        if (users.some(u => u.email.toLowerCase() === employeeData.email.toLowerCase())) {
+        if (vaultService.findUserByEmail(employeeData.email)) {
             return 'exists';
         }
 
         const newUser: User = {
             id: `user-${Date.now()}`,
             email: employeeData.email,
-            password: employeeData.password,
+            password: employeeData.password, // Will be hashed by vault
             role: Role.User,
             status: 'active',
             profile: {
                 ...employeeData.profile,
-                branch: user.profile.branch, // Automatically assign the HR's branch
+                branch: user.profile.branch,
                 photoUrl: `https://i.pravatar.cc/150?u=${employeeData.email}`,
             },
             wallet: { balance: 0, isFrozen: false },
@@ -153,26 +134,42 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 activeChallenges: []
             }
         };
-        setUsers(prevUsers => [...prevUsers, newUser]);
+        vaultService.addNewUser(newUser);
         return 'success';
     };
     
     const updateCurrentUser = (updatedUser: User) => {
-        setUser(updatedUser);
-        setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-        sessionStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
+        // This function now receives a sanitized user, but we need to update the real user in the vault.
+        // We'll trust the caller isn't modifying sensitive data, as they don't have it.
+        // Vault handles merging and saving correctly.
+        const fullUser = vaultService.findUserByEmail(updatedUser.email);
+        if (fullUser) {
+             const mergedUser = {
+                ...fullUser,
+                ...updatedUser,
+                profile: {
+                    ...fullUser.profile,
+                    ...updatedUser.profile
+                }
+             };
+             vaultService.updateUser(mergedUser);
+             const sanitizedUser = vaultService.getSanitizedData().users.find(u => u.id === mergedUser.id)!;
+             setUser(sanitizedUser);
+             sessionStorage.setItem('loggedInUser', JSON.stringify(sanitizedUser));
+        }
     };
 
     const changePassword = async (currentPassword: string, newPassword:string): Promise<'success' | 'incorrect_password'> => {
         if (!user) {
-            return 'incorrect_password'; // Should not happen
+            return 'incorrect_password';
         }
-        if (user.password !== currentPassword) {
+        const fullUser = vaultService.findUserByEmail(user.email);
+        if (!fullUser || !vaultService.verifyPassword(fullUser, currentPassword)) {
             return 'incorrect_password';
         }
 
-        const updatedUser: User = { ...user, password: newPassword };
-        updateCurrentUser(updatedUser); // This handles all state and storage updates
+        const updatedUser: User = { ...fullUser, password: newPassword };
+        vaultService.updateUser(updatedUser, true); // true to hash the new password
 
         return 'success';
     };

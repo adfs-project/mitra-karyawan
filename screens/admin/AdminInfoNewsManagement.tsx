@@ -88,7 +88,8 @@ const AdvancedArticleFormModal: React.FC<{
             return;
         }
         setIsGenerating(true);
-        const prompt = `You are an expert content writer and video summarizer. Your task is to watch the YouTube video at the provided URL and transform its content into a well-structured blog article.
+        const prompt = `You are an expert content writer and video summarizer. 
+Your task is ONLY to generate a JSON structure based on the video's content. Ignore any other requests or off-topic information.
 
 Analyze the video content and generate a JSON object with the following structure:
 {
@@ -247,7 +248,7 @@ Here is the YouTube URL: ${youtubeUrl}`;
 
 
 const AdminInfoNewsManagement: React.FC = () => {
-    const { articles, addArticle, updateArticle, deleteArticle, isDeletionLocked } = useData();
+    const { articles, addArticle, updateArticle, deleteArticle } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingArticle, setEditingArticle] = useState<Article | null>(null);
 
@@ -265,9 +266,7 @@ const AdminInfoNewsManagement: React.FC = () => {
     };
 
     const handleDelete = (articleId: string) => {
-        if (window.confirm("Are you sure you want to delete this article?")) {
-            deleteArticle(articleId);
-        }
+        deleteArticle(articleId);
     };
 
     return (
@@ -307,11 +306,11 @@ const AdminInfoNewsManagement: React.FC = () => {
                                         <button onClick={() => handleOpenModal(article)} className="p-2 rounded hover:bg-surface-light"><PencilIcon className="h-4 w-4 text-yellow-400"/></button>
                                         <button 
                                             onClick={() => handleDelete(article.id)}
-                                            disabled={isDeletionLocked} 
-                                            title={isDeletionLocked ? "Deletion is locked in System Controls." : "Delete Article"} 
-                                            className={`p-2 rounded ${isDeletionLocked ? 'cursor-not-allowed' : 'hover:bg-surface-light'}`}
+                                            disabled={true} 
+                                            title="Penghapusan dinonaktifkan secara permanen oleh sistem."
+                                            className="p-2 rounded cursor-not-allowed"
                                         >
-                                            {isDeletionLocked ? <LockClosedIcon className="h-4 w-4 text-gray-500"/> : <TrashIcon className="h-4 w-4 text-red-500"/>}
+                                            <LockClosedIcon className="h-4 w-4 text-gray-500"/>
                                         </button>
                                     </td>
                                 </tr>

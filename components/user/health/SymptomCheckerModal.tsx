@@ -45,7 +45,7 @@ const SymptomCheckerModal: React.FC<{
 
         const securePrompt = buildSecurePrompt(
             userMessage.text,
-            `Your only role is to provide GENERAL, EDUCATIONAL information about health topics. You MUST NOT provide a diagnosis. You MUST always include a clear disclaimer that you are not a real doctor and this is not medical advice. Always end your response with a clear recommendation to consult a real doctor for any health concerns. Respond in friendly, clear Indonesian.`
+            `Your ONLY function is to provide GENERAL, EDUCATIONAL information about health symptoms and common conditions. You MUST politely refuse any questions about specific drug prescriptions, treatment plans, or requests for a diagnosis. You MUST NOT provide a diagnosis under any circumstances. You MUST always include a clear disclaimer that you are not a real doctor and this is not medical advice. Always end your response with a clear recommendation to consult a real doctor for any health concerns. Respond in friendly, clear Indonesian.`
         );
 
         try {

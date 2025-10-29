@@ -140,7 +140,7 @@ const RuleModal: React.FC<{
 };
 
 const AdminPersonalizationEngine: React.FC = () => {
-    const { personalizationRules, addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule, isDeletionLocked } = useData();
+    const { personalizationRules, addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRule, setEditingRule] = useState<PersonalizationRule | null>(null);
 
@@ -204,11 +204,11 @@ const AdminPersonalizationEngine: React.FC = () => {
                                         <button onClick={() => handleOpenModal(rule)} className="p-2 rounded hover:bg-border-color"><PencilIcon className="h-5 w-5 text-yellow-400"/></button>
                                         <button 
                                             onClick={() => handleDeleteRule(rule.id)}
-                                            disabled={isDeletionLocked} 
-                                            title={isDeletionLocked ? "Deletion is locked in System Controls." : "Delete Rule"} 
-                                            className={`p-2 rounded ${isDeletionLocked ? 'cursor-not-allowed' : 'hover:bg-border-color'}`}
+                                            disabled={true} 
+                                            title="Penghapusan dinonaktifkan secara permanen oleh sistem."
+                                            className="p-2 rounded cursor-not-allowed"
                                         >
-                                            {isDeletionLocked ? <LockClosedIcon className="h-5 w-5 text-gray-500"/> : <TrashIcon className="h-5 w-5 text-red-500"/>}
+                                            <LockClosedIcon className="h-5 w-5 text-gray-500"/>
                                         </button>
                                     </div>
                                 </div>

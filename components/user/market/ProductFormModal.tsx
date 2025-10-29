@@ -94,7 +94,7 @@ const ProductFormModal: React.FC<{
         setIsGenerating(prev => ({ ...prev, description: true }));
         const securePrompt = buildSecurePrompt(
             formData.name,
-            `You are an assistant that teaches users how to write good product descriptions. You MUST NOT write the description for them. Your role is to give advice only. The user is asking for tips about a product with the name/topic. Give them 3 short, actionable tips on how to write a compelling description for this type of product. Your response must be only the tips, formatted nicely.`
+            `Your ONLY function is to teach users how to write good product descriptions. You MUST NOT write the description for them. Give 3 short, actionable tips on how to write a compelling description for a product with the given name/topic. You MUST politely refuse to answer any other type of question. Your response must be only the tips, formatted nicely.`
         );
         const result = await callGemini(securePrompt);
         if (result) {
@@ -112,7 +112,7 @@ const ProductFormModal: React.FC<{
         setIsGenerating(prev => ({ ...prev, price: true }));
         const securePrompt = buildSecurePrompt(
             formData.name,
-            `You are an assistant that teaches users how to price their products. You MUST NOT suggest a specific price. Your role is to give advice only. The user is asking for tips about a product with the name/topic. Give them 3 general tips on how to determine a fair price for a second-hand item. Your response must be only the tips, formatted nicely.`
+            `Your ONLY function is to teach users how to price their products. You MUST NOT suggest a specific price. Your role is to give advice only. The user is asking for tips about a product with the name/topic. Give them 3 general tips on how to determine a fair price for a second-hand item. You MUST politely refuse to answer any other type of question. Your response must be only the tips, formatted nicely.`
         );
         const result = await callGemini(securePrompt);
         if (result) {

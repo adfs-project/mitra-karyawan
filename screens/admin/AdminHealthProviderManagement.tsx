@@ -63,7 +63,7 @@ const DoctorFormModal: React.FC<{
 };
 
 const AdminHealthProviderManagement: React.FC = () => {
-    const { doctors, consultations, addDoctor, updateDoctor, deleteDoctor, isDeletionLocked } = useData();
+    const { doctors, consultations, addDoctor, updateDoctor, deleteDoctor } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
 
@@ -81,9 +81,7 @@ const AdminHealthProviderManagement: React.FC = () => {
     };
 
     const handleDelete = (doctorId: string) => {
-        if (window.confirm("Are you sure you want to delete this doctor?")) {
-            deleteDoctor(doctorId);
-        }
+        deleteDoctor(doctorId);
     };
 
     return (
@@ -119,11 +117,11 @@ const AdminHealthProviderManagement: React.FC = () => {
                                         <button onClick={() => handleOpenModal(doc)} className="p-2 rounded hover:bg-surface-light"><PencilIcon className="h-4 w-4 text-yellow-400"/></button>
                                         <button 
                                             onClick={() => handleDelete(doc.id)}
-                                            disabled={isDeletionLocked} 
-                                            title={isDeletionLocked ? "Deletion is locked in System Controls." : "Delete Doctor"} 
-                                            className={`p-2 rounded ${isDeletionLocked ? 'cursor-not-allowed' : 'hover:bg-surface-light'}`}
+                                            disabled={true} 
+                                            title="Penghapusan dinonaktifkan secara permanen oleh sistem."
+                                            className="p-2 rounded cursor-not-allowed"
                                         >
-                                            {isDeletionLocked ? <LockClosedIcon className="h-4 w-4 text-gray-500"/> : <TrashIcon className="h-4 w-4 text-red-500"/>}
+                                            <LockClosedIcon className="h-4 w-4 text-gray-500"/>
                                         </button>
                                     </td>
                                 </tr>

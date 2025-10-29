@@ -68,9 +68,6 @@ const ErrorLogViewer: React.FC = () => {
 
 const AdminSystemControlsScreen: React.FC = () => {
     const { 
-        isAiGuardrailDisabled,
-        toggleAiGuardrail,
-        isDeletionLocked,
         homePageConfig,
         updateHomePageConfig
     } = useData();
@@ -106,26 +103,31 @@ const AdminSystemControlsScreen: React.FC = () => {
                 <div className="space-y-6">
                     <div>
                         <h2 className="text-xl font-bold mb-2">Data Integrity</h2>
-                        <ToggleSwitch
-                            label="Enable Deletion Lock"
-                            description="Mencegah semua aksi penghapusan data inti (produk, artikel, dll.) di seluruh aplikasi untuk menjaga integritas data. Ini adalah fitur keamanan utama dan bersifat permanen dalam mode demo."
-                            enabled={isDeletionLocked}
-                            onToggle={() => {}} // This toggle is intentionally made read-only
-                            disabled={true} // The toggle cannot be changed from the UI
-                            Icon={LockClosedIcon}
-                            iconColor="text-red-500"
-                        />
+                        <div className="bg-surface-light p-4 rounded-lg border border-border-color flex items-center">
+                            <div className="p-2 rounded-full mr-4 bg-red-500/20">
+                                <LockClosedIcon className="h-6 w-6 text-red-500" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-text-primary">Deletion Lock Active (Permanent)</h3>
+                                <p className="text-sm text-text-secondary max-w-xl">
+                                    Untuk menjaga integritas data dan mencegah penghapusan yang tidak disengaja, semua fungsi penghapusan data inti (produk, artikel, dll.) telah dinonaktifkan secara permanen.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <h2 className="text-xl font-bold mb-2">AI Privacy</h2>
-                        <ToggleSwitch
-                            label="Disable 'Zero Data Access' AI Guardrail"
-                            description="IZINKAN AI untuk mengakses data pengguna (transaksi, artikel yang disukai) untuk memberikan jawaban yang dipersonalisasi. Menonaktifkan ini akan meningkatkan kemampuan AI secara signifikan namun mengabaikan protokol privasi standar."
-                            enabled={isAiGuardrailDisabled}
-                            onToggle={toggleAiGuardrail}
-                            Icon={isAiGuardrailDisabled ? ShieldExclamationIcon : ShieldCheckIcon}
-                            iconColor="text-secondary"
-                        />
+                        <div className="bg-surface-light p-4 rounded-lg border border-border-color flex items-center">
+                            <div className="p-2 rounded-full mr-4 bg-primary/20">
+                                <ShieldCheckIcon className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-text-primary">'Zero Data Access' AI Guardrail</h3>
+                                <p className="text-sm text-text-secondary max-w-xl">
+                                    Protokol privasi AI diaktifkan secara permanen. AI tidak dapat mengakses data pengguna apa pun, memastikan privasi dan keamanan maksimum.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                      <div>
                         <h2 className="text-xl font-bold mb-2">Feature Flags</h2>

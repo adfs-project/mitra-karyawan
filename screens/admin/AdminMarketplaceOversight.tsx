@@ -19,7 +19,7 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.El
 );
 
 const AdminMarketplaceOversight: React.FC = () => {
-    const { products, transactions, disputes, deleteProduct, isDeletionLocked, addProduct, updateProduct } = useData();
+    const { products, transactions, disputes, deleteProduct, addProduct, updateProduct } = useData();
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -36,9 +36,7 @@ const AdminMarketplaceOversight: React.FC = () => {
     ), [products, searchTerm]);
 
     const handleDelete = (productId: string) => {
-        if (window.confirm("Are you sure you want to delist this product? This action cannot be undone.")) {
-            deleteProduct(productId);
-        }
+        deleteProduct(productId);
     };
     
     const handleOpenModal = (product: Product | null = null) => {
@@ -107,11 +105,11 @@ const AdminMarketplaceOversight: React.FC = () => {
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(p.id)}
-                                                disabled={isDeletionLocked}
-                                                title={isDeletionLocked ? "Deletion is locked in System Controls." : "Delist Product"}
-                                                className={`p-2 rounded ${isDeletionLocked ? 'cursor-not-allowed' : 'hover:bg-surface-light'}`}
+                                                disabled={true}
+                                                title="Penghapusan dinonaktifkan secara permanen oleh sistem."
+                                                className="p-2 rounded cursor-not-allowed"
                                             >
-                                                {isDeletionLocked ? <LockClosedIcon className="h-4 w-4 text-gray-500"/> : <TrashIcon className="h-4 w-4 text-red-500"/>} 
+                                                <LockClosedIcon className="h-4 w-4 text-gray-500"/>
                                             </button>
                                         </div>
                                     </td>
