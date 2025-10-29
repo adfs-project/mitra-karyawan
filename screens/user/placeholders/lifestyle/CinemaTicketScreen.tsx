@@ -1,14 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { useData } from '../../../../contexts/DataContext';
+
+const ProviderLogo = ({ providerName }: { providerName: string }) => {
+    const [logoError, setLogoError] = useState(false);
+    const sanitizedName = providerName.toLowerCase().replace(/\s+/g, '');
+    const logoUrl = `https://logo.clearbit.com/${sanitizedName}.com`;
+
+    if (logoError) {
+        return (
+            <div className="h-8 w-8 rounded-full bg-border-color flex items-center justify-center font-bold text-text-secondary flex-shrink-0">
+                {providerName.charAt(0)}
+            </div>
+        );
+    }
+    return <img src={logoUrl} alt={`${providerName} logo`} className="h-8 w-8 rounded-full bg-white" onError={() => setLogoError(true)} />;
+};
+
 
 const CinemaTicketScreen = () => {
     const navigate = useNavigate();
     const { serviceLinkage, apiIntegrations, showToast } = useData();
 
-    const isConnected = !!serviceLinkage['lifestyle-cinema'];
     const provider = apiIntegrations.find(api => api.id === serviceLinkage['lifestyle-cinema']);
+    const isConnected = !!provider;
 
     const handleSearch = () => {
         if (provider) {
@@ -25,9 +41,15 @@ const CinemaTicketScreen = () => {
                 <h1 className="text-2xl font-bold text-primary">Tiket Bioskop</h1>
             </div>
             <div className="bg-surface p-6 rounded-lg border border-border-color">
+                 {isConnected && provider && (
+                    <div className="mb-4 flex items-center space-x-3 bg-surface-light p-3 rounded-lg border border-border-color">
+                        <ProviderLogo providerName={provider.name} />
+                        <p className="text-sm text-text-secondary">Layanan ini ditenagai oleh <span className="font-bold text-text-primary">{provider.name}</span></p>
+                    </div>
+                )}
                 <p className="text-text-secondary mb-4">
                     {isConnected 
-                        ? `Pesan tiket film favorit Anda melalui ${provider?.name}.`
+                        ? `Pesan tiket film favorit Anda.`
                         : 'Layanan ini belum terhubung ke penyedia. Silakan hubungi admin.'
                     }
                 </p>

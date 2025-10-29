@@ -38,20 +38,28 @@ const PPOBScreen = () => {
                         <input type="text" className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color" placeholder="Contoh: 1234567890" />
                     </div>
                     {billers.map(biller => {
-                        const isConnected = !!serviceLinkage[biller.id];
+                        const providerId = serviceLinkage[biller.id];
+                        const provider = apiIntegrations.find(api => api.id === providerId);
+                        const isConnected = !!provider;
+
                         return (
                             <div key={biller.id} className={`flex items-center justify-between p-3 bg-surface-light rounded-lg ${!isConnected ? 'opacity-60' : ''}`}>
                                 <div className="flex items-center">
                                     <biller.icon className="h-6 w-6 text-secondary mr-3" />
                                     <span className="font-semibold text-text-primary">{biller.name}</span>
                                 </div>
-                                <button 
-                                    onClick={() => isConnected && handlePay(biller.id)}
-                                    disabled={!isConnected} 
-                                    className={`px-4 py-1 text-sm font-bold rounded-full ${isConnected ? 'bg-primary text-black' : 'bg-gray-600 cursor-not-allowed'}`}
-                                >
-                                    Bayar
-                                </button>
+                                <div className="text-right">
+                                    <button 
+                                        onClick={() => isConnected && handlePay(biller.id)}
+                                        disabled={!isConnected} 
+                                        className={`px-4 py-1 text-sm font-bold rounded-full ${isConnected ? 'bg-primary text-black' : 'bg-gray-600 cursor-not-allowed'}`}
+                                    >
+                                        Bayar
+                                    </button>
+                                    {isConnected && provider && (
+                                        <p className="text-xs text-text-secondary mt-1">via {provider.name}</p>
+                                    )}
+                                </div>
                             </div>
                         );
                     })}
