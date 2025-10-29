@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import { Role, User } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -239,6 +239,185 @@ const ChangePasswordModal: React.FC<{
     );
 };
 
+const PayslipModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    user: User;
+}> = ({ isOpen, onClose, user }) => {
+
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value).replace('Rp', 'Rp.').padEnd(15);
+    };
+
+    const formatValue = (value: string | number, length: number) => {
+        return String(value).padEnd(length);
+    }
+    
+    const payroll = useMemo(() => {
+        if (!user || !user.profile.salary) return null;
+
+        const grossSalary = user.profile.salary;
+        
+        const gajiPokok = grossSalary;
+        const insentifKinerja = 0;
+        const totalPendapatan = gajiPokok + insentifKinerja;
+
+        const pajakPph21 = grossSalary * 0.025;
+        const bpjsTkKaryawan2 = grossSalary * 0.02;
+        const bpjsTkKaryawan054 = grossSalary * 0.0054;
+        const bpjsPensiunKaryawan = grossSalary * 0.01;
+        const totalPotongan = pajakPph21 + bpjsTkKaryawan2 + bpjsTkKaryawan054 + bpjsPensiunKaryawan;
+        
+        const bpjsPensiunPerusahaan = grossSalary * 0.02;
+        const bpjsTkPerusahaan = grossSalary * 0.037;
+        
+        const takeHomePay = totalPendapatan - totalPotongan;
+
+        return {
+            gajiPokok, insentifKinerja, totalPendapatan, pajakPph21,
+            bpjsTkKaryawan2, bpjsTkKaryawan054, bpjsPensiunKaryawan, totalPotongan,
+            bpjsPensiunPerusahaan, bpjsTkPerusahaan, takeHomePay, saldoPinjaman: 0
+        };
+
+    }, [user]);
+
+    const handlePrint = () => {
+        const printContents = document.getElementById('user-payslip-to-print')?.innerHTML;
+        const originalContents = document.body.innerHTML;
+        if(printContents) {
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            window.location.reload();
+        }
+    };
+    
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+            <div className="bg-surface p-6 rounded-lg w-full max-w-4xl border border-border-color max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold">Slip Gaji - {new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })}</h2>
+                    <div className="flex items-center space-x-2">
+                        <button onClick={handlePrint} className="btn-secondary flex items-center px-3 py-1.5 rounded-lg text-sm font-bold">
+                            <PrinterIcon className="h-4 w-4 mr-2" />
+                            Cetak
+                        </button>
+                        <button onClick={onClose} className="p-1 rounded-full hover:bg-surface-light">
+                            <XMarkIcon className="h-6 w-6" />
+                        </button>
+                    </div>
+                </div>
+
+                {!payroll ? (
+                     <p className="text-center text-text-secondary py-8">Informasi gaji tidak tersedia untuk akun ini.</p>
+                ) : (
+                    <div id="user-payslip-to-print" className="bg-white text-black p-8 font-mono text-xs mx-auto border border-gray-300">
+                        {/* Header */}
+                        <div className="flex justify-between items-start border-b-2 border-black pb-2">
+                            <h1 className="text-2xl font-bold">PT. Mitra Karyawan</h1>
+                            <p className="font-bold tracking-widest">CONFIDENTIAL</p>
+                        </div>
+                        {/* Info Section */}
+                        <div className="flex justify-between mt-4 text-sm">
+                            <pre className="p-0 m-0">
+                                COST CENTER : {formatValue(user.profile.branch || 'N/A', 20)}<br />
+                                NIK         : {formatValue(user.id, 20)}<br />
+                                NAMA        : {formatValue(user.profile.name, 20)}
+                            </pre>
+                            <pre className="p-0 m-0">
+                                SLIP PEMBAYARAN - PT<br />
+                                PERIODE : {formatValue(new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' }), 20)}<br />
+                                NPWP    : {formatValue('N/A', 20)}
+                            </pre>
+                        </div>
+
+                        {/* Main Body */}
+                        <div className="flex justify-between mt-6 text-sm">
+                            <pre className="p-0 m-0">
+                                A. PENDAPATAN<br />
+                                   Basic Salary<br />
+                                   Performance Incentive<br />
+                                   BPJS TK (0.54%)
+                            </pre>
+                            <pre className="p-0 m-0 text-right">
+                                <br />
+                                {formatCurrency(payroll.gajiPokok)}<br />
+                                {formatCurrency(payroll.insentifKinerja)}<br />
+                                {formatCurrency(payroll.bpjsTkKaryawan054)}
+                            </pre>
+                            <pre className="p-0 m-0">
+                                B. POTONGAN<br />
+                                   Tax<br />
+                                   BPJS TK Kary. (2%)<br />
+                                   BPJS TK (0.54%)<br />
+                                <br />
+                                   BPJS Pensiun Kary (1%)
+                            </pre>
+                            <pre className="p-0 m-0 text-right">
+                                <br />
+                                {formatCurrency(payroll.pajakPph21)}<br />
+                                {formatCurrency(payroll.bpjsTkKaryawan2)}<br />
+                                {formatCurrency(payroll.bpjsTkKaryawan054)}<br />
+                                <br />
+                                {formatCurrency(payroll.bpjsPensiunKaryawan)}
+                            </pre>
+                        </div>
+                        
+                        <hr className="border-dashed border-black my-2" />
+                        
+                        <div className="flex justify-between text-sm">
+                            <pre className="p-0 m-0">TOTAL PENDAPATAN (A):</pre>
+                            <pre className="p-0 m-0 text-right">{formatCurrency(payroll.totalPendapatan)}</pre>
+                            <pre className="p-0 m-0">TOTAL POTONGAN (B):</pre>
+                            <pre className="p-0 m-0 text-right">{formatCurrency(payroll.totalPotongan)}</pre>
+                        </div>
+                        
+                        <hr className="border-dashed border-black my-2" />
+
+                        <div className="flex justify-between text-sm">
+                             <pre className="p-0 m-0">
+                                LAIN LAIN (C):<br />
+                                BPJS Pensiun Persh (2%)<br />
+                                BPJS TK Persh (3,7%)
+                            </pre>
+                             <pre className="p-0 m-0 text-right">
+                                <br />
+                                {formatCurrency(payroll.bpjsPensiunPerusahaan)}<br />
+                                {formatCurrency(payroll.bpjsTkPerusahaan)}
+                            </pre>
+                            <pre className="p-0 m-0">SALDO PINJAMAN</pre>
+                            <pre className="p-0 m-0 text-right">{formatCurrency(payroll.saldoPinjaman)}</pre>
+                        </div>
+
+                        <hr className="border-dashed border-black my-2" />
+
+                        <div className="flex justify-end text-sm">
+                            <pre className="p-0 m-0 text-right">YANG DIBAYARKAN (A - B) = {formatCurrency(payroll.takeHomePay)}</pre>
+                        </div>
+
+                        <hr className="border-dashed border-black my-2" />
+                        
+                        <pre className="text-sm p-0 m-0">
+                            BSM
+                        </pre>
+
+                        <div className="mt-8 text-center text-xs font-bold">
+                            #PAYSLIP INI DICETAK MELALUI SISTEM, TIDAK MEMERLUKAN STAMP ATAU TANDA TANGAN#
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 
 const ThemeToggle: React.FC = () => {
     const { theme, toggleTheme } = useTheme();
@@ -265,6 +444,7 @@ const MyAccountScreen: React.FC = () => {
     const [isLeaveModalOpen, setLeaveModalOpen] = useState(false);
     const [isPayLaterModalOpen, setPayLaterModalOpen] = useState(false);
     const [isChangePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
+    const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
 
     if (!user) return null;
 
@@ -276,6 +456,7 @@ const MyAccountScreen: React.FC = () => {
         { name: 'Ajukan Cuti', icon: CalendarDaysIcon, path: '#', action: () => setLeaveModalOpen(true) },
         { name: 'Aplikasi PayLater', icon: CreditCardIcon, path: '#', action: () => setPayLaterModalOpen(true) },
         { name: 'Ubah Password', icon: KeyIcon, path: '#', action: () => setChangePasswordModalOpen(true) },
+        { name: 'Slip Gaji', icon: BanknotesIcon, path: '#', action: () => setIsPayslipModalOpen(true) },
     ];
     
     const hrMenuItem = { name: 'Portal HR', icon: BriefcaseIcon, path: '/hr-portal' };
@@ -396,6 +577,7 @@ const MyAccountScreen: React.FC = () => {
             <LeaveRequestModal isOpen={isLeaveModalOpen} onClose={() => setLeaveModalOpen(false)} />
             <PayLaterModal isOpen={isPayLaterModalOpen} onClose={() => setPayLaterModalOpen(false)} />
             <ChangePasswordModal isOpen={isChangePasswordModalOpen} onClose={() => setChangePasswordModalOpen(false)} />
+            <PayslipModal isOpen={isPayslipModalOpen} onClose={() => setIsPayslipModalOpen(false)} user={user} />
         </div>
     );
 };
