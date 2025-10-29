@@ -14,6 +14,7 @@ interface AuthContextType {
         password: string;
         profile: Omit<UserProfile, 'photoUrl' | 'branch'>;
     }) => Promise<'success' | 'exists'>;
+    changePassword: (currentPassword: string, newPassword: string) => Promise<'success' | 'incorrect_password'>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -162,8 +163,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         sessionStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
     };
 
+    const changePassword = async (currentPassword: string, newPassword:string): Promise<'success' | 'incorrect_password'> => {
+        if (!user) {
+            return 'incorrect_password'; // Should not happen
+        }
+        if (user.password !== currentPassword) {
+            return 'incorrect_password';
+        }
+
+        const updatedUser: User = { ...user, password: newPassword };
+        updateCurrentUser(updatedUser); // This handles all state and storage updates
+
+        return 'success';
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, verify2FA, logout, register, updateCurrentUser, createEmployee }}>
+        <AuthContext.Provider value={{ user, login, verify2FA, logout, register, updateCurrentUser, createEmployee, changePassword }}>
             {children}
         </AuthContext.Provider>
     );
