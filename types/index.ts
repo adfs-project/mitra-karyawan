@@ -393,3 +393,5 @@ export interface InsuranceClaim {
     receiptUrl: string; // Base64
     status: 'Pending' | 'Approved' | 'Rejected';
 }
+
+export type ServiceLinkageMap = Record<string, string | null>;

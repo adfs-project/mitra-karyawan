@@ -4,7 +4,7 @@ import {
     CartItem, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService,
     ScalabilityServiceStatus, LeaveRequest, Budget, ScheduledPayment,
     MonetizationConfig, TaxConfig, HomePageConfig, AssistantLog, EngagementAnalytics,
-    AdminWallets, PersonalizationRule, Order, MoodHistory, OrderItem, Toast, ToastType, Eprescription, EprescriptionItem, HealthDocument, HealthChallenge, InsuranceClaim
+    AdminWallets, PersonalizationRule, Order, MoodHistory, OrderItem, Toast, ToastType, Eprescription, EprescriptionItem, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap
 } from '../types';
 import {
     initialUsers, initialProducts, initialArticles, initialTransactions, initialNotifications,
@@ -64,6 +64,7 @@ interface DataContextType {
     healthDocuments: HealthDocument[];
     healthChallenges: HealthChallenge[];
     insuranceClaims: InsuranceClaim[];
+    serviceLinkage: ServiceLinkageMap;
     isAiGuardrailDisabled: boolean;
     isDeletionLocked: boolean;
     toasts: Toast[];
@@ -139,6 +140,7 @@ interface DataContextType {
     transferProfitToCash: () => Promise<void>;
     recordTaxPayment: () => Promise<void>;
     recordOperationalExpense: (description: string, amount: number) => Promise<void>;
+    updateServiceLinkage: (featureId: string, apiId: string | null) => void;
 
     // Engagement & Personalization
     logAssistantQuery: (query: string, detectedIntent: string) => void;
@@ -193,6 +195,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [healthDocuments, setHealthDocuments] = useStickyState<HealthDocument[]>('app_health_documents', []);
     const [healthChallenges, setHealthChallenges] = useStickyState<HealthChallenge[]>('app_health_challenges', initialHealthChallenges);
     const [insuranceClaims, setInsuranceClaims] = useStickyState<InsuranceClaim[]>('app_insurance_claims', []);
+    const [serviceLinkage, setServiceLinkage] = useStickyState<ServiceLinkageMap>('app_service_linkage', {});
     
     // --- Toast Notification State ---
     const [toasts, setToasts] = useState<Toast[]>([]);
@@ -223,6 +226,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else {
             console.warn("Deletion lock cannot be changed in production mode.");
         }
+    };
+
+    const updateServiceLinkage = (featureId: string, apiId: string | null) => {
+        setServiceLinkage(prev => ({
+            ...prev,
+            [featureId]: apiId,
+        }));
     };
 
     const addNotification = useCallback((userId: string, message: string, type: Notification['type']) => {
@@ -1062,7 +1072,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         cart, disputes, apiIntegrations, scalabilityServices, leaveRequests, budgets,
         scheduledPayments, monetizationConfig, taxConfig, homePageConfig, assistantLogs,
         engagementAnalytics, adminWallets, personalizationRules,
-        orders, healthDocuments, healthChallenges, insuranceClaims,
+        orders, healthDocuments, healthChallenges, insuranceClaims, serviceLinkage,
         isAiGuardrailDisabled, toasts, isDeletionLocked,
         
         showToast, removeToast,
@@ -1082,6 +1092,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateApiIntegration, deactivateApiIntegration, updateScalabilityService,
         updateMonetizationConfig, updateTaxConfig, updateHomePageConfig,
         transferProfitToCash, recordTaxPayment, recordOperationalExpense,
+        updateServiceLinkage,
         logAssistantQuery, logEngagementEvent,
         addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule,
         addProduct, updateProduct, deleteProduct,

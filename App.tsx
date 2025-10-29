@@ -68,6 +68,7 @@ const AdminTaxManagement = lazy(() => import('./screens/admin/AdminTaxManagement
 const AdminPersonalizationEngine = lazy(() => import('./screens/admin/AdminPersonalizationEngine'));
 const AdminAssistantHub = lazy(() => import('./screens/admin/AdminAssistantHub'));
 const AdminSystemControlsScreen = lazy(() => import('./screens/admin/AdminSystemControlsScreen'));
+const AdminServiceLinkageScreen = lazy(() => import('./screens/admin/AdminServiceLinkageScreen'));
 
 
 // HR Screens
@@ -136,6 +137,7 @@ const App: React.FC = () => {
                         <Route path="admin/system/api" element={<AdminApiIntegration />} />
                         <Route path="admin/system/scalability" element={<AdminScalability />} />
                         <Route path="admin/system/controls" element={<AdminSystemControlsScreen />} />
+                        <Route path="admin/system/service-linkage" element={<AdminServiceLinkageScreen />} />
                         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
                     </Routes>
                 </AdminLayout>
