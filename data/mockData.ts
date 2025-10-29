@@ -1,7 +1,7 @@
 import {
     User, Role, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration,
     IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig,
-    HomePageConfig, AdminWallets, PersonalizationRule, Order, HealthChallenge
+    HomePageConfig, AdminWallets, PersonalizationRule, Order, HealthChallenge, InsuranceClaim
 } from '../types';
 
 export const initialUsers: User[] = [
@@ -363,5 +363,44 @@ export const initialHealthChallenges: HealthChallenge[] = [
             { userId: 'user-jkt-001', progress: 85 },
             { userId: 'hr-jkt-001', progress: 60 },
         ]
+    }
+];
+
+// Placeholder base64 image for receipts
+const placeholderReceipt = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPoAAAFaCAYAAAB2Q6soAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAARpSURBVHja7cExAQAAAMKg9U/tbwagAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD43w4gGgAB3tLdAAAAAElFTkSuQmCC';
+
+export const initialInsuranceClaims: InsuranceClaim[] = [
+    {
+        id: 'ic-001',
+        userId: 'user-jkt-001',
+        userName: 'Budi Karyawan',
+        branch: 'Jakarta',
+        type: 'Kacamata',
+        amount: 750000,
+        submissionDate: new Date(Date.now() - 2 * 86400000).toISOString(), // 2 days ago
+        receiptUrl: placeholderReceipt,
+        status: 'Pending'
+    },
+    {
+        id: 'ic-002',
+        userId: 'user-jkt-002',
+        userName: 'Inactive User',
+        branch: 'Jakarta',
+        type: 'Rawat Jalan',
+        amount: 150000,
+        submissionDate: new Date(Date.now() - 5 * 86400000).toISOString(), // 5 days ago
+        receiptUrl: placeholderReceipt,
+        status: 'Approved'
+    },
+    {
+        id: 'ic-003',
+        userId: 'user-jkt-001',
+        userName: 'Budi Karyawan',
+        branch: 'Jakarta',
+        type: 'Rawat Inap',
+        amount: 2500000,
+        submissionDate: new Date(Date.now() - 10 * 86400000).toISOString(), // 10 days ago
+        receiptUrl: placeholderReceipt,
+        status: 'Rejected'
     }
 ];

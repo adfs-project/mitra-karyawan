@@ -11,7 +11,7 @@ import {
     initialDoctors, initialConsultations, initialDisputes, initialApiIntegrations,
     initialScalabilityServices, initialLeaveRequests, initialMonetizationConfig,
     initialTaxConfig, initialHomePageConfig, initialAdminWallets, initialPersonalizationRules,
-    initialOrders, initialHealthChallenges
+    initialOrders, initialHealthChallenges, initialInsuranceClaims
 } from '../data/mockData';
 import { testApiConnection } from '../services/apiService';
 import { useAuth } from './AuthContext';
@@ -112,6 +112,9 @@ interface DataContextType {
     updateLeaveRequestStatus: (id: string, status: 'Approved' | 'Rejected') => Promise<void>;
     getBranchMoodAnalytics: (branch: string) => Promise<{ summary: string; data: { mood: string; count: number }[] }>;
     createHealthChallenge: (challenge: Omit<HealthChallenge, 'id' | 'creator' | 'participants'>) => Promise<void>;
+    approveInsuranceClaim: (claimId: string) => Promise<void>;
+    rejectInsuranceClaim: (claimId: string) => Promise<void>;
+
 
     // Financial Planning
     addBudget: (budget: Omit<Budget, 'id'|'userId'|'spent'>) => Promise<void>;
@@ -194,7 +197,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [personalizationRules, setPersonalizationRules] = useStickyState<PersonalizationRule[]>('app_personalization_rules', initialPersonalizationRules);
     const [healthDocuments, setHealthDocuments] = useStickyState<HealthDocument[]>('app_health_documents', []);
     const [healthChallenges, setHealthChallenges] = useStickyState<HealthChallenge[]>('app_health_challenges', initialHealthChallenges);
-    const [insuranceClaims, setInsuranceClaims] = useStickyState<InsuranceClaim[]>('app_insurance_claims', []);
+    const [insuranceClaims, setInsuranceClaims] = useStickyState<InsuranceClaim[]>('app_insurance_claims', initialInsuranceClaims);
     const [serviceLinkage, setServiceLinkage] = useStickyState<ServiceLinkageMap>('app_service_linkage', {});
     
     // --- Toast Notification State ---
@@ -761,6 +764,44 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
+    const approveInsuranceClaim = async (claimId: string) => {
+        const claim = insuranceClaims.find(c => c.id === claimId);
+        if (!claim) {
+            showToast("Claim not found.", "error");
+            return;
+        }
+
+        setAdminWallets(prev => ({ ...prev, cash: prev.cash - claim.amount }));
+        const txResult = await addTransaction({
+            userId: claim.userId,
+            type: 'Insurance Claim',
+            amount: claim.amount,
+            description: `Reimbursement for ${claim.type} claim`,
+            status: 'Completed',
+        });
+
+        if (txResult.success) {
+            setInsuranceClaims(prev => prev.map(c => c.id === claimId ? { ...c, status: 'Approved' } : c));
+            addNotification(claim.userId, `Your insurance claim for ${claim.type} amounting to ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(claim.amount)} has been approved.`, 'success');
+            showToast("Claim approved and funds disbursed.", "success");
+        } else {
+            setAdminWallets(prev => ({ ...prev, cash: prev.cash + claim.amount }));
+            showToast("Failed to disburse funds. Please check user wallet.", "error");
+        }
+    };
+
+    const rejectInsuranceClaim = async (claimId: string) => {
+        const claim = insuranceClaims.find(c => c.id === claimId);
+        if (!claim) {
+            showToast("Claim not found.", "error");
+            return;
+        }
+
+        setInsuranceClaims(prev => prev.map(c => c.id === claimId ? { ...c, status: 'Rejected' } : c));
+        addNotification(claim.userId, `Your insurance claim for ${claim.type} has been rejected. Please contact HR for details.`, 'warning');
+        showToast("Claim has been rejected.", "success");
+    };
+
 
     const addBudget = async (budget: Omit<Budget, 'id'|'userId'|'spent'>) => {
         if(!user) return;
@@ -1089,6 +1130,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addHealthDocument, deleteHealthDocument, joinHealthChallenge, submitInsuranceClaim,
         subscribeToHealthPlus, redeemPrescription,
         submitLeaveRequest, updateLeaveRequestStatus, getBranchMoodAnalytics, createHealthChallenge,
+        approveInsuranceClaim, rejectInsuranceClaim,
         addBudget, updateBudget, deleteBudget,
         addScheduledPayment, updateScheduledPayment, deleteScheduledPayment,
         applyForPayLater, approvePayLater, rejectPayLater,
