@@ -14,15 +14,15 @@ import { ErrorBoundary } from 'react-error-boundary';
 import CompactArticleCard from '../../components/user/news/CompactArticleCard';
 
 const quickAccessItems = [
-    { id: 'ppob', name: 'PPOB & Tagihan', icon: BoltIcon, path: '/under-construction' },
+    { id: 'ppob', name: 'PPOB & Tagihan', icon: BoltIcon, path: '/ppob' },
     { id: 'market', name: 'Marketplace', icon: ShoppingCartIcon, path: '/market' },
     { id: 'health', name: 'Layanan Kesehatan', icon: HeartIcon, path: '/health' },
-    { id: 'gov', name: 'Layanan Pemerintah', icon: BuildingLibraryIcon, path: '/under-construction' },
-    { id: 'lifestyle', name: 'Gaya Hidup', icon: TicketIcon, path: '/under-construction' },
-    { id: 'pulsa', name: 'Pulsa & Data', icon: PhoneIcon, path: '/under-construction' },
-    { id: 'cashout', name: 'Tarik Tunai', icon: BanknotesIcon, path: '/under-construction' },
-    { id: 'daily', name: 'Belanja Harian', icon: ShoppingCartIcon, path: '/under-construction' },
-    { id: 'ai-invest', name: 'AI Investasi', icon: CpuChipIcon, path: '/under-construction', featureFlag: 'aiInvestmentBot' },
+    { id: 'gov', name: 'Layanan Pemerintah', icon: BuildingLibraryIcon, path: '/government-services' },
+    { id: 'lifestyle', name: 'Gaya Hidup', icon: TicketIcon, path: '/lifestyle' },
+    { id: 'pulsa', name: 'Pulsa & Data', icon: PhoneIcon, path: '/mobile-topup' },
+    { id: 'cashout', name: 'Tarik Tunai', icon: BanknotesIcon, path: '/cash-out' },
+    { id: 'daily', name: 'Belanja Harian', icon: ShoppingCartIcon, path: '/daily-needs' },
+    { id: 'ai-invest', name: 'AI Investasi', icon: CpuChipIcon, path: '/placeholder/AI Investasi', featureFlag: 'aiInvestmentBot' },
 ];
 
 const GlobalAnnouncement: React.FC<{ message: string }> = ({ message }) => (
@@ -172,9 +172,7 @@ const HomeScreen: React.FC = () => {
                 <h2 className="text-lg font-bold text-text-primary mb-4">Akses Cepat</h2>
                 <div className="grid grid-cols-4 gap-4 text-center">
                     {orderedQuickAccessItems.map((item) => {
-                        const path = item.path === '/under-construction'
-                            ? `/placeholder/${encodeURIComponent(item.name)}`
-                            : item.path;
+                        const path = item.path;
 
                         return (
                              <Link 
