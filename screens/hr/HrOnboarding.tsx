@@ -1,12 +1,16 @@
 
-import React, { useMemo } from 'react';
+
+import React, { useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { User } from '../../types';
+import { PlusIcon } from '@heroicons/react/24/solid';
+import AddEmployeeModal from '../../components/hr/AddEmployeeModal';
 
 const HrOnboarding: React.FC = () => {
     const { user: hrUser } = useAuth();
     const { users, updateUserStatus } = useData();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const branchEmployees = useMemo(() => {
         if (!hrUser || hrUser.role !== 'HR') return [];
@@ -22,7 +26,16 @@ const HrOnboarding: React.FC = () => {
 
     return (
         <div className="p-4 space-y-6">
-            <h1 className="text-3xl font-bold text-primary">Manajemen Karyawan - Onboarding & Offboarding</h1>
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold text-primary">Manajemen Karyawan - Onboarding & Offboarding</h1>
+                 <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="btn-primary flex items-center px-4 py-2 rounded-lg font-bold"
+                >
+                    <PlusIcon className="h-5 w-5 mr-2" />
+                    Tambah Karyawan Baru
+                </button>
+            </div>
             <p className="text-text-secondary">Lihat daftar karyawan di cabang Anda dan kelola status mereka.</p>
 
             <div className="bg-surface p-4 rounded-lg border border-border-color">
@@ -63,6 +76,7 @@ const HrOnboarding: React.FC = () => {
                     </table>
                 </div>
             </div>
+            <AddEmployeeModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
     );
 };

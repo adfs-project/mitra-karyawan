@@ -13,6 +13,12 @@ export interface UserProfile {
     branch?: string; // For HR and User roles
     joinDate?: string;
     salary?: number;
+    // New fields for employee creation form
+    placeOfBirth?: string;
+    dateOfBirth?: string;
+    companyName?: string;
+    employmentStatus?: 'Private Employee' | 'Civil Servant' | 'State-Owned Enterprise' | 'Freelance';
+    employeeType?: 'Contract' | 'Permanent';
 }
 
 export interface Wallet {

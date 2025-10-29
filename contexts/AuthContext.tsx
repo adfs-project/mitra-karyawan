@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { User, Role } from '../types';
+import { User, Role, UserProfile } from '../types';
 import { initialUsers } from '../data/mockData';
 
 interface AuthContextType {
@@ -9,6 +9,11 @@ interface AuthContextType {
     logout: () => void;
     register: (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData'>) => Promise<'success' | 'exists'>;
     updateCurrentUser: (updatedUser: User) => void;
+    createEmployee: (employeeData: {
+        email: string;
+        password: string;
+        profile: Omit<UserProfile, 'photoUrl' | 'branch'>;
+    }) => Promise<'success' | 'exists'>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -113,6 +118,43 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUsers(prevUsers => [...prevUsers, newUser]);
         return 'success';
     };
+
+    const createEmployee = async (employeeData: {
+        email: string;
+        password: string;
+        profile: Omit<UserProfile, 'photoUrl' | 'branch'>;
+    }): Promise<'success' | 'exists'> => {
+        if (!user || user.role !== Role.HR) {
+            throw new Error("Only HR users can create new employees.");
+        }
+        if (users.some(u => u.email.toLowerCase() === employeeData.email.toLowerCase())) {
+            return 'exists';
+        }
+
+        const newUser: User = {
+            id: `user-${Date.now()}`,
+            email: employeeData.email,
+            password: employeeData.password,
+            role: Role.User,
+            status: 'active',
+            profile: {
+                ...employeeData.profile,
+                branch: user.profile.branch, // Automatically assign the HR's branch
+                photoUrl: `https://i.pravatar.cc/150?u=${employeeData.email}`,
+            },
+            wallet: { balance: 0, isFrozen: false },
+            achievements: [],
+            loyaltyPoints: 0,
+            wishlist: [],
+            bookmarkedArticles: [],
+            healthData: {
+                moodHistory: [],
+                activeChallenges: []
+            }
+        };
+        setUsers(prevUsers => [...prevUsers, newUser]);
+        return 'success';
+    };
     
     const updateCurrentUser = (updatedUser: User) => {
         setUser(updatedUser);
@@ -121,7 +163,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, verify2FA, logout, register, updateCurrentUser }}>
+        <AuthContext.Provider value={{ user, login, verify2FA, logout, register, updateCurrentUser, createEmployee }}>
             {children}
         </AuthContext.Provider>
     );
