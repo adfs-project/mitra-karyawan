@@ -14,6 +14,7 @@ const DeactivatedAccountScreen = lazy(() => import('./screens/auth/DeactivatedAc
 const UnderConstructionScreen = lazy(() => import('./screens/common/UnderConstructionScreen'));
 const FunctionalPlaceholderScreen = lazy(() => import('./screens/common/FunctionalPlaceholderScreen'));
 const OnboardingTour = lazy(() => import('./components/user/OnboardingTour'));
+const InstallBanner = lazy(() => import('./components/common/InstallBanner'));
 
 
 // User Screens
@@ -119,11 +120,46 @@ const HrRoutes: React.FC = () => (
 const App: React.FC = () => {
     const { user } = useAuth();
     const [showOnboardingTour, setShowOnboardingTour] = useState(false);
+    const [installPromptEvent, setInstallPromptEvent] = useState<any>(null);
+    const [showInstallBanner, setShowInstallBanner] = useState(false);
 
     // Signal a successful render to the crash loop detector.
     useEffect(() => {
         sessionStorage.removeItem('crash_count');
     }, []);
+
+    // PWA Install Prompt Logic
+    useEffect(() => {
+        const handleBeforeInstallPrompt = (e: Event) => {
+            e.preventDefault();
+            setInstallPromptEvent(e);
+            // Check if the user has already dismissed the banner in this session
+            if (!sessionStorage.getItem('app_install_dismissed')) {
+                setShowInstallBanner(true);
+            }
+        };
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        };
+    }, []);
+    
+    const handleInstallClick = () => {
+        if (!installPromptEvent) return;
+        installPromptEvent.prompt();
+        installPromptEvent.userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
+            setShowInstallBanner(false);
+            setInstallPromptEvent(null);
+        });
+    };
+    
+    const handleDismissInstall = () => {
+        sessionStorage.setItem('app_install_dismissed', 'true');
+        setShowInstallBanner(false);
+    };
+
 
     // Check if the onboarding tour should be shown for new users.
     useEffect(() => {
@@ -239,6 +275,14 @@ const App: React.FC = () => {
                 <Suspense fallback={<Spinner />}>
                     <OnboardingTour onComplete={handleOnboardingComplete} />
                 </Suspense>
+            )}
+            {showInstallBanner && (
+                 <Suspense fallback={<div/>}>
+                     <InstallBanner
+                        onInstall={handleInstallClick}
+                        onDismiss={handleDismissInstall}
+                     />
+                 </Suspense>
             )}
             <HashRouter>
                 <Suspense fallback={<Spinner />}>
