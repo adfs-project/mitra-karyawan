@@ -312,6 +312,7 @@ const MyAccountScreen: React.FC = () => {
                         <div>
                             <h1 className="text-2xl font-bold text-text-primary">{user.profile.name}</h1>
                             <p className="text-text-secondary">{user.email}</p>
+                            <p className="text-text-secondary text-sm">{user.profile.phone}</p>
                         </div>
                     </div>
                      <button onClick={() => setEditModalOpen(true)} className="p-2 bg-surface-light rounded-full hover:bg-border-color">
@@ -329,6 +330,41 @@ const MyAccountScreen: React.FC = () => {
                              <p className="font-bold text-primary">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(user.payLater.limit)}</p>
                         </div>
                     )}
+                </div>
+            </div>
+
+            <div className="m-4 bg-surface rounded-lg border border-border-color p-4">
+                <h2 className="text-lg font-bold text-primary mb-4 flex items-center">
+                    <BriefcaseIcon className="h-5 w-5 mr-2" />
+                    Informasi Kepegawaian
+                </h2>
+                <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-sm">
+                    <div>
+                        <p className="text-text-secondary">Gaji Bulanan (IDR)</p>
+                        <p className="font-semibold text-text-primary">{user.profile.salary ? new Intl.NumberFormat('id-ID').format(user.profile.salary) : '-'}</p>
+                    </div>
+                     <div>
+                        <p className="text-text-secondary">Status Kepegawaian</p>
+                        <p className="font-semibold text-text-primary">{user.profile.employmentStatus || '-'}</p>
+                    </div>
+                    <div>
+                        <p className="text-text-secondary">Nama Perusahaan</p>
+                        <p className="font-semibold text-text-primary">{user.profile.companyName || '-'}</p>
+                    </div>
+                    <div>
+                        <p className="text-text-secondary">Tanggal Mulai Bekerja</p>
+                        <p className="font-semibold text-text-primary">{user.profile.joinDate ? new Date(user.profile.joinDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric'}) : '-'}</p>
+                    </div>
+                    <div>
+                        <p className="text-text-secondary">Tipe Karyawan</p>
+                        <p className="font-semibold text-text-primary">{user.profile.employeeType || '-'}</p>
+                    </div>
+                     <div>
+                        <p className="text-text-secondary">Tempat & Tanggal Lahir</p>
+                        <p className="font-semibold text-text-primary">
+                            {user.profile.placeOfBirth || '-'}, {user.profile.dateOfBirth ? new Date(user.profile.dateOfBirth).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric'}) : '-'}
+                        </p>
+                    </div>
                 </div>
             </div>
             
