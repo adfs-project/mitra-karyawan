@@ -186,59 +186,111 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setAppData(vaultService.getSanitizedData());
     };
 
-    const clockIn = async (): Promise<{ success: boolean; message: string; }> => {
-        if (!user) return { success: false, message: "User not logged in." };
+    const clockIn = (): Promise<{ success: boolean; message: string; }> => {
+        return new Promise((resolve) => {
+            if (!user) {
+                resolve({ success: false, message: "User not logged in." });
+                return;
+            }
+            
+            const openRecord = appData.attendanceRecords.find(
+                r => r.userId === user.id && r.clockInTime && !r.clockOutTime
+            );
+    
+            if (openRecord) {
+                resolve({ success: false, message: "Anda harus melakukan clock-out terlebih dahulu sebelum bisa clock-in lagi." });
+                return;
+            }
 
-        const openRecord = appData.attendanceRecords.find(
-            r => r.userId === user.id && r.clockInTime && !r.clockOutTime
-        );
-
-        if (openRecord) {
-            return { success: false, message: "Anda harus melakukan clock-out terlebih dahulu sebelum bisa clock-in lagi." };
-        }
-
-        try {
-            const newRecord: AttendanceRecord = {
-                id: `att-${Date.now()}`,
-                userId: user.id,
-                userName: user.profile.name,
-                branch: user.profile.branch || 'N/A',
-                date: new Date().toISOString().split('T')[0],
-                clockInTime: new Date().toISOString(),
-            };
-            updateState('attendanceRecords', [...appData.attendanceRecords, newRecord]);
-            return { success: true, message: `Berhasil Clock In pada ${new Date().toLocaleTimeString('id-ID')}` };
-
-        } catch (error: any) {
-            console.error("Clock-in error:", error);
-            return { success: false, message: "Terjadi kesalahan yang tidak terduga." };
-        }
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    const newRecord: AttendanceRecord = {
+                        id: `att-${Date.now()}`,
+                        userId: user.id,
+                        userName: user.profile.name,
+                        branch: user.profile.branch || 'N/A',
+                        date: new Date().toISOString().split('T')[0],
+                        clockInTime: new Date().toISOString(),
+                        clockInLocation: { latitude, longitude },
+                    };
+                    updateState('attendanceRecords', [...appData.attendanceRecords, newRecord]);
+                    resolve({ success: true, message: `Berhasil Clock In pada ${new Date().toLocaleTimeString('id-ID')}` });
+                },
+                (error) => {
+                    let message = "Gagal mendapatkan lokasi: ";
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            message += "Izin lokasi ditolak.";
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            message += "Informasi lokasi tidak tersedia.";
+                            break;
+                        case error.TIMEOUT:
+                            message += "Permintaan lokasi timed out.";
+                            break;
+                        default:
+                            message += "Terjadi kesalahan yang tidak diketahui.";
+                            break;
+                    }
+                    console.error("Geolocation error:", error);
+                    resolve({ success: false, message });
+                },
+                { enableHighAccuracy: true }
+            );
+        });
     };
-
-    const clockOut = async (): Promise<{ success: boolean; message: string; }> => {
-        if (!user) return { success: false, message: "User not logged in." };
-
-        const recordToClockOut = [...appData.attendanceRecords]
-            .filter(r => r.userId === user.id && r.clockInTime && !r.clockOutTime)
-            .sort((a, b) => new Date(b.clockInTime!).getTime() - new Date(a.clockInTime!).getTime())[0];
-
-        if (!recordToClockOut) {
-            return { success: false, message: "Tidak ada sesi absen aktif untuk diakhiri (clock-out)." };
-        }
-
-        try {
-            const updatedRecord = { ...recordToClockOut, clockOutTime: new Date().toISOString() };
-            // Since we are no longer tracking location, remove location fields if they exist from old records.
-            delete updatedRecord.clockInLocation;
-            delete updatedRecord.clockOutLocation;
-
-            updateState('attendanceRecords', appData.attendanceRecords.map(r => r.id === updatedRecord.id ? updatedRecord : r));
-            return { success: true, message: `Berhasil Clock Out pada ${new Date().toLocaleTimeString('id-ID')}` };
-
-        } catch (error: any) {
-            console.error("Clock-out error:", error);
-            return { success: false, message: "Terjadi kesalahan yang tidak terduga." };
-        }
+    
+    const clockOut = (): Promise<{ success: boolean; message: string; }> => {
+        return new Promise((resolve) => {
+            if (!user) {
+                resolve({ success: false, message: "User not logged in." });
+                return;
+            }
+            
+            const recordToClockOut = [...appData.attendanceRecords]
+                .filter(r => r.userId === user.id && r.clockInTime && !r.clockOutTime)
+                .sort((a, b) => new Date(b.clockInTime!).getTime() - new Date(a.clockInTime!).getTime())[0];
+    
+            if (!recordToClockOut) {
+                resolve({ success: false, message: "Tidak ada sesi absen aktif untuk diakhiri (clock-out)." });
+                return;
+            }
+    
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    const updatedRecord = { 
+                        ...recordToClockOut, 
+                        clockOutTime: new Date().toISOString(),
+                        clockOutLocation: { latitude, longitude }
+                    };
+    
+                    updateState('attendanceRecords', appData.attendanceRecords.map(r => r.id === updatedRecord.id ? updatedRecord : r));
+                    resolve({ success: true, message: `Berhasil Clock Out pada ${new Date().toLocaleTimeString('id-ID')}` });
+                },
+                (error) => {
+                    let message = "Gagal mendapatkan lokasi: ";
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            message += "Izin lokasi ditolak.";
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            message += "Informasi lokasi tidak tersedia.";
+                            break;
+                        case error.TIMEOUT:
+                            message += "Permintaan lokasi timed out.";
+                            break;
+                        default:
+                            message += "Terjadi kesalahan yang tidak diketahui.";
+                            break;
+                    }
+                    console.error("Geolocation error:", error);
+                    resolve({ success: false, message });
+                },
+                { enableHighAccuracy: true }
+            );
+        });
     };
 
 

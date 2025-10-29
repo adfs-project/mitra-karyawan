@@ -2,7 +2,18 @@ import React from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/solid';
+import { ArrowLeftIcon, ClipboardDocumentListIcon, MapPinIcon } from '@heroicons/react/24/solid';
+import { Coordinates } from '../../types';
+
+const LocationInfo: React.FC<{ location?: Coordinates }> = ({ location }) => {
+    if (!location) return null;
+    return (
+        <p className="text-xs text-text-secondary mt-1 flex items-center">
+            <MapPinIcon className="h-3 w-3 mr-1" />
+            {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
+        </p>
+    );
+};
 
 const AttendanceHistoryScreen: React.FC = () => {
     const { user } = useAuth();
@@ -42,14 +53,16 @@ const AttendanceHistoryScreen: React.FC = () => {
                         {userRecords.map(record => (
                             <div key={record.id} className="bg-surface-light p-4 rounded-lg">
                                 <p className="font-bold text-text-primary">{formatDate(record.date)}</p>
-                                <div className="flex justify-between items-center mt-2 text-sm">
+                                <div className="flex justify-between items-start mt-2 text-sm">
                                     <div>
                                         <p className="text-text-secondary">Masuk</p>
                                         <p className="font-semibold">{formatTime(record.clockInTime)}</p>
+                                        <LocationInfo location={record.clockInLocation} />
                                     </div>
-                                    <div>
+                                    <div className="text-right">
                                         <p className="text-text-secondary">Keluar</p>
                                         <p className="font-semibold">{formatTime(record.clockOutTime)}</p>
+                                        <LocationInfo location={record.clockOutLocation} />
                                     </div>
                                 </div>
                             </div>
