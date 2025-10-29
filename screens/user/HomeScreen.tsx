@@ -1,112 +1,28 @@
 import React from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
-import { Link } from 'react-router-dom';
-import { Transaction } from '../../types';
-import { 
-    ArrowUpRightIcon, BoltIcon, BuildingLibraryIcon, PhoneIcon, ShoppingCartIcon, BanknotesIcon, TicketIcon, HeartIcon,
-    ArrowUpCircleIcon, ArrowDownCircleIcon, MegaphoneIcon, ExclamationTriangleIcon, CpuChipIcon, NewspaperIcon
-} from '@heroicons/react/24/outline';
 import PersonalizedGreeting from '../../components/user/PersonalizedGreeting';
 import SmartAssistant from '../../components/user/SmartAssistant';
 import ForYouWidget from '../../components/user/ForYouWidget';
-import { ErrorBoundary } from 'react-error-boundary';
 import CompactArticleCard from '../../components/user/news/CompactArticleCard';
+import { useData } from '../../contexts/DataContext';
+import { BuildingStorefrontIcon, CurrencyDollarIcon, HeartIcon, NewspaperIcon } from '@heroicons/react/24/solid';
+import { Link } from 'react-router-dom';
 
-const quickAccessItems = [
-    { id: 'ppob', name: 'PPOB & Tagihan', icon: BoltIcon, path: '/ppob' },
-    { id: 'market', name: 'Marketplace', icon: ShoppingCartIcon, path: '/market' },
-    { id: 'health', name: 'Layanan Kesehatan', icon: HeartIcon, path: '/health' },
-    { id: 'gov', name: 'Layanan Pemerintah', icon: BuildingLibraryIcon, path: '/government-services' },
-    { id: 'lifestyle', name: 'Gaya Hidup', icon: TicketIcon, path: '/lifestyle' },
-    { id: 'pulsa', name: 'Pulsa & Data', icon: PhoneIcon, path: '/mobile-topup' },
-    { id: 'cashout', name: 'Tarik Tunai', icon: BanknotesIcon, path: '/cash-out' },
-    { id: 'daily', name: 'Belanja Harian', icon: ShoppingCartIcon, path: '/daily-needs' },
-    { id: 'ai-invest', name: 'AI Investasi', icon: CpuChipIcon, path: '/placeholder/AI Investasi', featureFlag: 'aiInvestmentBot' },
-];
-
-const GlobalAnnouncement: React.FC<{ message: string }> = ({ message }) => (
-    <div className="bg-secondary/20 border border-secondary text-secondary p-3 rounded-lg flex items-center space-x-3">
-        <MegaphoneIcon className="h-6 w-6" />
-        <p className="font-semibold text-sm">{message}</p>
-    </div>
-);
-
-const WidgetErrorFallback: React.FC<{ error: Error }> = ({ error }) => {
-    return (
-        <div className="bg-red-500/10 border border-red-500 text-red-400 p-3 rounded-lg text-center">
-            <ExclamationTriangleIcon className="h-8 w-8 mx-auto mb-2" />
-            <h3 className="font-bold">Gagal Memuat Widget</h3>
-            <p className="text-xs">{error.message}</p>
-        </div>
-    );
-};
-
-
-// Sub-component for Recent Transactions
-const RecentTransactions: React.FC = () => {
-    const { user } = useAuth();
-    const { transactions } = useData();
-
-    const recentTx = transactions
-        .filter(tx => tx.userId === user?.id)
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-        .slice(0, 3);
-        
-    const getTransactionIcon = (type: Transaction['type']) => {
-        return type === 'Top-Up' || type === 'Refund' || type === 'Reversal'
-            ? <ArrowUpCircleIcon className="h-8 w-8 text-green-400" />
-            : <ArrowDownCircleIcon className="h-8 w-8 text-red-400" />;
-    };
-    
-    if(recentTx.length === 0) return null;
-
+const QuickAccess: React.FC = () => {
+    const items = [
+        { name: 'Market', icon: BuildingStorefrontIcon, path: '/market' },
+        { name: 'Wallet', icon: CurrencyDollarIcon, path: '/wallet' },
+        { name: 'Health', icon: HeartIcon, path: '/health' },
+        { name: 'News', icon: NewspaperIcon, path: '/news' },
+    ];
     return (
         <div>
-            <h2 className="text-lg font-bold text-text-primary mb-4">Aktivitas Terkini</h2>
-            <div className="space-y-3">
-                {recentTx.map(tx => (
-                    <div key={tx.id} className="bg-surface p-3 rounded-lg flex items-center space-x-4 border border-border-color">
-                        <div>{getTransactionIcon(tx.type)}</div>
-                        <div className="flex-grow">
-                            <p className="font-semibold text-text-primary text-sm">{tx.description}</p>
-                            <p className="text-xs text-text-secondary">{new Date(tx.timestamp).toLocaleDateString()}</p>
-                        </div>
-                        <p className={`font-bold text-sm ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(tx.amount)}
-                        </p>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};
-
-// Sub-component for Latest News
-const LatestNews: React.FC = () => {
-    const { articles } = useData();
-
-    const latestArticles = articles
-        .filter(a => a.status === 'Published' && a.type !== 'Banner')
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-        .slice(0, 3);
-    
-    if (latestArticles.length === 0) return null;
-
-    return (
-        <div>
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-text-primary flex items-center">
-                    <NewspaperIcon className="h-5 w-5 mr-2" />
-                    Info & Berita
-                </h2>
-                <Link to="/news" className="text-sm font-semibold text-primary hover:underline">
-                    Lihat Semua
-                </Link>
-            </div>
-            <div className="space-y-3">
-                {latestArticles.map(article => (
-                    <CompactArticleCard key={article.id} article={article} />
+             <h2 className="text-lg font-bold text-text-primary mb-2">Akses Cepat</h2>
+             <div className="grid grid-cols-4 gap-4 text-center">
+                {items.map(item => (
+                    <Link to={item.path} key={item.name} className="bg-surface p-4 rounded-lg flex flex-col items-center justify-center">
+                        <item.icon className="h-8 w-8 text-primary mb-2" />
+                        <span className="text-xs font-semibold">{item.name}</span>
+                    </Link>
                 ))}
             </div>
         </div>
@@ -115,80 +31,26 @@ const LatestNews: React.FC = () => {
 
 
 const HomeScreen: React.FC = () => {
-    const { user } = useAuth();
-    const { homePageConfig, logEngagementEvent } = useData();
-    
-    const visibleQuickAccessItems = quickAccessItems.filter(item => {
-        if (item.featureFlag) {
-            return homePageConfig.featureFlags[item.featureFlag as keyof typeof homePageConfig.featureFlags];
-        }
-        return true;
-    });
+    const { articles } = useData();
 
-    const orderedQuickAccessItems = [...visibleQuickAccessItems].sort((a, b) => {
-        return homePageConfig.quickAccessOrder.indexOf(a.id) - homePageConfig.quickAccessOrder.indexOf(b.id);
-    });
+    const latestNews = articles
+        .filter(a => a.status === 'Published')
+        .sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 2);
 
     return (
-        <div className="p-4 space-y-8">
-            {homePageConfig.globalAnnouncement?.active ? (
-                <GlobalAnnouncement message={homePageConfig.globalAnnouncement.message} />
-            ) : (
-                <PersonalizedGreeting />
-            )}
-            
+        <div className="space-y-8 p-4">
+            <PersonalizedGreeting />
             <SmartAssistant />
-
-            {/* Wallet Summary */}
-            <div className="bg-surface p-6 rounded-lg shadow-lg border border-border-color flex justify-between items-center">
-                <div>
-                    <p className="text-text-secondary text-sm">Saldo Dompet</p>
-                    <p className="text-3xl font-bold text-primary">
-                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(user?.wallet.balance || 0)}
-                    </p>
-                </div>
-                <div className="flex space-x-2">
-                    <Link to="/wallet" className="flex items-center space-x-2 bg-primary/20 text-primary px-4 py-2 rounded-full text-sm font-semibold hover:bg-primary/30">
-                        <span>Lihat Detail</span>
-                        <ArrowUpRightIcon className="h-4 w-4" />
-                    </Link>
-                </div>
-            </div>
-            
+            <QuickAccess />
             <ForYouWidget />
-
-            <ErrorBoundary FallbackComponent={WidgetErrorFallback}>
-                 <RecentTransactions />
-            </ErrorBoundary>
-
-            {/* NEW: Latest News Section */}
-            <ErrorBoundary FallbackComponent={WidgetErrorFallback}>
-                 <LatestNews />
-            </ErrorBoundary>
-
-
-            {/* Quick Access Grid */}
             <div>
-                <h2 className="text-lg font-bold text-text-primary mb-4">Akses Cepat</h2>
-                <div className="grid grid-cols-4 gap-4 text-center">
-                    {orderedQuickAccessItems.map((item) => {
-                        const path = item.path;
-
-                        return (
-                             <Link 
-                                to={path} 
-                                key={item.id} 
-                                onClick={() => logEngagementEvent('quickAccessClicks', item.id)}
-                                className="flex flex-col items-center p-2 bg-surface rounded-lg hover:bg-surface-light transition-colors"
-                            >
-                                <div className="w-12 h-12 bg-surface-light rounded-full flex items-center justify-center mb-2 border border-border-color">
-                                    <item.icon className="h-6 w-6 text-secondary" />
-                                </div>
-                                <span className="text-xs text-text-secondary">{item.name}</span>
-                            </Link>
-                        )
-                    })}
-                </div>
+                 <h2 className="text-lg font-bold text-text-primary mb-4">Info & Berita Terbaru</h2>
+                 <div className="space-y-3">
+                    {latestNews.map(article => (
+                        <CompactArticleCard key={article.id} article={article} />
+                    ))}
+                 </div>
             </div>
         </div>
     );

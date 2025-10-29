@@ -1,69 +1,47 @@
+// This file contains all the core type definitions for the application.
+
 export enum Role {
+    User = 'User',
     Admin = 'Admin',
     HR = 'HR',
-    User = 'User',
-}
-
-export enum IntegrationStatus {
-    Active = 'Active',
-    Inactive = 'Inactive',
-    Error = 'Error',
-}
-
-export enum ScalabilityServiceStatus {
-    Active = 'Active',
-    Inactive = 'Inactive',
-    Provisioning = 'Provisioning',
-    AwaitingConfig = 'Awaiting Config',
-    Scaling = 'Scaling',
-    Migrating = 'Migrating',
-    Error = 'Error',
-}
-
-// --- Interfaces & Types ---
-
-export interface Wallet {
-    balance: number;
-    isFrozen: boolean;
-}
-
-export interface MoodHistory {
-    date: string;
-    mood: 'Sangat Sedih' | 'Sedih' | 'Biasa' | 'Senang' | 'Sangat Senang';
-}
-
-export interface WearableData {
-    steps: { date: string, value: number }[];
-    sleep: { date: string, value: number }[]; // in hours
-}
-
-export interface HealthData {
-    moodHistory: MoodHistory[];
-    activeChallenges: string[];
-    wearableData?: WearableData;
-}
-
-export interface PayLater {
-    status: 'not_applied' | 'pending' | 'approved' | 'rejected';
-    limit: number;
-    used: number;
 }
 
 export interface UserProfile {
     name: string;
     phone: string;
     photoUrl: string;
-    branch?: string;
+    branch?: string; // For HR and User roles
     joinDate?: string;
     salary?: number;
 }
 
+export interface Wallet {
+    balance: number;
+    isFrozen: boolean;
+}
+
 export type Achievement = 'First Purchase' | 'Punctual Payer' | 'Top Spender';
+
+export interface MoodHistory {
+    date: string;
+    mood: 'Sangat Sedih' | 'Sedih' | 'Biasa' | 'Senang' | 'Sangat Senang';
+}
+
+export interface HealthData {
+    moodHistory: MoodHistory[];
+    activeChallenges: string[];
+}
+
+export interface PayLaterStatus {
+    status: 'not_applied' | 'pending' | 'approved' | 'rejected';
+    limit: number;
+    used: number;
+}
 
 export interface User {
     id: string;
     email: string;
-    password?: string;
+    password: string;
     profile: UserProfile;
     role: Role;
     status: 'active' | 'inactive';
@@ -73,7 +51,7 @@ export interface User {
     wishlist: string[];
     bookmarkedArticles: string[];
     healthData: HealthData;
-    payLater?: PayLater;
+    payLater?: PayLaterStatus;
     isPremium?: boolean;
 }
 
@@ -98,10 +76,6 @@ export interface Product {
     rating: number;
     reviewCount: number;
     reviews: ProductReview[];
-    monetization?: {
-        enabled: boolean;
-        revenueGenerated: number;
-    };
 }
 
 export interface ArticleComment {
@@ -117,32 +91,34 @@ export interface PollOption {
     votes: string[];
 }
 
+export interface ArticleMonetization {
+    enabled: boolean;
+    revenueGenerated: number;
+}
+
 export interface Article {
     id: string;
     title: string;
     summary: string;
     content: string;
-    category: string;
     author: string;
     timestamp: string;
+    category: string;
     status: 'Published' | 'Draft';
+    type: 'standard' | 'poll' | 'qa' | 'Banner';
     imageUrl?: string;
     youtubeId?: string;
     likes: string[];
     comments: ArticleComment[];
-    type: 'standard' | 'poll' | 'qa' | 'Banner';
     pollOptions?: PollOption[];
-    monetization?: {
-        enabled: boolean;
-        revenueGenerated: number;
-    };
+    monetization?: ArticleMonetization;
 }
 
 export interface Transaction {
     id: string;
     userId: string;
     userName: string;
-    type: 'Marketplace' | 'Top-Up' | 'Transfer' | 'Teleconsultation' | 'PPOB' | 'Refund' | 'Reversal' | 'Commission' | 'Tax' | 'Operational Expense' | 'Internal Transfer' | 'Insurance Claim' | 'Obat & Resep';
+    type: 'Top-Up' | 'Transfer' | 'Marketplace' | 'PPOB' | 'Refund' | 'Reversal' | 'Commission' | 'Internal Transfer' | 'Operational Expense' | 'Teleconsultation' | 'Tax' | 'Insurance Claim' | 'Obat & Resep';
     amount: number;
     description: string;
     timestamp: string;
@@ -154,7 +130,7 @@ export interface Notification {
     id: string;
     userId: string;
     message: string;
-    type: 'success' | 'error' | 'info' | 'warning';
+    type: 'success' | 'error' | 'warning' | 'info';
     read: boolean;
     timestamp: string;
 }
@@ -199,23 +175,15 @@ export interface Consultation {
     doctorName: string;
     doctorSpecialty: string;
     scheduledTime: string;
-    status: 'Scheduled' | 'Completed' | 'Cancelled';
+    status: 'Scheduled' | 'Completed';
     notes?: string;
-    prescription?: string; // Kept for simple text
-    eprescriptionId?: string; // Link to the new object
+    prescription?: string;
+    eprescriptionId?: string;
 }
 
-export interface Dispute {
-    id: string;
-    orderId: string;
-    buyerId: string;
-    buyerName: string;
-    sellerId: string;
-    sellerName: string;
-    reason: string;
-    status: 'Open' | 'Resolved';
-    resolution?: string;
-    timestamp: string;
+export interface CartItem {
+    productId: string;
+    quantity: number;
 }
 
 export interface OrderItem {
@@ -232,27 +200,56 @@ export interface Order {
     timestamp: string;
 }
 
+export interface Dispute {
+    id: string;
+    orderId: string;
+    buyerId: string;
+    buyerName: string;
+    sellerId: string;
+    sellerName: string;
+    reason: string;
+    status: 'Open' | 'Resolved';
+    resolution?: string;
+    timestamp: string;
+}
+
+export enum IntegrationStatus {
+    Active = 'Active',
+    Inactive = 'Inactive',
+    Error = 'Error',
+}
+
 export interface ApiIntegration {
     id: string;
     name: string;
     type: 'Bank' | 'E-Wallet' | 'Retail';
     status: IntegrationStatus;
     credentials?: {
-        apiKey: string;
-        clientId: string;
-        secretKey: string;
+        apiKey?: string;
+        clientId?: string;
+        secretKey?: string;
     };
+}
+
+export enum ScalabilityServiceStatus {
+    Active = 'ACTIVE',
+    Inactive = 'INACTIVE',
+    Provisioning = 'PROVISIONING',
+    AwaitingConfig = 'AWAITING_CONFIG',
+    Scaling = 'SCALING',
+    Migrating = 'MIGRATING',
+    Error = 'ERROR',
 }
 
 export interface ScalabilityService {
     id: string;
-    type: 'load_balancer' | 'cdn' | 'redis' | 'rabbitmq' | 'read_replicas' | 'db_sharding';
     name: string;
+    type: 'load_balancer' | 'cdn' | 'redis' | 'rabbitmq' | 'read_replicas' | 'db_sharding';
     description: string;
     status: ScalabilityServiceStatus;
-    cost: number;
     logs: string[];
-    metadata?: Record<string, any>;
+    cost: number;
+    metadata: Record<string, any>;
 }
 
 export interface LeaveRequest {
@@ -264,63 +261,6 @@ export interface LeaveRequest {
     endDate: string;
     reason: string;
     status: 'Pending' | 'Approved' | 'Rejected';
-}
-
-export interface MonetizationConfig {
-    marketplaceCommission: number;
-    marketingCPA: number;
-}
-
-export interface TaxConfig {
-    ppnRate: number;
-    pph21Rate: number;
-}
-
-export interface HomePageConfig {
-    globalAnnouncement: {
-        active: boolean;
-        message: string;
-    };
-    pinnedItemId: string;
-    quickAccessOrder: string[];
-    featureFlags: {
-        aiInvestmentBot: boolean;
-    };
-}
-
-export interface AdminWallets {
-    profit: number;
-    tax: number;
-    cash: number;
-}
-
-export type ConditionField = 'profile.branch' | 'role' | 'transactionCount';
-export type ConditionOperator = 'equals' | 'not_equals' | 'greater_than' | 'less_than';
-export type ActionType = 'PIN_ITEM' | 'SHOW_ANNOUNCEMENT';
-
-export interface PersonalizationCondition {
-    field: ConditionField;
-    operator: ConditionOperator;
-    value: string | number;
-}
-
-export interface PersonalizationRule {
-    id: string;
-    name: string;
-    conditions: PersonalizationCondition[];
-    action: {
-        type: ActionType;
-        payload: {
-            itemId?: string;
-            message?: string;
-        };
-    };
-    isActive: boolean;
-}
-
-export interface CartItem {
-    productId: string;
-    quantity: number;
 }
 
 export interface Budget {
@@ -340,6 +280,23 @@ export interface ScheduledPayment {
     nextDueDate: string;
 }
 
+export interface MonetizationConfig {
+    marketplaceCommission: number; // e.g., 0.05 for 5%
+    marketingCPA: number; // Cost Per Acquisition
+}
+
+export interface TaxConfig {
+    ppnRate: number; // VAT
+    pph21Rate: number; // Income Tax
+}
+
+export interface HomePageConfig {
+    pinnedItemId: string | null;
+    featureFlags: {
+        aiInvestmentBot: boolean;
+    };
+}
+
 export interface AssistantLog {
     id: string;
     userId: string;
@@ -353,17 +310,37 @@ export interface EngagementAnalytics {
     quickAccessClicks: Record<string, number>;
 }
 
-export type ToastType = 'success' | 'error' | 'info' | 'warning';
-
-export interface Toast {
-    id: number;
-    message: string;
-    type: ToastType;
+export interface AdminWallets {
+    profit: number;
+    tax: number;
+    cash: number; // Operational cash
 }
 
-export interface ChatMessage {
-    sender: 'user' | 'ai';
-    text: string;
+export type ConditionField = 'profile.branch' | 'role' | 'transactionCount';
+export type ConditionOperator = 'equals' | 'not_equals' | 'greater_than' | 'less_than';
+
+export interface PersonalizationCondition {
+    field: ConditionField;
+    operator: ConditionOperator;
+    value: string | number;
+}
+
+export type ActionType = 'PIN_ITEM' | 'SHOW_ANNOUNCEMENT';
+
+export interface PersonalizationAction {
+    type: ActionType;
+    payload: {
+        itemId?: string;
+        message?: string;
+    };
+}
+
+export interface PersonalizationRule {
+    id: string;
+    name: string;
+    conditions: PersonalizationCondition[];
+    action: PersonalizationAction;
+    isActive: boolean;
 }
 
 export interface HealthDocument {
@@ -371,15 +348,20 @@ export interface HealthDocument {
     userId: string;
     name: string;
     uploadDate: string;
-    fileUrl: string; // Base64 or a mock URL
+    fileUrl: string; // Base64 or cloud URL
+}
+
+export interface HealthChallengeParticipant {
+    userId: string;
+    progress: number;
 }
 
 export interface HealthChallenge {
     id: string;
     title: string;
     description: string;
-    creator: 'System' | { hrId: string; branch: string };
-    participants: { userId: string; progress: number }[]; // Progress as a percentage
+    creator: { hrId: string; branch: string } | 'System';
+    participants: HealthChallengeParticipant[];
 }
 
 export interface InsuranceClaim {
@@ -390,8 +372,23 @@ export interface InsuranceClaim {
     type: 'Rawat Jalan' | 'Rawat Inap' | 'Kacamata';
     amount: number;
     submissionDate: string;
-    receiptUrl: string; // Base64
     status: 'Pending' | 'Approved' | 'Rejected';
+    receiptUrl: string;
 }
 
-export type ServiceLinkageMap = Record<string, string | null>;
+export interface ServiceLinkageMap {
+    [featureId: string]: string | null; // e.g., { 'ppob-listrik': 'api-bca-01' }
+}
+
+export interface Toast {
+    id: number;
+    message: string;
+    type: ToastType;
+}
+
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+export interface ChatMessage {
+    sender: 'user' | 'ai';
+    text: string;
+}

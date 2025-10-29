@@ -25,7 +25,7 @@ const CartScreen: React.FC = () => {
         if (!user || subtotal <= 0) return;
 
         setIsCheckingOut(true);
-        // FIX: Expected 0 arguments, but got 1. The checkoutCart function does not take any arguments.
+        // FIX: The checkoutCart function does not take any arguments. Called without arguments.
         const result = await checkoutCart();
 
         if (result.success) {

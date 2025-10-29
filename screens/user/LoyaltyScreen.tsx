@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { StarIcon, ShoppingBagIcon, BanknotesIcon, TrophyIcon } from '@heroicons/react/24/solid';

@@ -9,7 +9,7 @@ import ProductFormModal from '../../components/user/market/ProductFormModal';
 
 const MyProductsStoreScreen: React.FC = () => {
     const { user } = useAuth();
-    const { products, addProduct, updateProduct, deleteProduct } = useData();
+    const { products, addProduct, updateProduct, deleteProduct, isDeletionLocked } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
@@ -59,8 +59,14 @@ const MyProductsStoreScreen: React.FC = () => {
                                 <button onClick={() => handleOpenModal(product)} className="p-2 bg-surface-light rounded-full hover:bg-border-color">
                                     <PencilIcon className="h-5 w-5 text-yellow-400" />
                                 </button>
-                                <button disabled title="Deletion is locked for stability." className="p-2 bg-surface-light rounded-full cursor-not-allowed">
-                                    <LockClosedIcon className="h-5 w-5 text-gray-500" />
+                                {/* FIX: Replaced hard-disabled button with one that respects the system-wide deletion lock */}
+                                <button
+                                    onClick={() => handleDeleteProduct(product.id)}
+                                    disabled={isDeletionLocked}
+                                    title={isDeletionLocked ? "Deletion is currently locked by an admin." : "Delete Product"}
+                                    className={`p-2 bg-surface-light rounded-full ${isDeletionLocked ? 'cursor-not-allowed' : 'hover:bg-border-color'}`}
+                                >
+                                    {isDeletionLocked ? <LockClosedIcon className="h-5 w-5 text-gray-500" /> : <TrashIcon className="h-5 w-5 text-red-500" />}
                                 </button>
                             </div>
                         </div>

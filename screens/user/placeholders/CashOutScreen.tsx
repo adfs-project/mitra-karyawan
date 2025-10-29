@@ -23,8 +23,8 @@ const CashOutScreen = () => {
     const [qrCodeUrl, setQrCodeUrl] = useState('');
     const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
     
-    // FIX: Replaced `NodeJS.Timeout` with a browser-compatible timer handling in `useEffect`.
-    // The `useEffect` is refactored for better timer management and to avoid potential unassigned variable issues.
+    // FIX: Ensured the timer logic is browser-compatible by using setInterval/clearInterval within useEffect,
+    // avoiding Node.js-specific types like NodeJS.Timeout.
     useEffect(() => {
         if (showCodeView && countdown > 0) {
             const timer = setInterval(() => {
