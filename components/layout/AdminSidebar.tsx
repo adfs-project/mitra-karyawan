@@ -1,10 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { ChartBarIcon, CurrencyDollarIcon, BuildingStorefrontIcon, UsersIcon, HeartIcon, Cog6ToothIcon, WrenchScrewdriverIcon, ArchiveBoxIcon, SparklesIcon, ChatBubbleLeftRightIcon, PlayCircleIcon, LinkIcon } from '@heroicons/react/24/solid';
+import { ChartBarIcon, CurrencyDollarIcon, BuildingStorefrontIcon, UsersIcon, HeartIcon, Cog6ToothIcon, WrenchScrewdriverIcon, ArchiveBoxIcon, SparklesIcon, ChatBubbleLeftRightIcon, PlayCircleIcon, LinkIcon, HomeIcon } from '@heroicons/react/24/solid';
 
 const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: ChartBarIcon },
     { name: 'Personalization', href: '/admin/personalization', icon: SparklesIcon },
+    { name: 'Home Orchestrator', href: '/admin/home-orchestrator', icon: HomeIcon },
     { name: 'Assistant Hub', href: '/admin/assistant-hub', icon: ChatBubbleLeftRightIcon },
     { name: 'Financial Hub', href: '/admin/financials', icon: CurrencyDollarIcon },
     { name: 'Marketplace', href: '/admin/marketplace', icon: BuildingStorefrontIcon },

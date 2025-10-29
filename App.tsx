@@ -67,6 +67,7 @@ const AdminApiIntegration = lazy(() => import('./screens/admin/AdminApiIntegrati
 const AdminScalability = lazy(() => import('./screens/admin/AdminScalability'));
 const AdminTaxManagement = lazy(() => import('./screens/admin/AdminTaxManagement'));
 const AdminPersonalizationEngine = lazy(() => import('./screens/admin/AdminPersonalizationEngine'));
+const AdminHomePageOrchestrator = lazy(() => import('./screens/admin/AdminHomePageOrchestrator'));
 const AdminAssistantHub = lazy(() => import('./screens/admin/AdminAssistantHub'));
 const AdminSystemControlsScreen = lazy(() => import('./screens/admin/AdminSystemControlsScreen'));
 const AdminServiceLinkageScreen = lazy(() => import('./screens/admin/AdminServiceLinkageScreen'));
@@ -149,6 +150,7 @@ const App: React.FC = () => {
                         <Route index element={<Navigate to="/admin/dashboard" />} />
                         <Route path="admin/dashboard" element={<AdminDashboard />} />
                         <Route path="admin/personalization" element={<AdminPersonalizationEngine />} />
+                        <Route path="admin/home-orchestrator" element={<AdminHomePageOrchestrator />} />
                         <Route path="admin/assistant-hub" element={<AdminAssistantHub />} />
                         <Route path="admin/financials" element={<AdminFinancialHub />} />
                         <Route path="admin/marketplace" element={<AdminMarketplaceOversight />} />
