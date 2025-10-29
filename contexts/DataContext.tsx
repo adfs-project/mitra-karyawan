@@ -64,8 +64,8 @@ interface DataContextType {
     generatePayslipData: (userId: string) => any; // Returns calculated payslip, not raw salary
     
     // Attendance
-    clockIn: () => Promise<{ success: boolean; message: string; }>;
-    clockOut: () => Promise<{ success: boolean; message: string; }>;
+    clockIn: (photoUrl: string) => Promise<{ success: boolean; message: string; }>;
+    clockOut: (photoUrl: string) => Promise<{ success: boolean; message: string; }>;
 
     // Cart
     addToCart: (productId: string, quantity: number) => void;
@@ -186,7 +186,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setAppData(vaultService.getSanitizedData());
     };
 
-    const clockIn = (): Promise<{ success: boolean; message: string; }> => {
+    const clockIn = (photoUrl: string): Promise<{ success: boolean; message: string; }> => {
         return new Promise((resolve) => {
             if (!user) {
                 resolve({ success: false, message: "User not logged in." });
@@ -213,6 +213,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         date: new Date().toISOString().split('T')[0],
                         clockInTime: new Date().toISOString(),
                         clockInLocation: { latitude, longitude },
+                        clockInPhotoUrl: photoUrl,
                     };
                     updateState('attendanceRecords', [...appData.attendanceRecords, newRecord]);
                     resolve({ success: true, message: `Berhasil Clock In pada ${new Date().toLocaleTimeString('id-ID')}` });
@@ -236,12 +237,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     console.error("Geolocation error:", error);
                     resolve({ success: false, message });
                 },
-                { enableHighAccuracy: true }
+                { enableHighAccuracy: true, maximumAge: 0 }
             );
         });
     };
     
-    const clockOut = (): Promise<{ success: boolean; message: string; }> => {
+    const clockOut = (photoUrl: string): Promise<{ success: boolean; message: string; }> => {
         return new Promise((resolve) => {
             if (!user) {
                 resolve({ success: false, message: "User not logged in." });
@@ -263,7 +264,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const updatedRecord = { 
                         ...recordToClockOut, 
                         clockOutTime: new Date().toISOString(),
-                        clockOutLocation: { latitude, longitude }
+                        clockOutLocation: { latitude, longitude },
+                        clockOutPhotoUrl: photoUrl,
                     };
     
                     updateState('attendanceRecords', appData.attendanceRecords.map(r => r.id === updatedRecord.id ? updatedRecord : r));
@@ -288,7 +290,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     console.error("Geolocation error:", error);
                     resolve({ success: false, message });
                 },
-                { enableHighAccuracy: true }
+                { enableHighAccuracy: true, maximumAge: 0 }
             );
         });
     };

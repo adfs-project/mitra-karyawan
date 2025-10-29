@@ -7,6 +7,7 @@ import { useData } from '../../contexts/DataContext';
 import { BuildingStorefrontIcon, CurrencyDollarIcon, HeartIcon, NewspaperIcon, ClockIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import AttendanceCameraModal from '../../components/user/AttendanceCameraModal';
 
 
 const QuickAccess: React.FC = () => {
@@ -35,6 +36,8 @@ const AttendanceCard: React.FC = () => {
     const { user } = useAuth();
     const { attendanceRecords, clockIn, clockOut, showToast } = useData();
     const [isLoading, setIsLoading] = useState(false);
+    const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
+    const [cameraMode, setCameraMode] = useState<'in' | 'out' | null>(null);
 
     // This finds an open session (clocked in, not out)
     const activeRecord = useMemo(() => {
@@ -68,39 +71,55 @@ const AttendanceCard: React.FC = () => {
         return { text: 'Anda belum absen hari ini.', button: 'Clock In' };
     };
 
-    const handleClockIn = async () => {
-        setIsLoading(true);
-        const result = await clockIn();
-        showToast(result.message, result.success ? 'success' : 'error');
-        setIsLoading(false);
+    const handleClockButtonClick = (mode: 'in' | 'out') => {
+        setCameraMode(mode);
+        setIsCameraModalOpen(true);
     };
 
-    const handleClockOut = async () => {
+    const handlePhotoCapture = async (photoUrl: string) => {
+        setIsCameraModalOpen(false);
         setIsLoading(true);
-        const result = await clockOut();
+        
+        let result;
+        if (cameraMode === 'in') {
+            result = await clockIn(photoUrl);
+        } else if (cameraMode === 'out') {
+            result = await clockOut(photoUrl);
+        } else {
+            result = { success: false, message: 'Invalid action.' };
+        }
+        
         showToast(result.message, result.success ? 'success' : 'error');
         setIsLoading(false);
+        setCameraMode(null);
     };
 
     const status = getStatus();
 
     return (
-        <div className="bg-surface p-4 rounded-lg border border-border-color">
-            <h2 className="text-lg font-bold text-text-primary mb-2 flex items-center">
-                <ClockIcon className="h-5 w-5 mr-2" />
-                Absensi Hari Ini
-            </h2>
-            <p className="text-text-secondary text-sm mb-4">{status.text}</p>
-            {status.button && (
-                <button
-                    onClick={status.button === 'Clock In' ? handleClockIn : handleClockOut}
-                    disabled={isLoading}
-                    className="w-full btn-primary p-3 rounded-lg font-bold flex justify-center items-center"
-                >
-                    {isLoading ? <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div> : status.button}
-                </button>
-            )}
-        </div>
+        <>
+            <div className="bg-surface p-4 rounded-lg border border-border-color">
+                <h2 className="text-lg font-bold text-text-primary mb-2 flex items-center">
+                    <ClockIcon className="h-5 w-5 mr-2" />
+                    Absensi Hari Ini
+                </h2>
+                <p className="text-text-secondary text-sm mb-4">{status.text}</p>
+                {status.button && (
+                    <button
+                        onClick={() => handleClockButtonClick(status.button === 'Clock In' ? 'in' : 'out')}
+                        disabled={isLoading}
+                        className="w-full btn-primary p-3 rounded-lg font-bold flex justify-center items-center"
+                    >
+                        {isLoading ? <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div> : status.button}
+                    </button>
+                )}
+            </div>
+            <AttendanceCameraModal
+                isOpen={isCameraModalOpen}
+                onClose={() => setIsCameraModalOpen(false)}
+                onCapture={handlePhotoCapture}
+            />
+        </>
     );
 };
 

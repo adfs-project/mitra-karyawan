@@ -2,6 +2,7 @@
   "name": "Mitra Karyawan",
   "description": "A comprehensive super app for employees, featuring a digital wallet, marketplace, health services, news, and extensive admin/HR management dashboards. Designed for high scalability and robust financial transaction handling.",
   "requestFramePermissions": [
-    "geolocation"
+    "geolocation",
+    "camera"
   ]
 }

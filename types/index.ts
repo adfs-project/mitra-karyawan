@@ -407,8 +407,10 @@ export interface AttendanceRecord {
     date: string; // YYYY-MM-DD
     clockInTime?: string; // ISO String
     clockInLocation?: Coordinates;
+    clockInPhotoUrl?: string;
     clockOutTime?: string; // ISO String
     clockOutLocation?: Coordinates;
+    clockOutPhotoUrl?: string;
 }
 
 export interface ChatMessage {
