@@ -12,7 +12,7 @@ import loggingService from './services/loggingService';
 // --- START: Anti-Blank Screen Defense System V2 ---
 
 // 1. Versioning: Should be updated with each new deployment.
-const APP_VERSION = '1.5.12'; 
+const APP_VERSION = '1.5.13'; 
 
 // 2. Centralized Hard Reset Logic
 const handleHardReset = () => {

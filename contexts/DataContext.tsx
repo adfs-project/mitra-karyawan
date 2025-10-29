@@ -186,98 +186,58 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setAppData(vaultService.getSanitizedData());
     };
 
-    const OFFICE_LOCATION: Coordinates = { latitude: -6.2242, longitude: 106.8229 }; // Example: BEJ, Jakarta
-    const OFFICE_RADIUS_METERS = 200; // 200 meters tolerance
-
-    const getDistance = (coord1: Coordinates, coord2: Coordinates) => {
-        const R = 6371e3; // metres
-        const φ1 = coord1.latitude * Math.PI/180;
-        const φ2 = coord2.latitude * Math.PI/180;
-        const Δφ = (coord2.latitude-coord1.latitude) * Math.PI/180;
-        const Δλ = (coord2.longitude-coord1.longitude) * Math.PI/180;
-        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c; // in metres
-    };
-
-    const getCurrentPosition = (): Promise<GeolocationPosition> => {
-        return new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0,
-            });
-        });
-    };
-
     const clockIn = async (): Promise<{ success: boolean; message: string; }> => {
         if (!user) return { success: false, message: "User not logged in." };
-        const today = new Date().toISOString().split('T')[0];
-        const todaysRecord = appData.attendanceRecords.find(r => r.userId === user.id && r.date === today);
 
-        if (todaysRecord?.clockInTime) {
-            return { success: false, message: "Anda sudah melakukan clock-in hari ini." };
+        const openRecord = appData.attendanceRecords.find(
+            r => r.userId === user.id && r.clockInTime && !r.clockOutTime
+        );
+
+        if (openRecord) {
+            return { success: false, message: "Anda harus melakukan clock-out terlebih dahulu sebelum bisa clock-in lagi." };
         }
 
         try {
-            const position = await getCurrentPosition();
-            const userLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
-            const distance = getDistance(userLocation, OFFICE_LOCATION);
-
-            if (distance > OFFICE_RADIUS_METERS) {
-                return { success: false, message: `Anda berada ${Math.round(distance)} meter dari kantor. Harap mendekat untuk absen.` };
-            }
-
             const newRecord: AttendanceRecord = {
                 id: `att-${Date.now()}`,
                 userId: user.id,
                 userName: user.profile.name,
                 branch: user.profile.branch || 'N/A',
-                date: today,
+                date: new Date().toISOString().split('T')[0],
                 clockInTime: new Date().toISOString(),
-                clockInLocation: userLocation,
             };
             updateState('attendanceRecords', [...appData.attendanceRecords, newRecord]);
             return { success: true, message: `Berhasil Clock In pada ${new Date().toLocaleTimeString('id-ID')}` };
 
         } catch (error: any) {
-            if (error.code === error.PERMISSION_DENIED) {
-                return { success: false, message: "Izin lokasi ditolak. Harap izinkan akses lokasi." };
-            }
-            return { success: false, message: "Gagal mendapatkan lokasi Anda. Pastikan GPS aktif." };
+            console.error("Clock-in error:", error);
+            return { success: false, message: "Terjadi kesalahan yang tidak terduga." };
         }
     };
 
     const clockOut = async (): Promise<{ success: boolean; message: string; }> => {
         if (!user) return { success: false, message: "User not logged in." };
-        const today = new Date().toISOString().split('T')[0];
-        const todaysRecord = appData.attendanceRecords.find(r => r.userId === user.id && r.date === today);
 
-        if (!todaysRecord || !todaysRecord.clockInTime) {
-            return { success: false, message: "Anda belum melakukan clock-in hari ini." };
-        }
-        if (todaysRecord.clockOutTime) {
-            return { success: false, message: "Anda sudah melakukan clock-out hari ini." };
+        const recordToClockOut = [...appData.attendanceRecords]
+            .filter(r => r.userId === user.id && r.clockInTime && !r.clockOutTime)
+            .sort((a, b) => new Date(b.clockInTime!).getTime() - new Date(a.clockInTime!).getTime())[0];
+
+        if (!recordToClockOut) {
+            return { success: false, message: "Tidak ada sesi absen aktif untuk diakhiri (clock-out)." };
         }
 
         try {
-            const position = await getCurrentPosition();
-            const userLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
-            const distance = getDistance(userLocation, OFFICE_LOCATION);
+            const updatedRecord = { ...recordToClockOut, clockOutTime: new Date().toISOString() };
+            // Since we are no longer tracking location, remove location fields if they exist from old records.
+            delete updatedRecord.clockInLocation;
+            delete updatedRecord.clockOutLocation;
 
-            if (distance > OFFICE_RADIUS_METERS) {
-                return { success: false, message: `Anda berada ${Math.round(distance)} meter dari kantor. Harap mendekat untuk absen.` };
-            }
-
-            const updatedRecord = { ...todaysRecord, clockOutTime: new Date().toISOString(), clockOutLocation: userLocation };
             updateState('attendanceRecords', appData.attendanceRecords.map(r => r.id === updatedRecord.id ? updatedRecord : r));
             return { success: true, message: `Berhasil Clock Out pada ${new Date().toLocaleTimeString('id-ID')}` };
 
         } catch (error: any) {
-             if (error.code === error.PERMISSION_DENIED) {
-                return { success: false, message: "Izin lokasi ditolak. Harap izinkan akses lokasi." };
-            }
-            return { success: false, message: "Gagal mendapatkan lokasi Anda. Pastikan GPS aktif." };
+            console.error("Clock-out error:", error);
+            return { success: false, message: "Terjadi kesalahan yang tidak terduga." };
         }
     };
 

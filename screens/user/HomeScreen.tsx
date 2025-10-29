@@ -36,18 +36,34 @@ const AttendanceCard: React.FC = () => {
     const { attendanceRecords, clockIn, clockOut, showToast } = useData();
     const [isLoading, setIsLoading] = useState(false);
 
-    const todaysRecord = useMemo(() => {
+    // This finds an open session (clocked in, not out)
+    const activeRecord = useMemo(() => {
+        if (!user) return null;
+        return [...attendanceRecords]
+            .filter(r => r.userId === user.id && r.clockInTime && !r.clockOutTime)
+            .sort((a, b) => new Date(b.clockInTime!).getTime() - new Date(a.clockInTime!).getTime())[0];
+    }, [attendanceRecords, user]);
+
+    // This finds the very last attendance activity of any kind for today
+    const latestRecordToday = useMemo(() => {
         if (!user) return null;
         const today = new Date().toISOString().split('T')[0];
-        return attendanceRecords.find(r => r.userId === user.id && r.date === today);
+        const recordsToday = attendanceRecords.filter(r => r.userId === user.id && r.date === today);
+        if (recordsToday.length === 0) return null;
+
+        return recordsToday.sort((a, b) => {
+            const timeA = new Date(a.clockOutTime || a.clockInTime || 0).getTime();
+            const timeB = new Date(b.clockOutTime || b.clockInTime || 0).getTime();
+            return timeB - timeA;
+        })[0];
     }, [attendanceRecords, user]);
 
     const getStatus = () => {
-        if (todaysRecord?.clockOutTime) {
-            return { text: `Absen selesai. Keluar pukul ${new Date(todaysRecord.clockOutTime).toLocaleTimeString('id-ID')}.`, button: null };
+        if (activeRecord) {
+            return { text: `Anda masuk pukul ${new Date(activeRecord.clockInTime!).toLocaleTimeString('id-ID')}.`, button: 'Clock Out' };
         }
-        if (todaysRecord?.clockInTime) {
-            return { text: `Anda masuk pukul ${new Date(todaysRecord.clockInTime).toLocaleTimeString('id-ID')}.`, button: 'Clock Out' };
+        if (latestRecordToday?.clockOutTime) {
+            return { text: `Absen terakhir hari ini pukul ${new Date(latestRecordToday.clockOutTime).toLocaleTimeString('id-ID')}.`, button: 'Clock In' };
         }
         return { text: 'Anda belum absen hari ini.', button: 'Clock In' };
     };
