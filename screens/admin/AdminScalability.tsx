@@ -51,7 +51,7 @@ const Metric: React.FC<{ label: string; value: string | number; unit?: string; }
 );
 
 
-const LoadBalancerVisual: React.FC<{ service: ScalabilityService, onSimulate: () => void }> = ({ service, onSimulate }) => (
+const LoadBalancerVisual: React.FC<{ service: ScalabilityService }> = ({ service }) => (
     <div className="mt-4">
         <div className="flex justify-around items-center mb-2">
             <Metric label="Servers Active" value={service.metadata?.servers} />
@@ -62,9 +62,6 @@ const LoadBalancerVisual: React.FC<{ service: ScalabilityService, onSimulate: ()
                 <div key={i} className={`h-full flex-grow bg-green-500 rounded-sm animate-pulse`} style={{animationDelay: `${i*100}ms`}}></div>
             ))}
         </div>
-        <button onClick={onSimulate} disabled={service.status !== ScalabilityServiceStatus.Active} className="w-full mt-2 btn-secondary text-xs py-1 rounded disabled:bg-gray-600 disabled:cursor-not-allowed">
-            Simulate Traffic Spike
-        </button>
     </div>
 );
 
@@ -100,20 +97,17 @@ const ShardingVisual: React.FC<{ service: ScalabilityService }> = ({ service }) 
     </div>
 );
 
-const RedisVisual: React.FC<{ service: ScalabilityService; onSimulate: () => void; }> = ({ service, onSimulate }) => (
+const RedisVisual: React.FC<{ service: ScalabilityService; }> = ({ service }) => (
     <div className="mt-4">
         <div className="flex justify-around items-center mb-2">
             <Metric label="Hit Ratio" value={service.metadata?.cacheHitRatio} unit="%" />
             <Metric label="Memory" value={service.metadata?.memoryUsage} unit="MB" />
             <Metric label="Keys" value={service.metadata?.keys.toLocaleString('id-ID')} />
         </div>
-        <button onClick={onSimulate} disabled={service.status !== ScalabilityServiceStatus.Active} className="w-full mt-2 btn-secondary text-xs py-1 rounded disabled:bg-gray-600 disabled:cursor-not-allowed">
-            Simulate Read Spike
-        </button>
     </div>
 );
 
-const RabbitMQVisual: React.FC<{ service: ScalabilityService; onSimulate: () => void; }> = ({ service, onSimulate }) => (
+const RabbitMQVisual: React.FC<{ service: ScalabilityService; }> = ({ service }) => (
     <div className="mt-4">
         <div className="flex justify-around items-center mb-2">
              <Metric label="Queue Length" value={service.metadata?.queueLength.toLocaleString('id-ID')} />
@@ -123,13 +117,10 @@ const RabbitMQVisual: React.FC<{ service: ScalabilityService; onSimulate: () => 
         <div className="w-full bg-surface-light rounded-full h-4 mt-1">
             <div className="bg-secondary h-4 rounded-full" style={{ width: `${Math.min((service.metadata?.queueLength / 50000) * 100, 100)}%`, transition: 'width 0.5s ease-in-out' }}></div>
         </div>
-        <button onClick={onSimulate} disabled={service.status !== ScalabilityServiceStatus.Active} className="w-full mt-2 btn-secondary text-xs py-1 rounded disabled:bg-gray-600 disabled:cursor-not-allowed">
-            Simulate Bulk Job Dispatch
-        </button>
     </div>
 );
 
-const ReadReplicasVisual: React.FC<{ service: ScalabilityService; onSimulate: () => void; }> = ({ service, onSimulate }) => (
+const ReadReplicasVisual: React.FC<{ service: ScalabilityService; }> = ({ service }) => (
      <div className="mt-4">
         <div className="flex justify-around items-end h-20 text-center">
             <div className="w-1/3">
@@ -150,9 +141,6 @@ const ReadReplicasVisual: React.FC<{ service: ScalabilityService; onSimulate: ()
                  <Metric label="Lag" value={service.metadata?.replicaLag} unit="ms" />
             </div>
         </div>
-        <button onClick={onSimulate} disabled={service.status !== ScalabilityServiceStatus.Active} className="w-full mt-2 btn-secondary text-xs py-1 rounded disabled:bg-gray-600 disabled:cursor-not-allowed">
-            Simulate High Read Traffic
-        </button>
     </div>
 );
 
@@ -160,9 +148,8 @@ const ReadReplicasVisual: React.FC<{ service: ScalabilityService; onSimulate: ()
 const OrchestrationCard: React.FC<{ 
     service: ScalabilityService,
     onStart: (id: ScalabilityService['type']) => void;
-    onSimulate?: (id: ScalabilityService['type']) => void;
     isCloudConnected: boolean;
-}> = ({ service, onStart, onSimulate, isCloudConnected }) => {
+}> = ({ service, onStart, isCloudConnected }) => {
     
     const getIcon = () => {
         switch(service.type) {
@@ -201,12 +188,12 @@ const OrchestrationCard: React.FC<{
                 </button>
             </div>
             
-            {service.type === 'load_balancer' && <LoadBalancerVisual service={service} onSimulate={() => onSimulate?.(service.type)} />}
+            {service.type === 'load_balancer' && <LoadBalancerVisual service={service} />}
             {service.type === 'cdn' && <CDNVisual service={service} />}
             {service.type === 'db_sharding' && <ShardingVisual service={service} />}
-            {service.type === 'redis' && <RedisVisual service={service} onSimulate={() => onSimulate?.(service.type)} />}
-            {service.type === 'rabbitmq' && <RabbitMQVisual service={service} onSimulate={() => onSimulate?.(service.type)} />}
-            {service.type === 'read_replicas' && <ReadReplicasVisual service={service} onSimulate={() => onSimulate?.(service.type)} />}
+            {service.type === 'redis' && <RedisVisual service={service} />}
+            {service.type === 'rabbitmq' && <RabbitMQVisual service={service} />}
+            {service.type === 'read_replicas' && <ReadReplicasVisual service={service} />}
 
 
             <Terminal service={service} />
@@ -247,56 +234,6 @@ const AdminScalability: React.FC = () => {
         }
     };
 
-    const handleSimulate = (type: ScalabilityService['type']) => {
-        const service = scalabilityServices.find(s => s.type === type);
-        if(!service || service.status !== ScalabilityServiceStatus.Active) return;
-
-        if (type === 'load_balancer') {
-            updateScalabilityService(service.id, ScalabilityServiceStatus.Scaling, "TRAFFIC SPIKE: CPU utilization > 80%. Triggering auto-scaling.", { servers: 5, rps: 850 });
-            setTimeout(() => {
-                 updateScalabilityService(service.id, ScalabilityServiceStatus.Scaling, "PROVISIONING: Adding 2 new server instances...", { servers: 7, rps: 1200 });
-            }, 2000);
-            setTimeout(() => {
-                 updateScalabilityService(service.id, ScalabilityServiceStatus.Active, "STABLE: New instances online. Traffic distributed.", { servers: 7, rps: 600 });
-            }, 4000);
-        }
-        
-        if (type === 'redis') {
-            updateScalabilityService(service.id, ScalabilityServiceStatus.Scaling, "READ SPIKE: High volume of read requests detected.", { cacheHitRatio: 60, memoryUsage: 150, keys: 50000 });
-            setTimeout(() => {
-                 updateScalabilityService(service.id, ScalabilityServiceStatus.Scaling, "CACHE WARMING: Populating cache with frequently accessed data.", { cacheHitRatio: 98, memoryUsage: 512, keys: 250000 });
-            }, 2000);
-            setTimeout(() => {
-                 updateScalabilityService(service.id, ScalabilityServiceStatus.Active, "STABLE: Cache hit ratio optimal. DB load reduced.", { cacheHitRatio: 97, memoryUsage: 480, keys: 245000 });
-            }, 4000);
-        }
-
-        if (type === 'rabbitmq') {
-            updateScalabilityService(service.id, ScalabilityServiceStatus.Scaling, "BULK JOB: 50,000 notifications dispatched to queue.", { queueLength: 50000, processedPerSec: 100 });
-            const interval = setInterval(() => {
-                const currentService = scalabilityServices.find(s => s.type === type);
-                if(!currentService) { clearInterval(interval); return; }
-                const currentQueue = currentService.metadata?.queueLength || 0;
-
-                if(currentQueue <= 0) {
-                    clearInterval(interval);
-                    updateScalabilityService(service.id, ScalabilityServiceStatus.Active, "QUEUE EMPTY: All jobs processed successfully.", { queueLength: 0, processedPerSec: 0 });
-                    return;
-                }
-                const processed = Math.min(currentQueue, 5000 + Math.random() * 2000);
-                updateScalabilityService(service.id, ScalabilityServiceStatus.Scaling, `PROCESSING: Handling ${processed.toFixed(0)} jobs...`, { queueLength: currentQueue - processed, processedPerSec: processed });
-            }, 1500);
-        }
-
-        if(type === 'read_replicas') {
-             updateScalabilityService(service.id, ScalabilityServiceStatus.Scaling, "HIGH READ TRAFFIC: Rerouting queries to read replica.", { primaryLoad: 15, replicaLoad: 90, replicaLag: 150 });
-            setTimeout(() => {
-                 updateScalabilityService(service.id, ScalabilityServiceStatus.Active, "STABLE: Read traffic balanced. Primary DB load nominal.", { primaryLoad: 8, replicaLoad: 25, replicaLag: 20 });
-            }, 4000);
-        }
-    };
-
-
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-primary">Infrastructure Orchestration Dashboard</h1>
@@ -329,7 +266,6 @@ const AdminScalability: React.FC = () => {
                         key={service.id} 
                         service={service} 
                         onStart={handleStartIntegration} 
-                        onSimulate={handleSimulate}
                         isCloudConnected={isCloudConnected}
                     />
                 ))}

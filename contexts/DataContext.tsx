@@ -882,7 +882,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     
     const updateApiIntegration = async (id: string, creds: ApiIntegration['credentials']): Promise<{ success: boolean, message: string }> => {
-        const result = await testApiConnection(creds);
+        const integration = apiIntegrations.find(api => api.id === id);
+        if (!integration) {
+            return { success: false, message: "Integration not found." };
+        }
+        const result = await testApiConnection(creds, integration.name);
         setApiIntegrations(prev => prev.map(api => api.id === id ? {...api, credentials: creds, status: result.success ? IntegrationStatus.Active : IntegrationStatus.Error } : api));
         showToast(result.message, result.success ? 'success' : 'error');
         return result;

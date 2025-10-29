@@ -107,12 +107,6 @@ export const provisionService = (type: ScalabilityService['type'], onLog: LogCal
             }
             
             onLog(newStatus, logMessage, metadata);
-
-            // Simulate random failure
-            if (i > 1 && Math.random() > 0.9) { // 10% chance of failure after step 2
-                const failureReason = possibleFailures[Math.floor(Math.random() * possibleFailures.length)];
-                return reject(new Error(failureReason));
-            }
             
             await sleep(1500 + Math.random() * 1000); // Simulate network latency & work
         }

@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { Role } from './types';
@@ -12,6 +12,8 @@ const RegisterScreen = lazy(() => import('./screens/auth/RegisterScreen'));
 const DeactivatedAccountScreen = lazy(() => import('./screens/auth/DeactivatedAccountScreen'));
 const UnderConstructionScreen = lazy(() => import('./screens/common/UnderConstructionScreen'));
 const FunctionalPlaceholderScreen = lazy(() => import('./screens/common/FunctionalPlaceholderScreen'));
+const OnboardingTour = lazy(() => import('./components/user/OnboardingTour'));
+
 
 // User Screens
 const HomeScreen = lazy(() => import('./screens/user/HomeScreen'));
@@ -71,11 +73,27 @@ const Spinner = () => (
 
 const App: React.FC = () => {
     const { user } = useAuth();
+    const [showOnboardingTour, setShowOnboardingTour] = useState(false);
 
     // Signal a successful render to the crash loop detector.
     useEffect(() => {
         sessionStorage.removeItem('crash_count');
     }, []);
+
+    // Check if the onboarding tour should be shown for new users.
+    useEffect(() => {
+        if (user && (user.role === Role.User || user.role === Role.HR)) {
+            const hasSeenTour = localStorage.getItem('app_has_seen_onboarding_tour');
+            if (hasSeenTour !== 'true') {
+                setShowOnboardingTour(true);
+            }
+        }
+    }, [user]);
+
+    const handleOnboardingComplete = () => {
+        localStorage.setItem('app_has_seen_onboarding_tour', 'true');
+        setShowOnboardingTour(false);
+    };
 
     const renderLayout = () => {
         if (!user) {
@@ -161,6 +179,11 @@ const App: React.FC = () => {
     return (
         <>
             <ToastContainer />
+            {showOnboardingTour && (
+                <Suspense fallback={<Spinner />}>
+                    <OnboardingTour onComplete={handleOnboardingComplete} />
+                </Suspense>
+            )}
             <HashRouter>
                 <Suspense fallback={<Spinner />}>
                     <Routes>
