@@ -48,11 +48,21 @@ const AttendanceHistoryScreen: React.FC = () => {
                                         <p className="text-text-secondary">Masuk</p>
                                         <p className="font-semibold">{formatTime(record.clockInTime)}</p>
                                         <LocationName location={record.clockInLocation} />
+                                        {record.clockInLocation && (
+                                            <p className="text-xs text-text-secondary opacity-75 mt-1">
+                                                ({record.clockInLocation.latitude.toFixed(5)}, {record.clockInLocation.longitude.toFixed(5)})
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="text-right">
                                         <p className="text-text-secondary">Keluar</p>
                                         <p className="font-semibold">{formatTime(record.clockOutTime)}</p>
                                         <LocationName location={record.clockOutLocation} />
+                                        {record.clockOutLocation && (
+                                            <p className="text-xs text-text-secondary opacity-75 mt-1">
+                                                ({record.clockOutLocation.latitude.toFixed(5)}, {record.clockOutLocation.longitude.toFixed(5)})
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
