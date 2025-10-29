@@ -4,7 +4,7 @@ import {
     CartItem, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService,
     ScalabilityServiceStatus, LeaveRequest, Budget, ScheduledPayment,
     MonetizationConfig, TaxConfig, HomePageConfig, AssistantLog, EngagementAnalytics,
-    AdminWallets, PersonalizationRule, Order, MoodHistory, OrderItem, Toast, ToastType, Eprescription, EprescriptionItem, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap
+    AdminWallets, PersonalizationRule, Order, MoodHistory, OrderItem, Toast, ToastType, Eprescription, EprescriptionItem, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap, Role
 } from '../types';
 import {
     initialUsers, initialProducts, initialArticles, initialTransactions, initialNotifications,
@@ -809,8 +809,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     const applyForPayLater = async () => {
         if (!user) return;
+        
+        const branchHr = users.find(u => u.role === Role.HR && u.profile.branch === user.profile.branch);
+        const recipientId = branchHr ? branchHr.id : 'admin-001'; // Fallback to admin
+
+        addNotification(recipientId, `${user.profile.name} has applied for PayLater.`, 'info');
         updateCurrentUser({ ...user, payLater: { status: 'pending', limit: 0, used: 0 }});
-        addNotification('admin-001', `${user.profile.name} has applied for PayLater.`, 'info');
     };
 
     const approvePayLater = async (userId: string, limit: number) => {

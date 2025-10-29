@@ -37,52 +37,15 @@ const ConfirmationModal: React.FC<{
     );
 };
 
-const ApprovePayLaterModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onConfirm: (limit: number) => void;
-    user: User | null;
-}> = ({ isOpen, onClose, onConfirm, user }) => {
-    const [limit, setLimit] = useState(2000000);
-    if (!isOpen || !user) return null;
-
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-            <div className="bg-surface p-6 rounded-lg w-full max-w-sm border border-border-color">
-                <h2 className="text-xl font-bold mb-2">Approve PayLater</h2>
-                <p className="text-sm text-text-secondary mb-4">Set credit limit for {user.profile.name}.</p>
-                <div>
-                    <label className="text-xs font-bold text-text-secondary">Credit Limit (IDR)</label>
-                    <input
-                        type="number"
-                        value={limit}
-                        onChange={(e) => setLimit(Number(e.target.value))}
-                        className="w-full p-2 bg-surface-light rounded border border-border-color mt-1"
-                    />
-                </div>
-                <div className="flex justify-end space-x-2 mt-6">
-                    <button onClick={onClose} className="px-4 py-2 rounded bg-surface-light">Cancel</button>
-                    <button onClick={() => onConfirm(limit)} className="btn-primary px-4 py-2 rounded">Approve</button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
 const AdminUserIntelligence: React.FC = () => {
-    const { users, updateUserStatus, approvePayLater, rejectPayLater } = useData();
+    const { users, updateUserStatus } = useData();
     const { user: currentUser } = useAuth();
     const [statusModalOpen, setStatusModalOpen] = useState(false);
     const [walletModalOpen, setWalletModalOpen] = useState(false);
-    const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [detailsModalOpen, setDetailsModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [action, setAction] = useState<'activate' | 'deactivate' | null>(null);
     const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
-
-    const pendingPayLaterApps = useMemo(() => users.filter(u => u.payLater?.status === 'pending'), [users]);
-
 
     const handleToggleChange = (userToUpdate: User, newStatus: boolean) => {
         setSelectedUser(userToUpdate);
@@ -119,24 +82,6 @@ const AdminUserIntelligence: React.FC = () => {
     const handleShowDetails = (userToShow: User) => {
         setSelectedUser(userToShow);
         setDetailsModalOpen(true);
-    };
-
-    const handleOpenApproveModal = (user: User) => {
-        setSelectedUser(user);
-        setApproveModalOpen(true);
-    };
-
-    const handleConfirmApproval = async (limit: number) => {
-        if (selectedUser) {
-            await approvePayLater(selectedUser.id, limit);
-        }
-        setApproveModalOpen(false);
-    };
-
-    const handleReject = async (user: User) => {
-        if (window.confirm(`Are you sure you want to reject PayLater application for ${user.profile.name}?`)) {
-            await rejectPayLater(user.id);
-        }
     };
 
     return (
@@ -196,39 +141,6 @@ const AdminUserIntelligence: React.FC = () => {
                 </div>
             </div>
 
-             <div className="bg-surface p-6 rounded-lg border border-border-color">
-                <h2 className="text-xl font-bold mb-4">PayLater Applications</h2>
-                {pendingPayLaterApps.length > 0 ? (
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left text-text-secondary">
-                        <thead className="text-xs text-text-secondary uppercase bg-surface-light">
-                            <tr>
-                                <th scope="col" className="px-6 py-3">User</th>
-                                <th scope="col" className="px-6 py-3">Salary</th>
-                                <th scope="col" className="px-6 py-3">Join Date</th>
-                                <th scope="col" className="px-6 py-3 text-center">Actions</th>
-                            </tr>
-                        </thead>
-                         <tbody>
-                            {pendingPayLaterApps.map(user => (
-                                <tr key={user.id} className="bg-surface border-b border-border-color">
-                                    <td className="px-6 py-4 font-medium text-text-primary">{user.profile.name}</td>
-                                    <td className="px-6 py-4">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(user.profile.salary || 0)}</td>
-                                    <td className="px-6 py-4">{user.profile.joinDate ? new Date(user.profile.joinDate).toLocaleDateString() : 'N/A'}</td>
-                                    <td className="px-6 py-4 text-center space-x-2">
-                                        <button onClick={() => handleOpenApproveModal(user)} className="p-2 rounded-full bg-green-500/20 hover:bg-green-500/30"><CheckIcon className="h-5 w-5 text-green-400"/></button>
-                                        <button onClick={() => handleReject(user)} className="p-2 rounded-full bg-red-500/20 hover:bg-red-500/30"><XMarkIcon className="h-5 w-5 text-red-400"/></button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-                ) : (
-                    <p className="text-center text-text-secondary py-4">No pending PayLater applications.</p>
-                )}
-            </div>
-            
             <ConfirmationModal
                 isOpen={statusModalOpen}
                 onClose={() => setStatusModalOpen(false)}
@@ -242,12 +154,6 @@ const AdminUserIntelligence: React.FC = () => {
             <WalletAdjustmentModal 
                 isOpen={walletModalOpen}
                 onClose={() => setWalletModalOpen(false)}
-                user={selectedUser}
-            />
-            <ApprovePayLaterModal
-                isOpen={approveModalOpen}
-                onClose={() => setApproveModalOpen(false)}
-                onConfirm={handleConfirmApproval}
                 user={selectedUser}
             />
             <UserDetailsModal

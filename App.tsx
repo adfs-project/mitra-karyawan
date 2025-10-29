@@ -7,6 +7,7 @@ import ToastContainer from './components/common/ToastContainer';
 // Lazy load components for code splitting
 const UserLayout = lazy(() => import('./components/layout/UserLayout'));
 const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
+const HrLayout = lazy(() => import('./components/layout/HrLayout'));
 const LoginScreen = lazy(() => import('./screens/auth/LoginScreen'));
 const RegisterScreen = lazy(() => import('./screens/auth/RegisterScreen'));
 const DeactivatedAccountScreen = lazy(() => import('./screens/auth/DeactivatedAccountScreen'));
@@ -77,6 +78,7 @@ const HrDashboard = lazy(() => import('./screens/hr/HrDashboard'));
 const HrOnboarding = lazy(() => import('./screens/hr/HrOnboarding'));
 const HrLeaveManagement = lazy(() => import('./screens/hr/HrLeaveManagement'));
 const HrPayroll = lazy(() => import('./screens/hr/HrPayroll'));
+const HrPayLaterManagement = lazy(() => import('./screens/hr/HrPayLaterManagement'));
 const HrAiCopilotScreen = lazy(() => import('./screens/hr/HrAiCopilotScreen'));
 const HrBenefitManagement = lazy(() => import('./screens/hr/HrBenefitManagement'));
 const HrWellnessManagement = lazy(() => import('./screens/hr/HrWellnessManagement'));
@@ -87,6 +89,27 @@ const Spinner = () => (
         <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
     </div>
 );
+
+// Group HR routes under a dedicated layout
+const HrRoutes: React.FC = () => (
+    <Suspense fallback={<Spinner />}>
+        <HrLayout>
+            <Routes>
+                <Route index element={<Navigate to="dashboard" />} />
+                <Route path="dashboard" element={<HrDashboard />} />
+                <Route path="onboarding" element={<HrOnboarding />} />
+                <Route path="leave" element={<HrLeaveManagement />} />
+                <Route path="payroll" element={<HrPayroll />} />
+                <Route path="paylater" element={<HrPayLaterManagement />} />
+                <Route path="copilot" element={<HrAiCopilotScreen />} />
+                <Route path="benefits" element={<HrBenefitManagement />} />
+                <Route path="wellness" element={<HrWellnessManagement />} />
+                <Route path="*" element={<Navigate to="dashboard" />} />
+            </Routes>
+        </HrLayout>
+    </Suspense>
+);
+
 
 const App: React.FC = () => {
     const { user } = useAuth();
@@ -112,7 +135,7 @@ const App: React.FC = () => {
         setShowOnboardingTour(false);
     };
 
-    const renderLayout = () => {
+    const renderProtectedLayout = () => {
         if (!user) {
             return <Navigate to="/login" />;
         }
@@ -191,18 +214,9 @@ const App: React.FC = () => {
                     <Route path="placeholder/:featureName" element={<FunctionalPlaceholderScreen />} />
 
 
-                    {/* HR-specific Routes, rendered within UserLayout */}
+                    {/* HR-specific entry point, rendered within UserLayout */}
                     {user.role === Role.HR && (
-                        <>
-                            <Route path="hr-portal" element={<HrPortalScreen />} />
-                            <Route path="hr/dashboard" element={<HrDashboard />} />
-                            <Route path="hr/onboarding" element={<HrOnboarding />} />
-                            <Route path="hr/leave" element={<HrLeaveManagement />} />
-                            <Route path="hr/payroll" element={<HrPayroll />} />
-                            <Route path="hr/copilot" element={<HrAiCopilotScreen />} />
-                            <Route path="hr/benefits" element={<HrBenefitManagement />} />
-                            <Route path="hr/wellness" element={<HrWellnessManagement />} />
-                        </>
+                        <Route path="hr-portal" element={<HrPortalScreen />} />
                     )}
                     
                     <Route path="*" element={<Navigate to="/home" />} />
@@ -227,8 +241,16 @@ const App: React.FC = () => {
                         <Route path="/register" element={user ? <Navigate to="/" /> : <RegisterScreen />} />
                         <Route path="/deactivated" element={<DeactivatedAccountScreen />} />
 
-                        {/* Protected Routes Wrapper */}
-                        <Route path="/*" element={renderLayout()} />
+                        {/* HR Portal Routes (uses its own layout) */}
+                        <Route path="/hr/*" element={
+                            !user ? <Navigate to="/login" /> :
+                            user.status === 'inactive' ? <Navigate to="/deactivated" /> :
+                            user.role !== Role.HR ? <Navigate to="/" /> : // If not HR, redirect away
+                            <HrRoutes />
+                        } />
+
+                        {/* Main Protected Routes Wrapper */}
+                        <Route path="/*" element={renderProtectedLayout()} />
                     </Routes>
                 </Suspense>
             </HashRouter>
