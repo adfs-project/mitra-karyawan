@@ -4,19 +4,6 @@ import { useData } from '../../contexts/DataContext';
 import { User } from '../../types';
 import { BanknotesIcon, DocumentTextIcon, PrinterIcon } from '@heroicons/react/24/solid';
 
-const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(value).replace('Rp', 'Rp.').padEnd(15);
-};
-
-const formatValue = (value: string | number, length: number) => {
-    return String(value).padEnd(length);
-}
-
 const PayslipView: React.FC<{ employee: User; period: string }> = ({ employee, period }) => {
     
     const payroll = useMemo(() => {
@@ -24,136 +11,91 @@ const PayslipView: React.FC<{ employee: User; period: string }> = ({ employee, p
 
         const grossSalary = employee.profile.salary;
         
-        // PENDAPATAN (A)
         const gajiPokok = grossSalary;
-        const insentifKinerja = 0; // Simulated
-        const totalPendapatan = gajiPokok + insentifKinerja;
+        const insentifKinerja = 0;
+        const bpjsTkNatura = grossSalary * 0.0054; // Shown as income for tax purposes, but not cash.
+        const totalPendapatan = gajiPokok + insentifKinerja + bpjsTkNatura;
 
-        // POTONGAN (B)
-        const pajakPph21 = grossSalary * 0.025; // Tax (2.5%)
-        const bpjsTkKaryawan2 = grossSalary * 0.02; // BPJS TK Kary. (2%)
-        const bpjsTkKaryawan054 = grossSalary * 0.0054; // BPJS TK Kary. (0.54%)
-        const bpjsPensiunKaryawan = grossSalary * 0.01; // BPJS Pensiun Kary (1%)
+        const pajakPph21 = grossSalary * 0.025;
+        const bpjsTkKaryawan2 = grossSalary * 0.02;
+        const bpjsTkKaryawan054 = grossSalary * 0.0054;
+        const bpjsPensiunKaryawan = grossSalary * 0.01;
         const totalPotongan = pajakPph21 + bpjsTkKaryawan2 + bpjsTkKaryawan054 + bpjsPensiunKaryawan;
         
-        // LAIN-LAIN (C) - Company contributions (for info)
         const bpjsPensiunPerusahaan = grossSalary * 0.02;
         const bpjsTkPerusahaan = grossSalary * 0.037;
         
-        // FINAL
-        const takeHomePay = totalPendapatan - totalPotongan;
+        // Take home pay is cash income minus deductions.
+        const takeHomePay = (gajiPokok + insentifKinerja) - totalPotongan;
 
         return {
-            gajiPokok,
-            insentifKinerja,
-            totalPendapatan,
-            pajakPph21,
-            bpjsTkKaryawan2,
-            bpjsTkKaryawan054,
-            bpjsPensiunKaryawan,
-            totalPotongan,
-            bpjsPensiunPerusahaan,
-            bpjsTkPerusahaan,
-            takeHomePay,
-            saldoPinjaman: 0 // Simulated
+            gajiPokok, insentifKinerja, totalPendapatan, pajakPph21,
+            bpjsTkKaryawan2, bpjsTkKaryawan054, bpjsPensiunKaryawan, totalPotongan,
+            bpjsPensiunPerusahaan, bpjsTkPerusahaan, takeHomePay, saldoPinjaman: 0,
+            bpjsTkNatura
+        };
+    }, [employee]);
+
+    const payslipContent = useMemo(() => {
+        if (!payroll) return null;
+        
+        const LABEL_WIDTH = 28;
+        const VALUE_WIDTH = 15;
+        const TOTAL_COLUMN_WIDTH = LABEL_WIDTH + 4 + VALUE_WIDTH;
+        const SEPARATOR = ' '.repeat(4);
+        const LINE_SEPARATOR = '-'.repeat(TOTAL_COLUMN_WIDTH * 2 + SEPARATOR.length);
+
+        const formatLine = (label: string, value: number | null): string => {
+            const paddedLabel = label.padEnd(LABEL_WIDTH);
+            if (value === null || isNaN(value)) {
+                return ''.padEnd(TOTAL_COLUMN_WIDTH);
+            }
+            const formattedValue = new Intl.NumberFormat('id-ID').format(value);
+            return `${paddedLabel}Rp. ${formattedValue.padStart(VALUE_WIDTH)}`;
         };
 
-    }, [employee]);
+        let content = '';
+        content += `A. PENDAPATAN`.padEnd(TOTAL_COLUMN_WIDTH) + SEPARATOR + `B. POTONGAN\n`;
+        content += `${formatLine('   Basic Salary', payroll.gajiPokok)}${SEPARATOR}${formatLine('   Tax', payroll.pajakPph21)}\n`;
+        content += `${formatLine('   Performance Incentive', payroll.insentifKinerja)}${SEPARATOR}${formatLine('   BPJS TK Kary. (2%)', payroll.bpjsTkKaryawan2)}\n`;
+        content += `${formatLine('   BPJS TK (0.54%)', payroll.bpjsTkNatura)}${SEPARATOR}${formatLine('   BPJS TK (0.54%)', payroll.bpjsTkKaryawan054)}\n`;
+        content += `${formatLine('', null)}${SEPARATOR}${formatLine('   BPJS Pensiun Kary (1%)', payroll.bpjsPensiunKaryawan)}\n`;
+        content += LINE_SEPARATOR + '\n';
+        content += `${formatLine('TOTAL PENDAPATAN (A):', payroll.totalPendapatan)}${SEPARATOR}${formatLine('TOTAL POTONGAN (B):', payroll.totalPotongan)}\n`;
+        content += LINE_SEPARATOR + '\n';
+        content += `LAIN LAIN (C):`.padEnd(TOTAL_COLUMN_WIDTH) + SEPARATOR + `SALDO PINJAMAN\n`;
+        content += `${formatLine('   BPJS Pensiun Persh (2%)', payroll.bpjsPensiunPerusahaan)}${SEPARATOR}${formatLine('', payroll.saldoPinjaman)}\n`;
+        content += `${formatLine('   BPJS TK Persh (3,7%)', payroll.bpjsTkPerusahaan)}\n`;
+        content += LINE_SEPARATOR + '\n';
+        content += ' '.repeat(TOTAL_COLUMN_WIDTH + SEPARATOR.length) + `YANG DIBAYARKAN (A - B) = Rp. ${new Intl.NumberFormat('id-ID').format(payroll.takeHomePay).padStart(VALUE_WIDTH)}\n`;
+        content += LINE_SEPARATOR + '\n';
+        content += 'BSM';
+        return content;
+    }, [payroll]);
 
     if (!payroll) return null;
 
     return (
-        <div id="payslip-to-print" className="bg-white text-black p-8 font-mono text-xs max-w-4xl mx-auto border border-gray-300">
-            {/* Header */}
-            <div className="flex justify-between items-start border-b-2 border-black pb-2">
+        <div className="bg-white text-black p-8 font-mono text-xs max-w-4xl mx-auto border border-gray-300">
+             <div className="flex justify-between items-start border-b-2 border-black pb-2">
                 <h1 className="text-2xl font-bold">PT. Mitra Karyawan</h1>
                 <p className="font-bold tracking-widest">CONFIDENTIAL</p>
             </div>
-
-            {/* Info Section */}
-            <div className="flex justify-between mt-4 text-sm">
+             <div className="flex justify-between mt-4 text-sm">
                 <pre className="p-0 m-0">
-                    COST CENTER : {formatValue(employee.profile.branch || 'N/A', 20)}<br />
-                    NIK         : {formatValue(employee.id, 20)}<br />
-                    NAMA        : {formatValue(employee.profile.name, 20)}
-                </pre>
-                <pre className="p-0 m-0">
-                    SLIP PEMBAYARAN - PT<br />
-                    PERIODE : {formatValue(period, 20)}<br />
-                    NPWP    : {formatValue('N/A', 20)}
-                </pre>
-            </div>
-
-            {/* Main Body */}
-            <div className="flex justify-between mt-6 text-sm">
-                <pre className="p-0 m-0">
-                    A. PENDAPATAN<br />
-                       Basic Salary<br />
-                       Performance Incentive<br />
-                       BPJS TK (0.54%)
-                </pre>
-                <pre className="p-0 m-0 text-right">
-                    <br />
-                    {formatCurrency(payroll.gajiPokok)}<br />
-                    {formatCurrency(payroll.insentifKinerja)}<br />
-                    {formatCurrency(payroll.bpjsTkKaryawan054)}
-                </pre>
-                <pre className="p-0 m-0">
-                    B. POTONGAN<br />
-                       Tax<br />
-                       BPJS TK Kary. (2%)<br />
-                       BPJS TK (0.54%)<br />
-                    <br />
-                       BPJS Pensiun Kary (1%)
-                </pre>
-                <pre className="p-0 m-0 text-right">
-                    <br />
-                    {formatCurrency(payroll.pajakPph21)}<br />
-                    {formatCurrency(payroll.bpjsTkKaryawan2)}<br />
-                    {formatCurrency(payroll.bpjsTkKaryawan054)}<br />
-                    <br />
-                    {formatCurrency(payroll.bpjsPensiunKaryawan)}
-                </pre>
-            </div>
-            
-            <hr className="border-dashed border-black my-2" />
-            
-            <div className="flex justify-between text-sm">
-                <pre className="p-0 m-0">TOTAL PENDAPATAN (A):</pre>
-                <pre className="p-0 m-0 text-right">{formatCurrency(payroll.totalPendapatan)}</pre>
-                <pre className="p-0 m-0">TOTAL POTONGAN (B):</pre>
-                <pre className="p-0 m-0 text-right">{formatCurrency(payroll.totalPotongan)}</pre>
-            </div>
-            
-            <hr className="border-dashed border-black my-2" />
-
-            <div className="flex justify-between text-sm">
-                 <pre className="p-0 m-0">
-                    LAIN LAIN (C):<br />
-                    BPJS Pensiun Persh (2%)<br />
-                    BPJS TK Persh (3,7%)
+                    {`COST CENTER : ${employee.profile.branch || 'N/A'}\n`}
+                    {`NIK         : ${employee.id}\n`}
+                    {`NAMA        : ${employee.profile.name}`}
                 </pre>
                  <pre className="p-0 m-0 text-right">
-                    <br />
-                    {formatCurrency(payroll.bpjsPensiunPerusahaan)}<br />
-                    {formatCurrency(payroll.bpjsTkPerusahaan)}
+                    {`SLIP PEMBAYARAN\n`}
+                    {`PERIODE : ${period}\n`}
+                    {`NPWP    : N/A`}
                 </pre>
-                <pre className="p-0 m-0">SALDO PINJAMAN</pre>
-                <pre className="p-0 m-0 text-right">{formatCurrency(payroll.saldoPinjaman)}</pre>
             </div>
-
-            <hr className="border-dashed border-black my-2" />
-
-            <div className="flex justify-end text-sm">
-                <pre className="p-0 m-0 text-right">YANG DIBAYARKAN (A - B) = {formatCurrency(payroll.takeHomePay)}</pre>
+            <div className="mt-6" id="payslip-to-print">
+                 <pre className="text-sm p-0 m-0 leading-relaxed whitespace-pre">{payslipContent}</pre>
             </div>
-
-            <hr className="border-dashed border-black my-2" />
-            
-            <pre className="text-sm p-0 m-0">
-                BSM
-            </pre>
-
             <div className="mt-8 text-center text-xs font-bold">
                 #PAYSLIP INI DICETAK MELALUI SISTEM, TIDAK MEMERLUKAN STAMP ATAU TANDA TANGAN#
             </div>
@@ -174,14 +116,16 @@ const HrPayroll: React.FC = () => {
     const selectedEmployee = users.find(u => u.id === selectedEmployeeId);
     
     const handlePrint = () => {
-        const printContents = document.getElementById('payslip-to-print')?.innerHTML;
+        const printContentNode = document.getElementById('payslip-to-print');
+        if (!printContentNode) return;
+        
+        const printContent = printContentNode.innerHTML;
         const originalContents = document.body.innerHTML;
-        if(printContents) {
-            document.body.innerHTML = printContents;
-            window.print();
-            document.body.innerHTML = originalContents;
-            window.location.reload(); // To re-initialize the React app
-        }
+
+        document.body.innerHTML = `<pre style="font-family: monospace; font-size: 10px; white-space: pre;">${printContent.replace(/<br\s*\/?>/gi, '\n')}</pre>`;
+        window.print();
+        document.body.innerHTML = originalContents;
+        window.location.reload(); 
     };
 
     return (
