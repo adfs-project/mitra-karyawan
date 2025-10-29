@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -52,10 +53,10 @@ const AttendanceHistoryScreen: React.FC = () => {
                             {userRecords.map(record => (
                                 <div key={record.id} className="bg-surface-light p-4 rounded-lg">
                                     <p className="font-bold text-text-primary">{formatDate(record.date)}</p>
-                                    <div className="flex justify-between items-start mt-2 text-sm">
+                                    <div className="mt-2 text-sm space-y-3 pt-3 border-t border-border-color">
                                         <div>
                                             <p className="text-text-secondary">Masuk</p>
-                                            <p className="font-semibold">{formatTime(record.clockInTime)}</p>
+                                            <p className="font-semibold text-lg">{formatTime(record.clockInTime)}</p>
                                             <div className="flex items-center space-x-1">
                                                 <LocationName location={record.clockInLocation} />
                                                 {record.clockInPhotoUrl && (
@@ -65,10 +66,10 @@ const AttendanceHistoryScreen: React.FC = () => {
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="text-right">
+                                        <div>
                                             <p className="text-text-secondary">Keluar</p>
-                                            <p className="font-semibold">{formatTime(record.clockOutTime)}</p>
-                                             <div className="flex items-center justify-end space-x-1">
+                                            <p className="font-semibold text-lg">{formatTime(record.clockOutTime)}</p>
+                                             <div className="flex items-center space-x-1">
                                                 <LocationName location={record.clockOutLocation} />
                                                 {record.clockOutPhotoUrl && (
                                                     <button onClick={() => openPhotoModal(record.clockOutPhotoUrl!)} className="p-1 rounded-full hover:bg-black/10" aria-label="Lihat foto selfie keluar">
