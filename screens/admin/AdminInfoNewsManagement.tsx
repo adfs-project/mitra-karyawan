@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { Article } from '../../types';
-import { PlusIcon, PencilIcon, TrashIcon, ArchiveBoxIcon, LockClosedIcon, SparklesIcon, LinkIcon } from '@heroicons/react/24/solid';
+import { PlusIcon, PencilIcon, TrashIcon, ArchiveBoxIcon, LockClosedIcon, SparklesIcon, LinkIcon, ArrowUpTrayIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI, Type } from "@google/genai";
+import BulkUploadArticlesModal from '../../components/admin/news/BulkUploadArticlesModal';
 
 const AILoadingSpinner: React.FC = () => (
     <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
@@ -250,6 +251,7 @@ Here is the YouTube URL: ${youtubeUrl}`;
 const AdminInfoNewsManagement: React.FC = () => {
     const { articles, addArticle, updateArticle, deleteArticle } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
     const [editingArticle, setEditingArticle] = useState<Article | null>(null);
 
     const handleOpenModal = (article: Article | null = null) => {
@@ -273,9 +275,18 @@ const AdminInfoNewsManagement: React.FC = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-primary">Info & News Management</h1>
-                <button onClick={() => handleOpenModal()} className="btn-primary flex items-center px-4 py-2 rounded">
-                    <PlusIcon className="h-5 w-5 mr-2" /> Create Article
-                </button>
+                <div className="flex space-x-2">
+                    <button 
+                        onClick={() => setIsBulkUploadModalOpen(true)}
+                        className="btn-secondary flex items-center px-4 py-2 rounded-lg font-bold"
+                    >
+                        <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
+                        Unggah Massal
+                    </button>
+                    <button onClick={() => handleOpenModal()} className="btn-primary flex items-center px-4 py-2 rounded">
+                        <PlusIcon className="h-5 w-5 mr-2" /> Create Article
+                    </button>
+                </div>
             </div>
             
             <div className="bg-surface p-6 rounded-lg border border-border-color">
@@ -325,6 +336,10 @@ const AdminInfoNewsManagement: React.FC = () => {
                 onClose={() => setIsModalOpen(false)}
                 article={editingArticle}
                 onSave={handleSave}
+            />
+            <BulkUploadArticlesModal
+                isOpen={isBulkUploadModalOpen}
+                onClose={() => setIsBulkUploadModalOpen(false)}
             />
         </div>
     );

@@ -1,5 +1,3 @@
-// FIX: Replaced mock data and circular import with actual type definitions.
-// This resolves a large number of 'type not found' and 'not exported' errors across the application.
 import { Role, User, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig, HomePageConfig, AdminWallets, PersonalizationRule, Order, HealthChallenge, InsuranceClaim, AttendanceRecord, OpexRequest } from '../types';
 
 export const initialUsers: User[] = [

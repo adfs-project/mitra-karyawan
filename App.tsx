@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { Role } from './types';
 import ToastContainer from './components/common/ToastContainer';
+import { PersonalizationProvider } from './contexts/PersonalizationContext';
 
 // Lazy load components for code splitting
 const UserLayout = lazy(() => import('./components/layout/UserLayout'));
@@ -235,63 +236,65 @@ const App: React.FC = () => {
         
         // Both User and HR roles will use the UserLayout for an integrated experience
         return (
-            <UserLayout>
-                <Routes>
-                    {/* Common User Routes */}
-                    <Route index element={<Navigate to="/home" />} />
-                    <Route path="home" element={<HomeScreen />} />
-                    <Route path="wallet" element={<WalletScreen />} />
-                    <Route path="market" element={<MarketScreen />} />
-                    <Route path="news" element={<InfoNewsScreen />} />
-                    <Route path="health" element={<HealthScreen />} />
-                    <Route path="account" element={<MyAccountScreen />} />
-                    <Route path="cart" element={<CartScreen />} />
-                    <Route path="wishlist" element={<WishlistScreen />} />
-                    <Route path="my-products" element={<MyProductsStoreScreen />} />
-                    <Route path="bookmarked-articles" element={<BookmarkedArticlesScreen />} />
-                    <Route path="my-consultations" element={<MyConsultationsScreen />} />
-                    <Route path="consultation/:id" element={<ConsultationRoomScreen />} />
-                    <Route path="doctor/:id" element={<DoctorDetailScreen />} />
-                    <Route path="loyalty" element={<LoyaltyScreen />} />
-                    <Route path="health-record" element={<HealthRecordScreen />} />
-                    <Route path="prescriptions" element={<EprescriptionScreen />} />
-                    <Route path="insurance-claim" element={<InsuranceClaimScreen />} />
-                    <Route path="pharmacy-checkout/:eprescriptionId" element={<PharmacyCheckoutScreen />} />
-                    <Route path="health-plus" element={<HealthPlusScreen />} />
-                    <Route path="subscribe-health-plus" element={<SubscriptionUpsellScreen />} />
-                    <Route path="attendance-history" element={<AttendanceHistoryScreen />} />
-                    <Route path="opex" element={<OpexScreen />} />
-                    <Route path="opex/new" element={<NewOpexRequestScreen />} />
-                    <Route path="under-construction" element={<UnderConstructionScreen />} />
-                    <Route path="features" element={<AllFeaturesScreen />} />
-                    
-                    {/* Main placeholder routes */}
-                    <Route path="ppob" element={<PPOBScreen />} />
-                    <Route path="government-services" element={<GovernmentServicesScreen />} />
-                    <Route path="lifestyle" element={<LifestyleScreen />} />
-                    <Route path="mobile-topup" element={<MobileTopUpScreen />} />
-                    <Route path="cash-out" element={<CashOutScreen />} />
-                    <Route path="daily-needs" element={<DailyNeedsScreen />} />
-                    
-                    {/* Detailed placeholder routes */}
-                    <Route path="lifestyle/cinema" element={<CinemaTicketScreen />} />
-                    <Route path="lifestyle/game-voucher" element={<GameVoucherScreen />} />
-                    <Route path="lifestyle/donation" element={<DonationScreen />} />
-                    <Route path="government/pbb" element={<PbbTaxScreen />} />
-                    <Route path="government/samsat" element={<ESamsatScreen />} />
-                    <Route path="government/mpn" element={<MpnG3Screen />} />
+            <PersonalizationProvider>
+                <UserLayout>
+                    <Routes>
+                        {/* Common User Routes */}
+                        <Route index element={<Navigate to="/home" />} />
+                        <Route path="home" element={<HomeScreen />} />
+                        <Route path="wallet" element={<WalletScreen />} />
+                        <Route path="market" element={<MarketScreen />} />
+                        <Route path="news" element={<InfoNewsScreen />} />
+                        <Route path="health" element={<HealthScreen />} />
+                        <Route path="account" element={<MyAccountScreen />} />
+                        <Route path="cart" element={<CartScreen />} />
+                        <Route path="wishlist" element={<WishlistScreen />} />
+                        <Route path="my-products" element={<MyProductsStoreScreen />} />
+                        <Route path="bookmarked-articles" element={<BookmarkedArticlesScreen />} />
+                        <Route path="my-consultations" element={<MyConsultationsScreen />} />
+                        <Route path="consultation/:id" element={<ConsultationRoomScreen />} />
+                        <Route path="doctor/:id" element={<DoctorDetailScreen />} />
+                        <Route path="loyalty" element={<LoyaltyScreen />} />
+                        <Route path="health-record" element={<HealthRecordScreen />} />
+                        <Route path="prescriptions" element={<EprescriptionScreen />} />
+                        <Route path="insurance-claim" element={<InsuranceClaimScreen />} />
+                        <Route path="pharmacy-checkout/:eprescriptionId" element={<PharmacyCheckoutScreen />} />
+                        <Route path="health-plus" element={<HealthPlusScreen />} />
+                        <Route path="subscribe-health-plus" element={<SubscriptionUpsellScreen />} />
+                        <Route path="attendance-history" element={<AttendanceHistoryScreen />} />
+                        <Route path="opex" element={<OpexScreen />} />
+                        <Route path="opex/new" element={<NewOpexRequestScreen />} />
+                        <Route path="under-construction" element={<UnderConstructionScreen />} />
+                        <Route path="features" element={<AllFeaturesScreen />} />
+                        
+                        {/* Main placeholder routes */}
+                        <Route path="ppob" element={<PPOBScreen />} />
+                        <Route path="government-services" element={<GovernmentServicesScreen />} />
+                        <Route path="lifestyle" element={<LifestyleScreen />} />
+                        <Route path="mobile-topup" element={<MobileTopUpScreen />} />
+                        <Route path="cash-out" element={<CashOutScreen />} />
+                        <Route path="daily-needs" element={<DailyNeedsScreen />} />
+                        
+                        {/* Detailed placeholder routes */}
+                        <Route path="lifestyle/cinema" element={<CinemaTicketScreen />} />
+                        <Route path="lifestyle/game-voucher" element={<GameVoucherScreen />} />
+                        <Route path="lifestyle/donation" element={<DonationScreen />} />
+                        <Route path="government/pbb" element={<PbbTaxScreen />} />
+                        <Route path="government/samsat" element={<ESamsatScreen />} />
+                        <Route path="government/mpn" element={<MpnG3Screen />} />
 
-                    <Route path="placeholder/:featureName" element={<FunctionalPlaceholderScreen />} />
+                        <Route path="placeholder/:featureName" element={<FunctionalPlaceholderScreen />} />
 
 
-                    {/* HR-specific entry point, rendered within UserLayout */}
-                    {user.role === Role.HR && (
-                        <Route path="hr-portal" element={<HrPortalScreen />} />
-                    )}
-                    
-                    <Route path="*" element={<Navigate to="/home" />} />
-                </Routes>
-            </UserLayout>
+                        {/* HR-specific entry point, rendered within UserLayout */}
+                        {user.role === Role.HR && (
+                            <Route path="hr-portal" element={<HrPortalScreen />} />
+                        )}
+                        
+                        <Route path="*" element={<Navigate to="/home" />} />
+                    </Routes>
+                </UserLayout>
+            </PersonalizationProvider>
         );
     };
 

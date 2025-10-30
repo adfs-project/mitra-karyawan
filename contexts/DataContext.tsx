@@ -104,7 +104,7 @@ interface DataContextType {
     approveInsuranceClaim: (claimId: string) => Promise<void>;
     rejectInsuranceClaim: (claimId: string) => Promise<void>;
     submitOpexRequest: (requestData: Omit<OpexRequest, 'id' | 'userId' | 'userName' | 'branch' | 'status' | 'timestamp' | 'hrApproverId' | 'hrApprovalTimestamp' | 'financeApproverId' | 'financeApprovalTimestamp' | 'rejectionReason'>) => Promise<void>;
-    approveOpexByHr: (id: string) => Promise<void>;
+    approveOpexByHr: (id: string, amount?: number) => Promise<void>;
     rejectOpexByHr: (id: string, reason: string) => Promise<void>;
     
     // Finance
@@ -152,11 +152,13 @@ interface DataContextType {
     addProduct: (product: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'>) => Promise<void>;
     updateProduct: (product: Product) => Promise<void>;
     deleteProduct: (productId: string) => Promise<void>;
+    addMultipleProductsByAdmin: (productsData: any[]) => Promise<{ success: number; failed: number; errors: string[] }>;
     
     // Admin Content
     addArticle: (article: Omit<Article, 'id' | 'author' | 'timestamp' | 'likes' | 'comments' | 'pollOptions'>) => Promise<void>;
     updateArticle: (article: Article) => Promise<void>;
     deleteArticle: (articleId: string) => Promise<void>;
+    addMultipleArticlesByAdmin: (articlesData: any[]) => Promise<{ success: number; failed: number; errors: string[] }>;
     addDoctor: (doctor: Omit<Doctor, 'id' | 'availableSlots'>) => Promise<void>;
     updateDoctor: (doctor: Doctor) => Promise<void>;
     deleteDoctor: (doctorId: string) => Promise<void>;
@@ -679,7 +681,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
     
-    const approveOpexByHr = async (id: string) => {
+    const approveOpexByHr = async (id: string, amount?: number) => {
         const request = appData.opexRequests.find(r => r.id === id);
         if (!user || !request) {
             showToast("Request not found.", "error");
@@ -692,9 +694,19 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             hrApproverId: user.id,
             hrApprovalTimestamp: new Date().toISOString(),
         };
+
+        if (request.type === 'Biaya Makan Perjalanan Dinas') {
+            if (amount && amount > 0) {
+                updatedRequest.amount = amount;
+            } else {
+                showToast("Please set the meal allowance amount before approving.", "error");
+                return;
+            }
+        }
+        
         updateState('opexRequests', appData.opexRequests.map(r => r.id === id ? updatedRequest : r));
         
-        const financeUser = appData.users.find(u => u.role === Role.Finance);
+        const financeUser = appData.users.find(u => u.role === Role.Finance && u.profile.branch === request.branch);
         if (financeUser) {
             addNotification(financeUser.id, `An opex request from ${request.userName} needs your approval.`, 'info');
         }
@@ -848,9 +860,56 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const addProduct = async (productData: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'>) => { if (!user) return; const newProduct: Product = { ...productData, id: `p-${Date.now()}`, sellerId: user.id, sellerName: user.profile.name, reviews: [], rating: 0, reviewCount: 0 }; updateState('products', [newProduct, ...appData.products]); showToast("Product listed successfully!", "success"); };
     const updateProduct = async (product: Product) => { updateState('products', appData.products.map(p => p.id === product.id ? product : p)); showToast("Product updated successfully!", "success"); };
     const deleteProduct = async (productId: string) => { showToast("Penghapusan data inti dinonaktifkan secara permanen untuk melindungi integritas sistem.", 'warning'); };
+    
+    const addMultipleProductsByAdmin = async (productsData: any[]): Promise<{ success: number; failed: number; errors: string[] }> => {
+        if (!user || user.role !== Role.Admin) {
+            return { success: 0, failed: productsData.length, errors: ["Unauthorized"] };
+        }
+        let success = 0;
+        const newProducts: Product[] = [];
+        for(const product of productsData) {
+             const newProduct: Product = { 
+                ...product, 
+                id: `p-${Date.now()}-${success}`, 
+                sellerId: user.id, 
+                sellerName: user.profile.name, 
+                reviews: [], 
+                rating: 0, 
+                reviewCount: 0 
+            };
+            newProducts.push(newProduct);
+            success++;
+        }
+        updateState('products', [...newProducts, ...appData.products]);
+        return { success, failed: 0, errors: [] };
+    };
+    
     const addArticle = async (articleData: Omit<Article, 'id' | 'author' | 'timestamp' | 'likes' | 'comments' | 'pollOptions'>) => { const newArticle: Article = { ...articleData, id: `a-${Date.now()}`, author: 'Admin', timestamp: new Date().toISOString(), likes: [], comments: [] }; updateState('articles', [newArticle, ...appData.articles]); showToast("Article created successfully.", "success"); };
     const updateArticle = async (article: Article) => { updateState('articles', appData.articles.map(a => a.id === article.id ? article : a)); showToast("Article updated successfully.", "success"); };
     const deleteArticle = async (articleId: string) => { showToast("Penghapusan data inti dinonaktifkan secara permanen untuk melindungi integritas sistem.", 'warning'); };
+    
+     const addMultipleArticlesByAdmin = async (articlesData: any[]): Promise<{ success: number; failed: number; errors: string[] }> => {
+        if (!user || user.role !== Role.Admin) {
+            return { success: 0, failed: articlesData.length, errors: ["Unauthorized"] };
+        }
+        let success = 0;
+        const newArticles: Article[] = [];
+        for(const article of articlesData) {
+             const newArticle: Article = { 
+                ...article, 
+                id: `a-${Date.now()}-${success}`, 
+                author: 'Admin',
+                timestamp: new Date().toISOString(),
+                likes: [], 
+                comments: [],
+            };
+            newArticles.push(newArticle);
+            success++;
+        }
+        updateState('articles', [...newArticles, ...appData.articles]);
+        return { success, failed: 0, errors: [] };
+    };
+
     const addDoctor = async (doctorData: Omit<Doctor, 'id' | 'availableSlots'>) => { const newDoctor: Doctor = { ...doctorData, id: `doc-${Date.now()}`, availableSlots: [{ time: '09:00', isBooked: false }, { time: '10:00', isBooked: false }, { time: '11:00', isBooked: false }, { time: '13:00', isBooked: false }, { time: '14:00', isBooked: false }, { time: '15:00', isBooked: false }] }; updateState('doctors', [newDoctor, ...appData.doctors]); showToast("New health provider added.", "success"); };
     const updateDoctor = async (doctor: Doctor) => { updateState('doctors', appData.doctors.map(d => d.id === doctor.id ? doctor : d)); showToast("Health provider updated.", "success"); };
     const deleteDoctor = async (doctorId: string) => { showToast("Penghapusan data inti dinonaktifkan secara permanen untuk melindungi integritas sistem.", 'warning'); };
@@ -894,8 +953,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateServiceLinkage,
         logAssistantQuery, logEngagementEvent,
         addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule,
-        addProduct, updateProduct, deleteProduct,
-        addArticle, updateArticle, deleteArticle,
+        addProduct, updateProduct, deleteProduct, addMultipleProductsByAdmin,
+        addArticle, updateArticle, deleteArticle, addMultipleArticlesByAdmin,
         addDoctor, updateDoctor, deleteDoctor,
     };
 

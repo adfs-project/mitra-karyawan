@@ -5,7 +5,7 @@ import { ArrowLeftIcon, CameraIcon } from '@heroicons/react/24/solid';
 import { OpexRequestType, Coordinates } from '../../../types';
 import AttendanceCameraModal from '../../../components/user/AttendanceCameraModal';
 
-const opexTypes: OpexRequestType[] = ['Bensin', 'Token Listrik', 'Beli Barang', 'Fotocopy', 'Parkir'];
+const opexTypes: OpexRequestType[] = ['Bensin', 'Token Listrik', 'Beli Barang', 'Fotocopy', 'Parkir', 'Tiket Pesawat/Kereta', 'Booking Hotel', 'Biaya Makan Perjalanan Dinas'];
 
 const NewOpexRequestScreen: React.FC = () => {
     const navigate = useNavigate();
@@ -20,6 +20,8 @@ const NewOpexRequestScreen: React.FC = () => {
     const [isCameraOpen, setIsCameraOpen] = useState(false);
     const [cameraTarget, setCameraTarget] = useState<'photo1' | 'photo2' | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    const isMealAllowance = type === 'Biaya Makan Perjalanan Dinas';
 
     const openCamera = (target: 'photo1' | 'photo2') => {
         setCameraTarget(target);
@@ -37,8 +39,12 @@ const NewOpexRequestScreen: React.FC = () => {
     };
 
     const handleSubmit = () => {
-        if (amount <= 0 || !description.trim() || !proofPhotoUrl1 || !proofPhotoUrl2) {
+        if (!isMealAllowance && (amount <= 0 || !proofPhotoUrl1 || !proofPhotoUrl2)) {
             showToast('Harap isi semua kolom dan unggah kedua bukti foto.', 'warning');
+            return;
+        }
+        if (!description.trim()) {
+            showToast('Deskripsi harus diisi.', 'warning');
             return;
         }
 
@@ -51,11 +57,11 @@ const NewOpexRequestScreen: React.FC = () => {
                 
                 await submitOpexRequest({
                     type,
-                    amount,
+                    amount: isMealAllowance ? 0 : amount,
                     description,
                     proofLocation,
-                    proofPhotoUrl1,
-                    proofPhotoUrl2,
+                    proofPhotoUrl1: proofPhotoUrl1 || '',
+                    proofPhotoUrl2: proofPhotoUrl2 || '',
                 });
                 
                 setIsSubmitting(false);
@@ -88,39 +94,45 @@ const NewOpexRequestScreen: React.FC = () => {
                                 {opexTypes.map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
                         </div>
-                        <div>
-                            <label className="text-sm font-bold text-text-secondary">Jumlah (IDR)</label>
-                            <input type="number" value={amount || ''} onChange={e => setAmount(Number(e.target.value))} className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color" placeholder="e.g., 50000" />
-                        </div>
+                        
+                        {!isMealAllowance && (
+                            <div>
+                                <label className="text-sm font-bold text-text-secondary">Jumlah (IDR)</label>
+                                <input type="number" value={amount || ''} onChange={e => setAmount(Number(e.target.value))} className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color" placeholder="e.g., 50000" />
+                            </div>
+                        )}
+                        
                         <div>
                             <label className="text-sm font-bold text-text-secondary">Deskripsi</label>
-                            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color" placeholder="e.g., Bensin Pertamax untuk perjalanan dinas"></textarea>
+                            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color" placeholder={isMealAllowance ? "e.g., Perjalanan dinas ke Bandung 3 hari (24-26 Des)" : "e.g., Bensin Pertamax untuk perjalanan dinas"}></textarea>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                             <div>
-                                <label className="text-sm font-bold text-text-secondary">Bukti Foto Objek</label>
-                                {proofPhotoUrl1 ? (
-                                    <img src={proofPhotoUrl1} alt="Bukti Objek" className="mt-1 w-full h-32 object-cover rounded-lg cursor-pointer" onClick={() => openCamera('photo1')} />
-                                ) : (
-                                    <button type="button" onClick={() => openCamera('photo1')} className="mt-1 w-full h-32 bg-surface-light rounded-lg border-2 border-dashed border-border-color flex flex-col items-center justify-center text-text-secondary">
-                                        <CameraIcon className="h-8 w-8" />
-                                        <span className="text-xs mt-1">Ambil Foto</span>
-                                    </button>
-                                )}
+                        {!isMealAllowance && (
+                             <div className="grid grid-cols-2 gap-4">
+                                 <div>
+                                    <label className="text-sm font-bold text-text-secondary">Bukti Foto Objek</label>
+                                    {proofPhotoUrl1 ? (
+                                        <img src={proofPhotoUrl1} alt="Bukti Objek" className="mt-1 w-full h-32 object-cover rounded-lg cursor-pointer" onClick={() => openCamera('photo1')} />
+                                    ) : (
+                                        <button type="button" onClick={() => openCamera('photo1')} className="mt-1 w-full h-32 bg-surface-light rounded-lg border-2 border-dashed border-border-color flex flex-col items-center justify-center text-text-secondary">
+                                            <CameraIcon className="h-8 w-8" />
+                                            <span className="text-xs mt-1">Ambil Foto</span>
+                                        </button>
+                                    )}
+                                </div>
+                                 <div>
+                                    <label className="text-sm font-bold text-text-secondary">Bukti Foto Nota/Struk</label>
+                                     {proofPhotoUrl2 ? (
+                                        <img src={proofPhotoUrl2} alt="Bukti Nota" className="mt-1 w-full h-32 object-cover rounded-lg cursor-pointer" onClick={() => openCamera('photo2')} />
+                                    ) : (
+                                        <button type="button" onClick={() => openCamera('photo2')} className="mt-1 w-full h-32 bg-surface-light rounded-lg border-2 border-dashed border-border-color flex flex-col items-center justify-center text-text-secondary">
+                                            <CameraIcon className="h-8 w-8" />
+                                            <span className="text-xs mt-1">Ambil Foto</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                             <div>
-                                <label className="text-sm font-bold text-text-secondary">Bukti Foto Nota/Struk</label>
-                                 {proofPhotoUrl2 ? (
-                                    <img src={proofPhotoUrl2} alt="Bukti Nota" className="mt-1 w-full h-32 object-cover rounded-lg cursor-pointer" onClick={() => openCamera('photo2')} />
-                                ) : (
-                                    <button type="button" onClick={() => openCamera('photo2')} className="mt-1 w-full h-32 bg-surface-light rounded-lg border-2 border-dashed border-border-color flex flex-col items-center justify-center text-text-secondary">
-                                        <CameraIcon className="h-8 w-8" />
-                                        <span className="text-xs mt-1">Ambil Foto</span>
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+                        )}
 
                         <button type="submit" disabled={isSubmitting} className="w-full btn-primary p-3 rounded-lg font-bold mt-4 flex justify-center items-center">
                             {isSubmitting ? <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div> : 'Ajukan'}

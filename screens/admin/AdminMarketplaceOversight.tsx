@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { Product } from '../../types';
-import { ShoppingCartIcon, BanknotesIcon, ShieldExclamationIcon, LockClosedIcon, TrashIcon, PlusIcon, PencilIcon } from '@heroicons/react/24/solid';
+import { ShoppingCartIcon, BanknotesIcon, ShieldExclamationIcon, LockClosedIcon, TrashIcon, PlusIcon, PencilIcon, ArrowUpTrayIcon } from '@heroicons/react/24/solid';
 import ProductFormModal from '../../components/user/market/ProductFormModal';
+import BulkUploadProductsModal from '../../components/admin/market/BulkUploadProductsModal';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType }> = ({ title, value, icon: Icon }) => (
     <div className="bg-surface p-6 rounded-lg border border-border-color">
@@ -22,6 +23,7 @@ const AdminMarketplaceOversight: React.FC = () => {
     const { products, transactions, disputes, deleteProduct, addProduct, updateProduct } = useData();
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
     const gmv = useMemo(() => transactions
@@ -57,9 +59,18 @@ const AdminMarketplaceOversight: React.FC = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-primary">Marketplace Oversight</h1>
-                <button onClick={() => handleOpenModal()} className="btn-primary flex items-center px-4 py-2 rounded">
-                    <PlusIcon className="h-5 w-5 mr-2" /> Add New Product
-                </button>
+                <div className="flex space-x-2">
+                    <button 
+                        onClick={() => setIsBulkUploadModalOpen(true)}
+                        className="btn-secondary flex items-center px-4 py-2 rounded-lg font-bold"
+                    >
+                        <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
+                        Unggah Massal
+                    </button>
+                    <button onClick={() => handleOpenModal()} className="btn-primary flex items-center px-4 py-2 rounded">
+                        <PlusIcon className="h-5 w-5 mr-2" /> Add New Product
+                    </button>
+                </div>
             </div>
 
 
@@ -125,6 +136,10 @@ const AdminMarketplaceOversight: React.FC = () => {
                 onClose={() => setIsModalOpen(false)}
                 product={editingProduct}
                 onSave={handleSaveProduct}
+            />
+            <BulkUploadProductsModal 
+                isOpen={isBulkUploadModalOpen}
+                onClose={() => setIsBulkUploadModalOpen(false)}
             />
         </div>
     );

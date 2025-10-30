@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { CheckCircleIcon, XCircleIcon, EyeIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { OpexRequest, User } from '../../types';
+import { OpexRequest, OpexRequestType, User } from '../../types';
 import LocationName from '../../components/common/LocationName';
 
 type Tab = 'Opex Requests';
@@ -30,6 +30,7 @@ const HrOpexManagementScreen: React.FC = () => {
     const [activeTab, setActiveTab] = useState<Tab>('Opex Requests');
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
+    const [mealAllowanceAmounts, setMealAllowanceAmounts] = useState<Record<string, number>>({});
 
     const branchEmployees = useMemo(() => {
         if (!hrUser) return [];
@@ -39,10 +40,28 @@ const HrOpexManagementScreen: React.FC = () => {
     const pendingOpex = useMemo(() => opexRequests.filter(r => r.branch === hrUser?.profile.branch && r.status === 'Pending HR Verification'), [opexRequests, hrUser]);
     const historyOpex = useMemo(() => opexRequests.filter(r => r.branch === hrUser?.profile.branch && r.status !== 'Pending HR Verification'), [opexRequests, hrUser]);
 
+    const handleAmountChange = (id: string, value: number) => {
+        setMealAllowanceAmounts(prev => ({ ...prev, [id]: value }));
+    };
+
     const handleApproveOpex = async (id: string) => {
-        setProcessingId(id);
-        await approveOpexByHr(id);
-        setProcessingId(null);
+        const request = pendingOpex.find(r => r.id === id);
+        if (!request) return;
+
+        if (request.type === 'Biaya Makan Perjalanan Dinas') {
+            const amount = mealAllowanceAmounts[id];
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount for the meal allowance.');
+                return;
+            }
+            setProcessingId(id);
+            await approveOpexByHr(id, amount);
+            setProcessingId(null);
+        } else {
+            setProcessingId(id);
+            await approveOpexByHr(id);
+            setProcessingId(null);
+        }
     };
 
     const handleRejectOpex = async (id: string) => {
@@ -77,13 +96,27 @@ const HrOpexManagementScreen: React.FC = () => {
                                 <tr key={req.id} className="border-b border-border-color">
                                     <td className="px-6 py-4 font-medium text-text-primary">{req.userName}</td>
                                     <td className="px-6 py-4">{req.type}</td>
-                                    <td className="px-6 py-4 font-semibold">{formatCurrency(req.amount)}</td>
+                                    <td className="px-6 py-4 font-semibold">
+                                        {req.type === 'Biaya Makan Perjalanan Dinas' && req.status === 'Pending HR Verification' ? (
+                                            <input 
+                                                type="number"
+                                                value={mealAllowanceAmounts[req.id] || ''}
+                                                onChange={(e) => handleAmountChange(req.id, Number(e.target.value))}
+                                                className="w-28 p-1 bg-surface rounded border border-border-color"
+                                                placeholder="Set Amount"
+                                            />
+                                        ) : (
+                                            formatCurrency(req.amount)
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4"><LocationName location={req.proofLocation} /></td>
                                     <td className="px-6 py-4">
-                                        <div className="flex justify-center space-x-2">
-                                            <button onClick={() => setViewingPhoto(req.proofPhotoUrl1)} className="text-primary hover:underline text-xs">Objek</button>
-                                            <button onClick={() => setViewingPhoto(req.proofPhotoUrl2)} className="text-primary hover:underline text-xs">Nota</button>
-                                        </div>
+                                        {req.type !== 'Biaya Makan Perjalanan Dinas' && (
+                                            <div className="flex justify-center space-x-2">
+                                                <button onClick={() => setViewingPhoto(req.proofPhotoUrl1)} className="text-primary hover:underline text-xs">Objek</button>
+                                                <button onClick={() => setViewingPhoto(req.proofPhotoUrl2)} className="text-primary hover:underline text-xs">Nota</button>
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4">
                                         {req.status === 'Pending HR Verification' ? (
