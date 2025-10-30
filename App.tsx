@@ -30,16 +30,7 @@ const CartScreen = lazy(() => import('./screens/user/CartScreen'));
 const WishlistScreen = lazy(() => import('./screens/user/WishlistScreen'));
 const MyProductsStoreScreen = lazy(() => import('./screens/user/MyProductsStoreScreen'));
 const BookmarkedArticlesScreen = lazy(() => import('./screens/user/BookmarkedArticlesScreen'));
-const MyConsultationsScreen = lazy(() => import('./screens/user/health/MyConsultationsScreen'));
-const ConsultationRoomScreen = lazy(() => import('./screens/user/health/ConsultationRoomScreen'));
-const DoctorDetailScreen = lazy(() => import('./screens/user/health/DoctorDetailScreen'));
 const LoyaltyScreen = lazy(() => import('./screens/user/LoyaltyScreen'));
-const HealthRecordScreen = lazy(() => import('./screens/user/health/HealthRecordScreen'));
-const EprescriptionScreen = lazy(() => import('./screens/user/health/EprescriptionScreen'));
-const InsuranceClaimScreen = lazy(() => import('./screens/user/health/InsuranceClaimScreen'));
-const PharmacyCheckoutScreen = lazy(() => import('./screens/user/health/PharmacyCheckoutScreen'));
-const HealthPlusScreen = lazy(() => import('./screens/user/health/HealthPlusScreen'));
-const SubscriptionUpsellScreen = lazy(() => import('./screens/user/health/SubscriptionUpsellScreen'));
 const AttendanceHistoryScreen = lazy(() => import('./screens/user/AttendanceHistoryScreen'));
 const OpexScreen = lazy(() => import('./screens/user/OpexScreen'));
 const NewOpexRequestScreen = lazy(() => import('./screens/user/opex/NewOpexRequestScreen'));
@@ -251,16 +242,7 @@ const App: React.FC = () => {
                         <Route path="wishlist" element={<WishlistScreen />} />
                         <Route path="my-products" element={<MyProductsStoreScreen />} />
                         <Route path="bookmarked-articles" element={<BookmarkedArticlesScreen />} />
-                        <Route path="my-consultations" element={<MyConsultationsScreen />} />
-                        <Route path="consultation/:id" element={<ConsultationRoomScreen />} />
-                        <Route path="doctor/:id" element={<DoctorDetailScreen />} />
                         <Route path="loyalty" element={<LoyaltyScreen />} />
-                        <Route path="health-record" element={<HealthRecordScreen />} />
-                        <Route path="prescriptions" element={<EprescriptionScreen />} />
-                        <Route path="insurance-claim" element={<InsuranceClaimScreen />} />
-                        <Route path="pharmacy-checkout/:eprescriptionId" element={<PharmacyCheckoutScreen />} />
-                        <Route path="health-plus" element={<HealthPlusScreen />} />
-                        <Route path="subscribe-health-plus" element={<SubscriptionUpsellScreen />} />
                         <Route path="attendance-history" element={<AttendanceHistoryScreen />} />
                         <Route path="opex" element={<OpexScreen />} />
                         <Route path="opex/new" element={<NewOpexRequestScreen />} />
