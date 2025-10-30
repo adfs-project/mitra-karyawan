@@ -22,7 +22,7 @@ const SymptomCheckerModal: React.FC<{
 
     const initialGreeting = {
         sender: 'ai' as 'ai',
-        text: 'Halo! Saya asisten kesehatan AI. Anda bisa bertanya tentang informasi umum seputar gejala atau kondisi kesehatan. Contoh: "Apa penyebab umum sakit kepala?".\n\n**Penting:** Saya bukan dokter dan tidak bisa memberikan diagnosis. Informasi ini hanya untuk tujuan edukasi.',
+        text: 'Fitur Asisten Kesehatan AI telah dinonaktifkan untuk mematuhi kebijakan privasi data yang lebih ketat. Kami tidak lagi memproses data kesehatan melalui AI untuk menjamin kerahasiaan Anda. Silakan berkonsultasi langsung dengan dokter untuk saran medis.',
     };
 
     useEffect(() => {
@@ -36,35 +36,8 @@ const SymptomCheckerModal: React.FC<{
     }, [messages]);
 
     const handleSend = async () => {
-        if (!query.trim() || isLoading) return;
-
-        const userMessage: Message = { sender: 'user', text: query };
-        setMessages(prev => [...prev, userMessage]);
-        setQuery('');
-        setIsLoading(true);
-
-        const securePrompt = buildSecurePrompt(
-            userMessage.text,
-            `Your ONLY function is to provide GENERAL, EDUCATIONAL information about health symptoms and common conditions. You MUST politely refuse any questions about specific drug prescriptions, treatment plans, or requests for a diagnosis. You MUST NOT provide a diagnosis under any circumstances. You MUST always include a clear disclaimer that you are not a real doctor and this is not medical advice. Always end your response with a clear recommendation to consult a real doctor for any health concerns. Respond in friendly, clear Indonesian.`
-        );
-
-        try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: securePrompt,
-            });
-
-            const aiMessage: Message = { sender: 'ai', text: response.text };
-            setMessages(prev => [...prev, aiMessage]);
-        } catch (error) {
-            console.error("Gemini API Error:", error);
-            showToast("Failed to contact the AI health assistant.", "error");
-            const errorMessage: Message = { sender: 'ai', text: "Maaf, terjadi kesalahan. Silakan coba lagi nanti." };
-            setMessages(prev => [...prev, errorMessage]);
-        } finally {
-            setIsLoading(false);
-        }
+        // Functionality is disabled
+        return;
     };
     
     if (!isOpen) return null;
@@ -111,11 +84,11 @@ const SymptomCheckerModal: React.FC<{
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="Tanya informasi kesehatan..."
-                            className="w-full bg-surface-light border border-border-color rounded-full py-2 px-4 focus:outline-none focus:ring-1 focus:ring-primary"
-                            disabled={isLoading}
+                            placeholder="Fitur AI dinonaktifkan"
+                            className="w-full bg-surface-light border border-border-color rounded-full py-2 px-4 focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+                            disabled={true}
                         />
-                        <button onClick={handleSend} disabled={isLoading || !query.trim()} className="p-2 btn-secondary rounded-full disabled:opacity-50 disabled:cursor-not-allowed">
+                        <button onClick={handleSend} disabled={true} className="p-2 btn-secondary rounded-full disabled:opacity-50 disabled:cursor-not-allowed">
                             <PaperAirplaneIcon className="h-5 w-5" />
                         </button>
                     </div>

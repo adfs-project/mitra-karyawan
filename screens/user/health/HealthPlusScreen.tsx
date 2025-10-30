@@ -34,49 +34,10 @@ const HealthPlusScreen: React.FC = () => {
         }
     }, [user, navigate]);
 
-    const getPrompt = () => {
-        switch(activeTab) {
-            case 'Makan':
-                return `Anda adalah seorang ahli gizi AI. Buat rencana makan sederhana untuk 1 hari (pagi, siang, malam) dalam Bahasa Indonesia untuk seseorang dengan tujuan: "${input}". Fokus pada makanan yang mudah ditemukan di Indonesia. Berikan juga satu tips singkat terkait tujuan tersebut.`;
-            case 'Latihan':
-                return `Anda adalah seorang pelatih kebugaran AI. Buat program latihan sederhana untuk 1 sesi dalam Bahasa Indonesia untuk seseorang dengan tujuan: "${input}". Sertakan 3-4 gerakan dengan jumlah set dan repetisi. Asumsikan pengguna memiliki peralatan minim (misal: matras).`;
-            case 'Mood':
-                const moodHistory = user?.healthData.moodHistory.map(h => `${h.date}: ${h.mood}`).join(', ') || 'tidak ada data';
-                return `Anda adalah seorang psikolog AI. Berdasarkan ringkasan data mood berikut: [${moodHistory}], berikan satu insight singkat dan satu saran praktis dalam Bahasa Indonesia untuk meningkatkan kesejahteraan mental pengguna.`;
-        }
-    };
-
-    const getPlaceholder = () => {
-         switch(activeTab) {
-            case 'Makan': return 'e.g., Menurunkan berat badan';
-            case 'Latihan': return 'e.g., Meningkatkan kekuatan otot perut';
-            case 'Mood': return 'Klik "Analisis" untuk mendapatkan insight dari data mood Anda.';
-        }
-    }
 
     const handleGenerate = async () => {
-        if (activeTab !== 'Mood' && !input.trim()) {
-            showToast("Harap isi tujuan Anda.", "warning");
-            return;
-        }
-
-        setIsLoading(true);
-        setResult('');
-
-        try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: getPrompt(),
-            });
-            setResult(response.text);
-        } catch (error) {
-            console.error("Health+ AI Error:", error);
-            showToast("Gagal menghubungi AI Coach.", "error");
-            setResult("Terjadi kesalahan. Silakan coba lagi nanti.");
-        } finally {
-            setIsLoading(false);
-        }
+        // AI feature is disabled
+        return;
     };
 
     return (
@@ -89,6 +50,13 @@ const HealthPlusScreen: React.FC = () => {
                     <SparklesIcon className="h-6 w-6 mr-2"/>
                     Health+ AI Coach
                 </h1>
+            </div>
+
+            <div className="bg-surface p-4 rounded-lg border border-yellow-500/50 text-center">
+                <h2 className="text-xl font-bold text-yellow-400">Fitur Dinonaktifkan</h2>
+                <p className="text-text-secondary mt-2 text-sm">
+                    Untuk meningkatkan privasi dan keamanan data, fitur Health+ AI Coach dinonaktifkan sementara. Kami sedang meninjau protokol keamanan kami untuk memberikan layanan terbaik.
+                </p>
             </div>
 
             <div className="flex border-b border-border-color">
@@ -108,11 +76,11 @@ const HealthPlusScreen: React.FC = () => {
                         type="text"
                         value={input}
                         onChange={e => setInput(e.target.value)}
-                        placeholder={getPlaceholder()}
-                        disabled={isLoading || activeTab === 'Mood'}
+                        placeholder="Fitur AI dinonaktifkan"
+                        disabled={true}
                         className="w-full p-3 bg-surface-light rounded border border-border-color disabled:opacity-50"
                     />
-                    <button onClick={handleGenerate} disabled={isLoading} className="btn-primary px-4 py-3 rounded font-bold w-40 flex justify-center items-center">
+                    <button onClick={handleGenerate} disabled={true} className="btn-primary px-4 py-3 rounded font-bold w-40 flex justify-center items-center disabled:bg-gray-600 disabled:cursor-not-allowed">
                         {isLoading ? <AILoadingSpinner /> : (activeTab === 'Mood' ? 'Analisis' : 'Generate')}
                     </button>
                 </div>

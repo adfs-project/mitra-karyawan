@@ -5,6 +5,7 @@ import { BeakerIcon, UserGroupIcon, DocumentTextIcon, ClipboardDocumentListIcon,
 import SymptomCheckerModal from '../../components/user/health/SymptomCheckerModal';
 import WellnessHub from '../../components/user/health/WellnessHub';
 import { useAuth } from '../../contexts/AuthContext';
+import { useApp } from '../../contexts/AppContext';
 
 const DoctorCard: React.FC<{ doctor: import('../../types').Doctor }> = ({ doctor }) => (
     <div className="bg-surface p-4 rounded-lg border border-border-color flex items-center space-x-4">
@@ -46,6 +47,7 @@ const HealthPlusUpsellCard: React.FC = () => {
 
 const HealthScreen: React.FC = () => {
     const { doctors } = useHealth();
+    const { showToast } = useApp();
     const [isSymptomModalOpen, setSymptomModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'Teleconsultation' | 'Wellness'>('Teleconsultation');
     
@@ -77,10 +79,12 @@ const HealthScreen: React.FC = () => {
             
             {activeTab === 'Teleconsultation' ? (
                 <div className="space-y-4 animate-fade-in">
-                    <button onClick={() => setSymptomModalOpen(true)} className="w-full flex items-center justify-center p-4 bg-secondary/20 text-secondary rounded-lg font-bold text-lg hover:bg-secondary/30">
-                        <BeakerIcon className="h-6 w-6 mr-2" />
-                        Cek Gejala dengan AI
-                    </button>
+                    <div onClick={() => showToast('Fitur AI dinonaktifkan untuk meningkatkan privasi pengguna.', 'info')}>
+                        <button disabled className="w-full flex items-center justify-center p-4 bg-gray-500/20 text-gray-500 rounded-lg font-bold text-lg cursor-not-allowed">
+                            <BeakerIcon className="h-6 w-6 mr-2" />
+                            Cek Gejala dengan AI (Dinonaktifkan)
+                        </button>
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                          {quickAccessButtons.map(btn => (
