@@ -82,7 +82,7 @@ const HrDashboard = lazy(() => import('./screens/hr/HrDashboard'));
 const HrOnboarding = lazy(() => import('./screens/hr/HrOnboarding'));
 const HrLeaveManagement = lazy(() => import('./screens/hr/HrLeaveManagement'));
 const HrPayroll = lazy(() => import('./screens/hr/HrPayroll'));
-const HrPayLaterManagement = lazy(() => import('./screens/hr/HrPayLaterManagement'));
+const HrOpexManagementScreen = lazy(() => import('./screens/hr/HrOpexManagementScreen'));
 const HrAiCopilotScreen = lazy(() => import('./screens/hr/HrAiCopilotScreen'));
 const HrBenefitManagement = lazy(() => import('./screens/hr/HrBenefitManagement'));
 const HrWellnessManagement = lazy(() => import('./screens/hr/HrWellnessManagement'));
@@ -105,7 +105,7 @@ const HrRoutes: React.FC = () => (
                 <Route path="onboarding" element={<HrOnboarding />} />
                 <Route path="leave" element={<HrLeaveManagement />} />
                 <Route path="payroll" element={<HrPayroll />} />
-                <Route path="paylater" element={<HrPayLaterManagement />} />
+                <Route path="opex" element={<HrOpexManagementScreen />} />
                 <Route path="copilot" element={<HrAiCopilotScreen />} />
                 <Route path="benefits" element={<HrBenefitManagement />} />
                 <Route path="wellness" element={<HrWellnessManagement />} />

@@ -9,7 +9,7 @@ const navigation = [
     { name: 'Attendance Mgmt', href: '/hr/attendance', icon: ClipboardDocumentCheckIcon },
     { name: 'Leave Management', href: '/hr/leave', icon: CalendarDaysIcon },
     { name: 'Payroll', href: '/hr/payroll', icon: BanknotesIcon },
-    { name: 'PayLater Mgmt', href: '/hr/paylater', icon: CreditCardIcon },
+    { name: 'Dana Opex', href: '/hr/opex', icon: CreditCardIcon },
     { name: 'Benefit Management', href: '/hr/benefits', icon: GiftIcon },
     { name: 'Wellness Management', href: '/hr/wellness', icon: HeartIcon },
 ];

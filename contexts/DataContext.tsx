@@ -4,7 +4,7 @@ import {
     CartItem, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService,
     ScalabilityServiceStatus, LeaveRequest, Budget, ScheduledPayment,
     MonetizationConfig, TaxConfig, HomePageConfig, AssistantLog, EngagementAnalytics,
-    AdminWallets, PersonalizationRule, Order, MoodHistory, OrderItem, Toast, ToastType, Eprescription, EprescriptionItem, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap, Role, AttendanceRecord, Coordinates
+    AdminWallets, PersonalizationRule, Order, MoodHistory, OrderItem, Toast, ToastType, Eprescription, EprescriptionItem, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap, Role, AttendanceRecord, Coordinates, OpexRequest
 } from '../types';
 import { testApiConnection } from '../services/apiService';
 import { useAuth } from './AuthContext';
@@ -53,6 +53,8 @@ interface DataContextType {
     serviceLinkage: ServiceLinkageMap;
     isAiGuardrailDisabled: boolean;
     toasts: Toast[];
+    // FIX: Add missing properties for OPEX management.
+    opexRequests: OpexRequest[];
 
     // --- Methods ---
     showToast: (message: string, type: ToastType) => void;
@@ -102,6 +104,9 @@ interface DataContextType {
     createHealthChallenge: (challenge: Omit<HealthChallenge, 'id' | 'creator' | 'participants'>) => Promise<void>;
     approveInsuranceClaim: (claimId: string) => Promise<void>;
     rejectInsuranceClaim: (claimId: string) => Promise<void>;
+    // FIX: Add missing properties for OPEX management.
+    approveOpexRequest: (id: string) => Promise<void>;
+    rejectOpexRequest: (id: string) => Promise<void>;
 
 
     // Financial Planning
@@ -652,6 +657,44 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         showToast("Claim has been rejected.", "success");
     };
 
+    // FIX: Add approveOpexRequest and rejectOpexRequest implementations.
+    const approveOpexRequest = async (id: string) => {
+        const request = appData.opexRequests.find(r => r.id === id);
+        if (!user || !request) {
+            showToast("Request not found.", "error");
+            return;
+        }
+
+        const txResult = await addTransaction({
+            userId: request.userId,
+            type: 'Dana Opex',
+            amount: request.amount,
+            description: `Reimbursement for Opex: ${request.type} - ${request.description}`,
+            status: 'Completed'
+        });
+
+        if (txResult.success) {
+            const updatedRequest = { ...request, status: 'Approved' as 'Approved', resolvedBy: user.id, resolvedTimestamp: new Date().toISOString() };
+            updateState('opexRequests', appData.opexRequests.map(r => r.id === id ? updatedRequest : r));
+            addNotification(request.userId, `Your opex request for ${request.type} has been approved.`, 'success');
+            showToast("Opex request approved and funds disbursed.", "success");
+        } else {
+            showToast("Failed to disburse funds. " + txResult.message, "error");
+        }
+    };
+
+    const rejectOpexRequest = async (id: string) => {
+        const request = appData.opexRequests.find(r => r.id === id);
+        if (!user || !request) {
+            showToast("Request not found.", "error");
+            return;
+        }
+        const updatedRequest = { ...request, status: 'Rejected' as 'Rejected', resolvedBy: user.id, resolvedTimestamp: new Date().toISOString() };
+        updateState('opexRequests', appData.opexRequests.map(r => r.id === id ? updatedRequest : r));
+        addNotification(request.userId, `Your opex request for ${request.type} has been rejected.`, 'warning');
+        showToast("Opex request has been rejected.", "success");
+    };
+
     const addBudget = async (budget: Omit<Budget, 'id'|'userId'|'spent'>) => {
         if(!user) return;
         const newBudget: Budget = { id: `b-${Date.now()}`, userId: user.id, spent: 0, ...budget };
@@ -811,6 +854,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         subscribeToHealthPlus, redeemPrescription,
         submitLeaveRequest, updateLeaveRequestStatus, getBranchMoodAnalytics, createHealthChallenge,
         approveInsuranceClaim, rejectInsuranceClaim,
+        // FIX: Add missing properties for OPEX management to the context value.
+        approveOpexRequest, rejectOpexRequest,
         addBudget, updateBudget, deleteBudget,
         addScheduledPayment, updateScheduledPayment, deleteScheduledPayment,
         applyForPayLater, approvePayLater, rejectPayLater,

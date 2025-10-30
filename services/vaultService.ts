@@ -15,7 +15,8 @@ import {
     AdminWallets, PersonalizationRule, Order, Eprescription, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap,
     // FIX: Import IntegrationStatus type
     IntegrationStatus,
-    AttendanceRecord
+    AttendanceRecord,
+    OpexRequest
 } from '../types';
 
 import {
@@ -23,7 +24,7 @@ import {
     initialDoctors, initialConsultations, initialDisputes, initialApiIntegrations,
     initialScalabilityServices, initialLeaveRequests, initialMonetizationConfig,
     initialTaxConfig, initialHomePageConfig, initialAdminWallets, initialPersonalizationRules,
-    initialOrders, initialHealthChallenges, initialInsuranceClaims, initialAttendanceRecords
+    initialOrders, initialHealthChallenges, initialInsuranceClaims, initialAttendanceRecords, initialOpexRequests
 } from '../data/mockData';
 
 type AppData = {
@@ -56,6 +57,8 @@ type AppData = {
     attendanceRecords: AttendanceRecord[];
     serviceLinkage: ServiceLinkageMap;
     isAiGuardrailDisabled: boolean;
+    // FIX: Add opexRequests to AppData type
+    opexRequests: OpexRequest[];
 };
 
 class VaultService {
@@ -130,6 +133,8 @@ class VaultService {
             attendanceRecords: this._deobfuscate<AttendanceRecord[]>('app_attendance_records', initialAttendanceRecords),
             serviceLinkage: this._deobfuscate<ServiceLinkageMap>('app_service_linkage', {}),
             isAiGuardrailDisabled: this._deobfuscate<boolean>('app_ai_guardrail_disabled', false),
+            // FIX: Load opexRequests from storage or initial data.
+            opexRequests: this._deobfuscate<OpexRequest[]>('app_opex_requests', initialOpexRequests),
         };
     }
     

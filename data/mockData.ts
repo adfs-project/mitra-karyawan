@@ -1,4 +1,4 @@
-import { Role, User, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig, HomePageConfig, AdminWallets, PersonalizationRule, Order, HealthChallenge, InsuranceClaim, AttendanceRecord } from '../types';
+import { Role, User, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig, HomePageConfig, AdminWallets, PersonalizationRule, Order, HealthChallenge, InsuranceClaim, AttendanceRecord, OpexRequest } from '../types';
 
 export const initialUsers: User[] = [
     {
@@ -78,6 +78,7 @@ export const initialScalabilityServices: ScalabilityService[] = [
   { id: 'scale-006', name: 'Database Sharding', type: 'db_sharding', description: 'Horizontally partitions the database to distribute load across multiple instances.', status: ScalabilityServiceStatus.Inactive, logs: [], cost: 0, metadata: {} },
 ];
 export const initialLeaveRequests: LeaveRequest[] = [];
+export const initialOpexRequests: OpexRequest[] = [];
 export const initialMonetizationConfig: MonetizationConfig = { marketplaceCommission: 0.05, marketingCPA: 25000 };
 export const initialTaxConfig: TaxConfig = { ppnRate: 0.11, pph21Rate: 0.025 };
 export const initialHomePageConfig: HomePageConfig = { pinnedItemId: null, featureFlags: { aiInvestmentBot: false } };

@@ -38,10 +38,30 @@ export interface HealthData {
     activeChallenges: string[];
 }
 
-export interface PayLaterStatus {
+// FIX: Add PayLater interface definition.
+export interface PayLater {
     status: 'not_applied' | 'pending' | 'approved' | 'rejected';
     limit: number;
     used: number;
+}
+
+export type OpexRequestType = 'Bensin' | 'Token Listrik' | 'Beli Barang' | 'Fotocopy' | 'Parkir';
+
+export interface OpexRequest {
+    id: string;
+    userId: string;
+    userName: string;
+    branch: string;
+    type: OpexRequestType;
+    amount: number;
+    description: string;
+    status: 'Pending' | 'Approved' | 'Rejected';
+    timestamp: string;
+    proofLocation?: Coordinates;
+    proofPhotoUrl1: string; // Main photo (e.g., dispenser)
+    proofPhotoUrl2: string; // Receipt photo
+    resolvedBy?: string; // HR User ID
+    resolvedTimestamp?: string;
 }
 
 export interface User {
@@ -57,8 +77,9 @@ export interface User {
     wishlist: string[];
     bookmarkedArticles: string[];
     healthData: HealthData;
-    payLater?: PayLaterStatus;
     isPremium?: boolean;
+    // FIX: Add optional payLater property to User interface.
+    payLater?: PayLater;
 }
 
 export interface ProductReview {
@@ -124,7 +145,7 @@ export interface Transaction {
     id: string;
     userId: string;
     userName: string;
-    type: 'Top-Up' | 'Transfer' | 'Marketplace' | 'PPOB' | 'Refund' | 'Reversal' | 'Commission' | 'Internal Transfer' | 'Operational Expense' | 'Teleconsultation' | 'Tax' | 'Insurance Claim' | 'Obat & Resep';
+    type: 'Top-Up' | 'Transfer' | 'Marketplace' | 'PPOB' | 'Refund' | 'Reversal' | 'Commission' | 'Internal Transfer' | 'Operational Expense' | 'Teleconsultation' | 'Tax' | 'Insurance Claim' | 'Obat & Resep' | 'Dana Opex';
     amount: number;
     description: string;
     timestamp: string;
