@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { useApp } from '../../contexts/AppContext';
 
 const LoginScreen: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ const LoginScreen: React.FC = () => {
     const [show2FA, setShow2FA] = useState(false);
     const [loading, setLoading] = useState(false);
     const { login, verify2FA } = useAuth();
+    const { showToast } = useApp();
     const navigate = useNavigate();
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -19,12 +21,13 @@ const LoginScreen: React.FC = () => {
         const result = await login(email, password);
         setLoading(false);
 
-        switch (result) {
+        switch (result.result) {
             case 'success':
                 navigate('/');
                 break;
             case '2fa_required':
                 setShow2FA(true);
+                showToast(`[SIMULASI] Kode OTP Anda adalah: ${result.otp}`, 'info');
                 break;
             case 'inactive':
                 navigate('/deactivated');
@@ -93,7 +96,7 @@ const LoginScreen: React.FC = () => {
                 ) : (
                      <form onSubmit={handle2FA} className="space-y-6">
                         <h2 className="text-xl font-bold text-center text-text-primary">Verifikasi Login</h2>
-                        <p className="text-center text-text-secondary">Kami telah mengirimkan kode 6 digit ke email Anda. Masukkan kode tersebut untuk melanjutkan.</p>
+                        <p className="text-center text-text-secondary">Kami telah mengirimkan notifikasi berisi kode 6 digit. Masukkan kode tersebut untuk melanjutkan.</p>
                          <div>
                             <label className="text-sm font-bold text-text-secondary block mb-2">Kode Verifikasi</label>
                             <input

@@ -1,7 +1,10 @@
 import React from 'react';
 import { User, Transaction, Order } from '../../../types';
-import { useData } from '../../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../../contexts/DataContext';
 import { XMarkIcon, UserCircleIcon, WalletIcon, ShoppingCartIcon, TrophyIcon, ArrowUpCircleIcon, ArrowDownCircleIcon } from '@heroicons/react/24/solid';
+// FIX: Import useMarketplace to get marketplace data.
+import { useMarketplace } from '../../../contexts/MarketplaceContext';
 
 const Stat: React.FC<{ label: string; value: string | number; color?: string }> = ({ label, value, color = 'text-primary' }) => (
     <div>
@@ -22,7 +25,9 @@ const UserDetailsModal: React.FC<{
     onClose: () => void;
     user: User | null;
 }> = ({ isOpen, onClose, user }) => {
-    const { transactions, orders, products } = useData();
+    // FIX: Get orders and products from useMarketplace hook.
+    const { transactions } = useCore();
+    const { orders, products } = useMarketplace();
 
     if (!isOpen || !user) return null;
 

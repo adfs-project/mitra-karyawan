@@ -4,7 +4,9 @@ import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, 
 import { Link } from 'react-router-dom';
 import { Role, User } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useData } from '../../contexts/DataContext';
+import { useCore } from '../../contexts/DataContext';
+import { useApp } from '../../contexts/AppContext';
+import { useHR } from '../../contexts/HRContext';
 
 
 const EditProfileModal: React.FC<{
@@ -51,7 +53,7 @@ const LeaveRequestModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
 }> = ({ isOpen, onClose }) => {
-    const { submitLeaveRequest } = useData();
+    const { submitLeaveRequest } = useHR();
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [reason, setReason] = useState('');
@@ -102,75 +104,12 @@ const LeaveRequestModal: React.FC<{
     );
 };
 
-/*
-const PayLaterModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-}> = ({ isOpen, onClose }) => {
-    const { applyForPayLater } = useData();
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSubmitted, setIsSubmitted] = useState(false);
-
-    const handleSubmit = async () => {
-        setIsSubmitting(true);
-        await applyForPayLater();
-        setIsSubmitting(false);
-        setIsSubmitted(true);
-        setTimeout(() => {
-            onClose();
-            setIsSubmitted(false);
-        }, 3000);
-    };
-
-    if (!isOpen) return null;
-
-    return (
-         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-            <div className="bg-surface p-6 rounded-lg w-full max-w-lg border border-border-color">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold">Pengajuan PayLater</h2>
-                    <button onClick={onClose}><XMarkIcon className="h-6 w-6" /></button>
-                </div>
-                {isSubmitted ? (
-                    <div className="text-center p-8">
-                        <h3 className="text-xl font-bold text-primary">Pengajuan Terkirim!</h3>
-                        <p className="text-text-secondary mt-2">Terima kasih. Pengajuan Anda sedang kami proses. Anda akan menerima notifikasi jika ada pembaruan.</p>
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        <p className="text-sm text-text-secondary">Untuk mengajukan PayLater, kami memerlukan beberapa dokumen. Silakan unggah foto KTP dan foto selfie dengan KTP Anda.</p>
-                        <div className="space-y-3">
-                            <div>
-                                <label className="text-sm font-bold text-text-secondary">Foto KTP</label>
-                                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border-color border-dashed rounded-md">
-                                    <button type="button" className="text-primary font-semibold">Unggah File (Simulasi)</button>
-                                </div>
-                            </div>
-                             <div>
-                                <label className="text-sm font-bold text-text-secondary">Foto Selfie dengan KTP</label>
-                                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border-color border-dashed rounded-md">
-                                    <button type="button" className="text-primary font-semibold">Gunakan Kamera (Simulasi)</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex justify-end space-x-2">
-                            <button type="button" onClick={onClose} className="px-4 py-2 rounded bg-surface-light">Batal</button>
-                            <button onClick={handleSubmit} disabled={isSubmitting} className="btn-primary px-4 py-2 rounded w-36 flex justify-center">{isSubmitting ? <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div> : 'Kirim Pengajuan'}</button>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-*/
-
 const ChangePasswordModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
 }> = ({ isOpen, onClose }) => {
     const { changePassword } = useAuth();
-    const { showToast } = useData();
+    const { showToast } = useApp();
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -246,100 +185,38 @@ const PayslipModal: React.FC<{
     onClose: () => void;
     user: User;
 }> = ({ isOpen, onClose, user }) => {
-    const { generatePayslipData } = useData();
+    const { generatePayslipData } = useCore();
 
     const payroll = useMemo(() => {
         return generatePayslipData(user.id);
     }, [user.id, generatePayslipData]);
 
-    const fullPayslipString = useMemo(() => {
-        const currentUser = user;
-        const currentPeriod = new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' });
-
-        if (!payroll) return 'Informasi gaji tidak tersedia untuk akun ini.';
-
-        const totalWidth = 96;
-        const colWidth = 43;
-        const gapWidth = 10;
-        const labelWidth = 25;
-        const currencyWidth = 5;
-        const amountWidth = 13;
-        
-        const formatAmount = (value: number) => new Intl.NumberFormat('id-ID').format(value);
-
-        const formatLine = (label: string, value: number | null) => {
-            if (value === null) return ''.padEnd(colWidth);
-            const formattedValue = formatAmount(value);
-            return `${label.padEnd(labelWidth)}${'Rp.'.padStart(currencyWidth)}${formattedValue.padStart(amountWidth)}`;
-        };
-
-        let lines: string[] = [];
-        const itemSeparator = ''.padStart(labelWidth) + ''.padStart(currencyWidth + amountWidth, '-');
-        const fullSeparator = ''.padStart(totalWidth, '-');
-
-        lines.push('PT. Mitra Karyawan'.padEnd(totalWidth - 'CONFIDENTIAL'.length) + 'CONFIDENTIAL');
-        lines.push('-'.repeat('PT. Mitra Karyawan'.length));
-        lines.push('');
-
-        lines.push(`COST CENTER : ${currentUser.profile.branch || 'N/A'}`.padEnd(colWidth + gapWidth) + 'SLIP PEMBAYARAN');
-        lines.push(`NIK         : ${currentUser.id}`.padEnd(colWidth + gapWidth) + `PERIODE : ${currentPeriod}`);
-        lines.push(`NAMA        : ${currentUser.profile.name}`.padEnd(colWidth + gapWidth) + 'NPWP    : N/A');
-        lines.push('');
-
-        const pendapatanItems = [{ label: 'Basic Salary', value: payroll.gajiPokok }, { label: 'Performance Incentive', value: payroll.insentifKinerja }, { label: 'BPJS TK (0.54%)', value: payroll.bpjsTkNatura }];
-        const potonganItems = [{ label: 'Tax', value: payroll.pajakPph21 }, { label: 'BPJS TK Kary. (2%)', value: payroll.bpjsTkKaryawan2 }, { label: 'BPJS TK (0.54%)', value: payroll.bpjsTkKaryawan054 }, { label: 'BPJS Pensiun Kary (1%)', value: payroll.bpjsPensiunKaryawan }];
-        const lainLainItems = [{ label: 'BPJS Pensiun Persh (2%)', value: payroll.bpjsPensiunPerusahaan }, { label: 'BPJS TK Persh (3,7%)', value: payroll.bpjsTkPerusahaan }];
-
-        lines.push('A. PENDAPATAN'.padEnd(colWidth + gapWidth) + 'B. POTONGAN');
-        const maxRows = Math.max(pendapatanItems.length, potonganItems.length);
-        for (let i = 0; i < maxRows; i++) {
-            const left = pendapatanItems[i] ? formatLine(pendapatanItems[i].label, pendapatanItems[i].value) : ''.padEnd(colWidth);
-            const right = potonganItems[i] ? formatLine(potonganItems[i].label, potonganItems[i].value) : ''.padEnd(colWidth);
-            lines.push(left + ''.padEnd(gapWidth) + right);
-        }
-        
-        lines.push(itemSeparator.padEnd(colWidth + gapWidth) + itemSeparator);
-        lines.push(formatLine('TOTAL PENDAPATAN (A):', payroll.totalPendapatan).padEnd(colWidth + gapWidth) + formatLine('TOTAL POTONGAN (B):', payroll.totalPotongan));
-        lines.push('');
-
-        lines.push('LAIN LAIN (C):'.padEnd(colWidth + gapWidth) + 'SALDO PINJAMAN');
-        lines.push(formatLine(lainLainItems[0].label, lainLainItems[0].value).padEnd(colWidth + gapWidth) + formatLine('', payroll.saldoPinjaman));
-        lines.push(formatLine(lainLainItems[1].label, lainLainItems[1].value));
-        
-        lines.push(fullSeparator);
-        const takeHomeLine = `YANG DIBAYARKAN (A - B) = Rp. ${formatAmount(payroll.takeHomePay).padStart(amountWidth)}`;
-        lines.push(''.padEnd(colWidth + gapWidth) + takeHomeLine);
-        lines.push(fullSeparator);
-        lines.push('');
-        lines.push('BSM');
-        lines.push('');
-        
-        const footerText = '#PAYSLIP INI DICETAK MELALUI SISTEM, TIDAK MEMERLUKAN STAMP ATAU TANDA TANGAN#';
-        const padding = Math.floor((totalWidth - footerText.length) / 2);
-        lines.push(''.padStart(padding) + footerText);
-
-        return lines.join('\n');
-    }, [payroll, user]);
-
-
     const handlePrint = () => {
-        const printContents = document.getElementById('user-payslip-to-print')?.textContent;
+        const printContentNode = document.getElementById('payslip-to-print-container');
+        if (!printContentNode) return;
+
+        const printContent = printContentNode.innerHTML;
         const originalContents = document.body.innerHTML;
-        if (printContents) {
-            document.body.innerHTML = `<pre style="font-family: 'Courier New', Courier, monospace; font-size: 12px; white-space: pre;">${printContents}</pre>`;
-            window.print();
-            document.body.innerHTML = originalContents;
-            window.location.reload();
-        }
+        
+        const styles = `<style>body { background-color: #fff; color: #000; font-family: 'Courier New', monospace; font-size: 12px; } table { width: 100%; border-collapse: collapse; } td { padding: 2px 4px; } .text-right { text-align: right; } .font-bold { font-weight: bold; } hr { border: none; border-top: 1px solid #000; margin: 4px 0; }</style>`;
+
+        document.body.innerHTML = `${styles}<div>${printContent}</div>`;
+        window.print();
+        document.body.innerHTML = originalContents;
+        window.location.reload(); 
     };
     
     if (!isOpen) return null;
+    if (!payroll) return null;
+
+    const formatAmount = (value: number) => new Intl.NumberFormat('id-ID').format(value);
+    const currentPeriod = new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' });
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-            <div className="bg-surface p-6 rounded-lg w-full max-w-5xl border border-border-color max-h-[90vh] overflow-y-auto">
+            <div className="bg-surface p-6 rounded-lg w-full max-w-4xl border border-border-color max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold">Slip Gaji - {new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })}</h2>
+                    <h2 className="text-xl font-bold">Slip Gaji - {currentPeriod}</h2>
                     <div className="flex items-center space-x-2">
                         <button onClick={handlePrint} className="btn-secondary flex items-center px-3 py-1.5 rounded-lg text-sm font-bold">
                             <PrinterIcon className="h-4 w-4 mr-2" />
@@ -351,10 +228,80 @@ const PayslipModal: React.FC<{
                     </div>
                 </div>
 
-                <div className="bg-white text-black p-4 font-mono text-xs mx-auto border border-gray-300">
-                    <pre id="user-payslip-to-print" className="p-0 m-0 leading-relaxed whitespace-pre" style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '12px' }}>
-                        {fullPayslipString}
-                    </pre>
+                <div id="payslip-to-print-container" className="bg-white text-black p-4 font-mono text-xs mx-auto border border-gray-300">
+                    <p className="font-bold">PT. Mitra Karyawan</p>
+                    <hr />
+                    <table className="w-full my-2">
+                        <tbody>
+                            <tr>
+                                <td>COST CENTER : {user.profile.branch || 'N/A'}</td>
+                                <td className="text-right font-bold">SLIP PEMBAYARAN</td>
+                            </tr>
+                             <tr>
+                                <td>NIK : {user.id}</td>
+                                <td className="text-right">PERIODE : {currentPeriod}</td>
+                            </tr>
+                             <tr>
+                                <td>NAMA : {user.profile.name}</td>
+                                <td className="text-right">NPWP : N/A</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table className="w-full my-2">
+                         <tbody>
+                            <tr>
+                                <td className="font-bold w-1/2 align-top">A. PENDAPATAN</td>
+                                <td className="font-bold w-1/2 align-top">B. POTONGAN</td>
+                            </tr>
+                            <tr>
+                                <td className="align-top">
+                                    <table><tbody>
+                                        <tr><td>Basic Salary</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payroll.gajiPokok)}</td></tr>
+                                        <tr><td>Performance Incentive</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payroll.insentifKinerja)}</td></tr>
+                                        <tr><td>BPJS TK (0.54%)</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payroll.bpjsTkNatura)}</td></tr>
+                                    </tbody></table>
+                                </td>
+                                 <td className="align-top">
+                                    <table><tbody>
+                                        <tr><td>Tax</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payroll.pajakPph21)}</td></tr>
+                                        <tr><td>BPJS TK Kary. (2%)</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payroll.bpjsTkKaryawan2)}</td></tr>
+                                        <tr><td>BPJS TK (0.54%)</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payroll.bpjsTkKaryawan054)}</td></tr>
+                                        <tr><td>BPJS Pensiun Kary (1%)</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payroll.bpjsPensiunKaryawan)}</td></tr>
+                                    </tbody></table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><hr/><table><tbody><tr><td className="font-bold">TOTAL PENDAPATAN (A):</td><td className="text-right font-bold">Rp.</td><td className="text-right font-bold">{formatAmount(payroll.totalPendapatan)}</td></tr></tbody></table></td>
+                                <td><hr/><table><tbody><tr><td className="font-bold">TOTAL POTONGAN (B):</td><td className="text-right font-bold">Rp.</td><td className="text-right font-bold">{formatAmount(payroll.totalPotongan)}</td></tr></tbody></table></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                     <table className="w-full my-2">
+                         <tbody>
+                             <tr>
+                                <td className="font-bold w-1/2 align-top">LAIN LAIN (C):</td>
+                                <td className="font-bold w-1/2 align-top">SALDO PINJAMAN</td>
+                            </tr>
+                            <tr>
+                                 <td className="align-top">
+                                    <table><tbody>
+                                        <tr><td>BPJS Pensiun Persh (2%)</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payroll.bpjsPensiunPerusahaan)}</td></tr>
+                                        <tr><td>BPJS TK Persh (3,7%)</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payroll.bpjsTkPerusahaan)}</td></tr>
+                                    </tbody></table>
+                                </td>
+                                 <td className="align-top">
+                                     <table><tbody><tr><td></td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payroll.saldoPinjaman)}</td></tr></tbody></table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <hr/><hr/>
+                    <p className="text-right font-bold">YANG DIBAYARKAN (A - B) = Rp. {formatAmount(payroll.takeHomePay)}</p>
+                    <hr/><hr/>
+                    <br/>
+                    <p>BSM</p>
+                    <br/><br/>
+                    <p className="text-center">#PAYSLIP INI DICETAK MELALUI SISTEM, TIDAK MEMERLUKAN STAMP ATAU TANDA TANGAN#</p>
                 </div>
             </div>
         </div>
@@ -383,10 +330,9 @@ const ThemeToggle: React.FC = () => {
 
 const MyAccountScreen: React.FC = () => {
     const { user, logout } = useAuth();
-    const { applyForPayLater } = useData();
+    const { applyForPayLater, generatePayslipData } = useCore();
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [isLeaveModalOpen, setLeaveModalOpen] = useState(false);
-    // const [isPayLaterModalOpen, setPayLaterModalOpen] = useState(false);
     const [isChangePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
     const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
 
@@ -421,17 +367,6 @@ const MyAccountScreen: React.FC = () => {
         return item.path === '#' ? <button onClick={item.action} className="w-full">{content}</button> : <Link to={item.path} className="block">{content}</Link>;
     };
     
-    /*
-    const payLaterStatusMap = {
-        not_applied: { text: "Belum Aktif", color: "text-text-secondary" },
-        pending: { text: "Menunggu Persetujuan", color: "text-yellow-400" },
-        approved: { text: "Aktif", color: "text-green-400" },
-        rejected: { text: "Ditolak", color: "text-red-400" },
-    };
-    const payLaterInfo = user.payLater ? payLaterStatusMap[user.payLater.status] : payLaterStatusMap['not_applied'];
-    */
-
-
     return (
         <div className="pb-4">
             <div className="bg-surface p-6">
@@ -448,20 +383,6 @@ const MyAccountScreen: React.FC = () => {
                         <PencilSquareIcon className="h-6 w-6 text-primary"/>
                     </button>
                 </div>
-                {/*
-                 <div className="mt-4 bg-surface-light p-3 rounded-lg flex justify-between items-center">
-                    <div>
-                        <p className="text-xs font-bold text-text-secondary">STATUS PAYLATER</p>
-                        <p className={`font-bold ${payLaterInfo.color}`}>{payLaterInfo.text}</p>
-                    </div>
-                    {user.payLater?.status === 'approved' && (
-                        <div className="text-right">
-                             <p className="text-xs font-bold text-text-secondary">LIMIT</p>
-                             <p className="font-bold text-primary">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(user.payLater.limit)}</p>
-                        </div>
-                    )}
-                </div>
-                */}
             </div>
 
             <div className="m-4 bg-surface rounded-lg border border-border-color p-4">
@@ -529,7 +450,6 @@ const MyAccountScreen: React.FC = () => {
             
             <EditProfileModal isOpen={isEditModalOpen} onClose={() => setEditModalOpen(false)} user={user} />
             <LeaveRequestModal isOpen={isLeaveModalOpen} onClose={() => setLeaveModalOpen(false)} />
-            {/*<PayLaterModal isOpen={isPayLaterModalOpen} onClose={() => setPayLaterModalOpen(false)} />*/}
             <ChangePasswordModal isOpen={isChangePasswordModalOpen} onClose={() => setChangePasswordModalOpen(false)} />
             <PayslipModal isOpen={isPayslipModalOpen} onClose={() => setIsPayslipModalOpen(false)} user={user} />
         </div>

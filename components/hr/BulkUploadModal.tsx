@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+import { useCore } from '../../contexts/DataContext';
+import { useApp } from '../../contexts/AppContext';
 import { XMarkIcon, DocumentArrowDownIcon, ArrowUpTrayIcon, CheckCircleIcon, ExclamationCircleIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 import * as XLSX from 'xlsx';
 
@@ -12,7 +13,8 @@ type PreviewRow = {
 
 const BulkUploadModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
     const { createMultipleEmployeesByHr } = useAuth();
-    const { users, showToast } = useData();
+    const { users } = useCore();
+    const { showToast } = useApp();
     const [step, setStep] = useState(1); // 1: Upload, 2: Preview, 3: Result
     const [previewData, setPreviewData] = useState<PreviewRow[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { SparklesIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
-import { useData } from '../../contexts/DataContext';
+import { useCore } from '../../contexts/DataContext';
+import { useApp } from '../../contexts/AppContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { buildSecurePrompt } from '../../services/aiGuardrailService';
 import circuitBreaker from '../../services/circuitBreakerService';
@@ -12,7 +13,8 @@ const SmartAssistant: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
-    const { logAssistantQuery, showToast } = useData();
+    const { logAssistantQuery } = useCore();
+    const { showToast } = useApp();
     const { user } = useAuth();
 
 

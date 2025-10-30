@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Doctor } from '../../../types';
-import { useData } from '../../../contexts/DataContext';
+import { useHealth } from '../../../contexts/HealthContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const BookingModal: React.FC<{
@@ -10,7 +10,7 @@ const BookingModal: React.FC<{
     doctor: Doctor | null;
     slotTime: string | null;
 }> = ({ isOpen, onClose, doctor, slotTime }) => {
-    const { bookConsultation } = useData();
+    const { bookConsultation } = useHealth();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState<{ success: boolean; message: string; consultationId?: string } | null>(null);

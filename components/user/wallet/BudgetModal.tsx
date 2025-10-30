@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useData } from '../../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../../contexts/DataContext';
 import { Budget } from '../../../types';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
@@ -10,7 +11,7 @@ interface BudgetModalProps {
 }
 
 const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, budget }) => {
-    const { addBudget, updateBudget } = useData();
+    const { addBudget, updateBudget } = useCore();
     const [category, setCategory] = useState<'Marketplace' | 'PPOB' | 'Umum'>('Umum');
     const [limit, setLimit] = useState(0);
     const [isLoading, setIsLoading] = useState(false);

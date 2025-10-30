@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useData } from '../../../contexts/DataContext';
-import { useAuth } from '../../../contexts/AuthContext';
-import { HealthChallenge } from '../../../types';
+import { useHealth } from '../../contexts/HealthContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { HealthChallenge } from '../../types';
 import { PlusIcon, HeartIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/solid';
 
 const ChallengeModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
-    const { createHealthChallenge } = useData();
+    const { createHealthChallenge } = useHealth();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +48,7 @@ const ChallengeModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ i
 
 const HrWellnessManagement: React.FC = () => {
     const { user } = useAuth();
-    const { healthChallenges } = useData();
+    const { healthChallenges } = useHealth();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const branchChallenges = healthChallenges.filter(c => typeof c.creator !== 'string' && c.creator.branch === user?.profile.branch);

@@ -4,7 +4,11 @@ import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, 
 import { Link } from 'react-router-dom';
 import { Role, User } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useCore and useApp as useData is not an exported member.
+import { useCore } from '../../contexts/CoreContext';
+import { useApp } from '../../contexts/AppContext';
+// FIX: Import useHR hook to access HR-specific functions like submitLeaveRequest.
+import { useHR } from '../../contexts/HRContext';
 
 
 const EditProfileModal: React.FC<{
@@ -51,7 +55,8 @@ const LeaveRequestModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
 }> = ({ isOpen, onClose }) => {
-    const { submitLeaveRequest } = useData();
+    // FIX: submitLeaveRequest is part of HRContext, not DataContext.
+    const { submitLeaveRequest } = useHR();
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [reason, setReason] = useState('');
@@ -170,7 +175,8 @@ const ChangePasswordModal: React.FC<{
     onClose: () => void;
 }> = ({ isOpen, onClose }) => {
     const { changePassword } = useAuth();
-    const { showToast } = useData();
+    // FIX: Replaced useData with useApp to get showToast.
+    const { showToast } = useApp();
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -246,7 +252,8 @@ const PayslipModal: React.FC<{
     onClose: () => void;
     user: User;
 }> = ({ isOpen, onClose, user }) => {
-    const { generatePayslipData } = useData();
+    // FIX: Replaced useData with useCore to get generatePayslipData.
+    const { generatePayslipData } = useCore();
 
     const payroll = useMemo(() => {
         return generatePayslipData(user.id);
@@ -383,7 +390,8 @@ const ThemeToggle: React.FC = () => {
 
 const MyAccountScreen: React.FC = () => {
     const { user, logout } = useAuth();
-    const { applyForPayLater } = useData();
+    // FIX: Replaced useData with useCore to get applyForPayLater.
+    const { applyForPayLater } = useCore();
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [isLeaveModalOpen, setLeaveModalOpen] = useState(false);
     // const [isPayLaterModalOpen, setPayLaterModalOpen] = useState(false);

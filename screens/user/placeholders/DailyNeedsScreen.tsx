@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useData } from '../../../contexts/DataContext';
+// FIX: Import useMarketplace to get marketplace data and actions.
+import { useMarketplace } from '../../../contexts/MarketplaceContext';
 import { ArrowLeftIcon, MagnifyingGlassIcon, ShoppingCartIcon, ClockIcon } from '@heroicons/react/24/solid';
 import { Product } from '../../../types';
 
 const DailyNeedsScreen = () => {
     const navigate = useNavigate();
-    const { products, addToCart } = useData();
+    // FIX: Get products and addToCart from useMarketplace hook.
+    const { products, addToCart } = useMarketplace();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('Semua');
 

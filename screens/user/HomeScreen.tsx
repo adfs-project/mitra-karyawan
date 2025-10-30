@@ -3,11 +3,13 @@ import PersonalizedGreeting from '../../components/user/PersonalizedGreeting';
 import SmartAssistant from '../../components/user/SmartAssistant';
 import ForYouWidget from '../../components/user/ForYouWidget';
 import CompactArticleCard from '../../components/user/news/CompactArticleCard';
-import { useData } from '../../contexts/DataContext';
+import { useCore } from '../../contexts/DataContext';
+import { useApp } from '../../contexts/AppContext';
 import { BuildingStorefrontIcon, CurrencyDollarIcon, HeartIcon, NewspaperIcon, ClockIcon, Squares2X2Icon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import AttendanceCameraModal from '../../components/user/AttendanceCameraModal';
+import { useHR } from '../../contexts/HRContext';
 
 
 const QuickAccess: React.FC = () => {
@@ -40,7 +42,8 @@ const QuickAccess: React.FC = () => {
 
 const AttendanceCard: React.FC = () => {
     const { user } = useAuth();
-    const { attendanceRecords, clockIn, clockOut, showToast } = useData();
+    const { attendanceRecords, clockIn, clockOut } = useHR();
+    const { showToast } = useApp();
     const [isLoading, setIsLoading] = useState(false);
     const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
     const [cameraMode, setCameraMode] = useState<'in' | 'out' | null>(null);
@@ -131,7 +134,7 @@ const AttendanceCard: React.FC = () => {
 
 
 const HomeScreen: React.FC = () => {
-    const { articles } = useData();
+    const { articles } = useCore();
 
     const latestNews = articles
         .filter(a => a.status === 'Published')

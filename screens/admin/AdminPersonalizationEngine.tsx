@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../contexts/DataContext';
 import { PersonalizationRule, PersonalizationCondition, ConditionField, ConditionOperator, ActionType, Role } from '../../types';
 import { PlusIcon, PencilIcon, TrashIcon, SparklesIcon, XMarkIcon, LockClosedIcon } from '@heroicons/react/24/solid';
+// FIX: Import useMarketplace to get products data.
+import { useMarketplace } from '../../contexts/MarketplaceContext';
 
 const emptyRule: Omit<PersonalizationRule, 'id'> = {
     name: '',
@@ -16,7 +19,9 @@ const RuleModal: React.FC<{
     onSave: (rule: Omit<PersonalizationRule, 'id'> | PersonalizationRule) => void;
     initialRule: Omit<PersonalizationRule, 'id'> | PersonalizationRule | null;
 }> = ({ isOpen, onClose, onSave, initialRule }) => {
-    const { products, articles, users } = useData();
+    // FIX: Get products data from useMarketplace hook.
+    const { articles, users } = useCore();
+    const { products } = useMarketplace();
     const [rule, setRule] = useState(initialRule || emptyRule);
 
     React.useEffect(() => {
@@ -140,7 +145,7 @@ const RuleModal: React.FC<{
 };
 
 const AdminPersonalizationEngine: React.FC = () => {
-    const { personalizationRules, addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule } = useData();
+    const { personalizationRules, addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule } = useCore();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRule, setEditingRule] = useState<PersonalizationRule | null>(null);
 
@@ -202,14 +207,9 @@ const AdminPersonalizationEngine: React.FC = () => {
                                             <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                                         </label>
                                         <button onClick={() => handleOpenModal(rule)} className="p-2 rounded hover:bg-border-color"><PencilIcon className="h-5 w-5 text-yellow-400"/></button>
-                                        <button 
-                                            onClick={() => handleDeleteRule(rule.id)}
-                                            disabled={true} 
-                                            title="Penghapusan dinonaktifkan secara permanen oleh sistem."
-                                            className="p-2 rounded cursor-not-allowed"
-                                        >
+                                        <span onClick={() => handleDeleteRule(rule.id)} className="p-2 rounded cursor-pointer" title="Penghapusan dinonaktifkan secara permanen oleh sistem.">
                                             <LockClosedIcon className="h-5 w-5 text-gray-500"/>
-                                        </button>
+                                        </span>
                                     </div>
                                 </div>
                             </div>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
-import { useData } from '../../../../contexts/DataContext';
+import { useCore } from '../../../../contexts/DataContext';
+import { useApp } from '../../../../contexts/AppContext';
 
 const ProviderLogo = ({ providerName }: { providerName: string }) => {
     const [logoError, setLogoError] = useState(false);
@@ -21,7 +22,8 @@ const ProviderLogo = ({ providerName }: { providerName: string }) => {
 
 const CinemaTicketScreen = () => {
     const navigate = useNavigate();
-    const { serviceLinkage, apiIntegrations, showToast } = useData();
+    const { serviceLinkage, apiIntegrations } = useCore();
+    const { showToast } = useApp();
 
     const provider = apiIntegrations.find(api => api.id === serviceLinkage['lifestyle-cinema']);
     const isConnected = !!provider;

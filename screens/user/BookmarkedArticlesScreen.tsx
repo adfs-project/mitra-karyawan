@@ -1,5 +1,5 @@
 import React from 'react';
-import { useData } from '../../contexts/DataContext';
+import { useCore } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { BookmarkIcon } from '@heroicons/react/24/outline';
@@ -8,7 +8,7 @@ import ArticleCard from '../../components/user/news/ArticleCard';
 
 const BookmarkedArticlesScreen: React.FC = () => {
     const { user } = useAuth();
-    const { articles } = useData();
+    const { articles } = useCore();
 
     const bookmarkedArticles = articles.filter(a => user?.bookmarkedArticles.includes(a.id));
 

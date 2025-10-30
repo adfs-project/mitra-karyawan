@@ -1,9 +1,10 @@
 import React from 'react';
 import { DocumentArrowDownIcon } from '@heroicons/react/24/solid';
-import { useData } from '../../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../../contexts/DataContext';
 
 const ReportGenerator: React.FC = () => {
-    const { transactions, users, articles, taxConfig } = useData();
+    const { transactions, users, articles, taxConfig } = useCore();
 
     const generateCSV = (data: any[], filename: string) => {
         if (data.length === 0) {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useData } from '../../contexts/DataContext';
+import { useHealth } from '../../contexts/HealthContext';
 import { Link } from 'react-router-dom';
 import { BeakerIcon, UserGroupIcon, DocumentTextIcon, ClipboardDocumentListIcon, ShieldCheckIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import SymptomCheckerModal from '../../components/user/health/SymptomCheckerModal';
@@ -45,7 +45,7 @@ const HealthPlusUpsellCard: React.FC = () => {
 
 
 const HealthScreen: React.FC = () => {
-    const { doctors } = useData();
+    const { doctors } = useHealth();
     const [isSymptomModalOpen, setSymptomModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'Teleconsultation' | 'Wellness'>('Teleconsultation');
     

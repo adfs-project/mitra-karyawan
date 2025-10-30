@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useData } from '../../../contexts/DataContext';
+import { useCore } from '../../../contexts/DataContext';
 import { usePersonalization } from '../../../contexts/PersonalizationContext';
 import { Article } from '../../../types';
 import ArticleCard from './ArticleCard';
@@ -8,7 +8,7 @@ import { SparklesIcon } from '@heroicons/react/24/solid';
 
 const AiPersonalizedFeed: React.FC<{ onOpenComments: (article: Article) => void }> = ({ onOpenComments }) => {
     const { user } = useAuth();
-    const { articles } = useData();
+    const { articles } = useCore();
     const { interestProfiles } = usePersonalization();
 
     const personalizedFeed = useMemo(() => {

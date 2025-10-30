@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+import { useHealth } from '../../contexts/HealthContext';
 import { CheckCircleIcon, XCircleIcon, EyeIcon, XMarkIcon } from '@heroicons/react/24/solid';
 
 const ReceiptModal: React.FC<{
@@ -24,7 +24,7 @@ const ReceiptModal: React.FC<{
 
 const HrBenefitManagement: React.FC = () => {
     const { user: hrUser } = useAuth();
-    const { insuranceClaims, approveInsuranceClaim, rejectInsuranceClaim } = useData();
+    const { insuranceClaims, approveInsuranceClaim, rejectInsuranceClaim } = useHealth();
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
     const [selectedReceiptUrl, setSelectedReceiptUrl] = useState<string | null>(null);

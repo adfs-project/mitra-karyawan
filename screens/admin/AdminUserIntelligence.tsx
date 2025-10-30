@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { User, Role } from '../../types';
 import WalletAdjustmentModal from '../../components/admin/financial/WalletAdjustmentModal';
@@ -40,7 +41,7 @@ const ConfirmationModal: React.FC<{
 };
 
 const AdminUserIntelligence: React.FC = () => {
-    const { users, updateUserStatus } = useData();
+    const { users, updateUserStatus } = useCore();
     const { user: currentUser } = useAuth();
     const [statusModalOpen, setStatusModalOpen] = useState(false);
     const [walletModalOpen, setWalletModalOpen] = useState(false);

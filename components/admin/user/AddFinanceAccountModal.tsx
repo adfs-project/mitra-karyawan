@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useData } from '../../../contexts/DataContext';
+import { useApp } from '../../../contexts/AppContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 interface AddFinanceAccountModalProps {
@@ -18,7 +18,7 @@ const initialFormState = {
 
 const AddFinanceAccountModal: React.FC<AddFinanceAccountModalProps> = ({ isOpen, onClose }) => {
     const { createFinanceAccountByAdmin } = useAuth();
-    const { showToast } = useData();
+    const { showToast } = useApp();
     const [formData, setFormData] = useState(initialFormState);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');

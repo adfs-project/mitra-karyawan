@@ -1,15 +1,18 @@
 import React, { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useData } from '../../../contexts/DataContext';
+import { useHealth } from '../../../contexts/HealthContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { ArrowLeftIcon, ShoppingCartIcon } from '@heroicons/react/24/solid';
+// FIX: Replaced useData with useApp since it's only used for showToast.
+import { useApp } from '../../../contexts/AppContext';
 
 const SIMULATED_PRICE_PER_ITEM = 50000;
 
 const PharmacyCheckoutScreen: React.FC = () => {
     const { eprescriptionId } = useParams<{ eprescriptionId: string }>();
     const navigate = useNavigate();
-    const { eprescriptions, redeemPrescription, showToast } = useData();
+    const { eprescriptions, redeemPrescription } = useHealth();
+    const { showToast } = useApp();
     const { user } = useAuth();
     const [isProcessing, setIsProcessing] = useState(false);
 

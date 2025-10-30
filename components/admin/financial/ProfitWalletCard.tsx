@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { useData } from '../../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../../contexts/DataContext';
 import { BanknotesIcon, ArrowUpRightIcon } from '@heroicons/react/24/solid';
 
 const ProfitWalletCard: React.FC = () => {
-    const { adminWallets, transactions, transferProfitToCash } = useData();
+    const { adminWallets, transactions, transferProfitToCash } = useCore();
     const [isLoading, setIsLoading] = useState(false);
 
     const profitSources = useMemo(() => {

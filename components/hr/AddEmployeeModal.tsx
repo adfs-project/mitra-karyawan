@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+import { useApp } from '../../contexts/AppContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 import { UserProfile } from '../../types';
 
@@ -25,7 +25,7 @@ const initialFormState = {
 
 const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) => {
     const { createEmployee } = useAuth();
-    const { showToast } = useData();
+    const { showToast } = useApp();
     const [formData, setFormData] = useState(initialFormState);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');

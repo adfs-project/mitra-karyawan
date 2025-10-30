@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+import { useCore } from '../../contexts/DataContext';
 import { CheckCircleIcon, XCircleIcon, EyeIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { OpexRequest, OpexRequestType, User } from '../../types';
 import LocationName from '../../components/common/LocationName';
+import { useHR } from '../../contexts/HRContext';
 
 type Tab = 'Opex Requests';
 
@@ -26,7 +27,8 @@ const PhotoViewerModal: React.FC<{
 
 const HrOpexManagementScreen: React.FC = () => {
     const { user: hrUser } = useAuth();
-    const { users, opexRequests, approveOpexByHr, rejectOpexByHr } = useData();
+    const { users } = useCore();
+    const { opexRequests, approveOpexByHr, rejectOpexByHr } = useHR();
     const [activeTab, setActiveTab] = useState<Tab>('Opex Requests');
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);

@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useData } from '../../../contexts/DataContext';
+import { useHealth } from '../../../contexts/HealthContext';
 import { VideoCameraIcon, PhoneIcon, ChatBubbleLeftRightIcon, DocumentTextIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI, Type } from "@google/genai";
 import { getConsultationTemplatePrompt } from '../../../services/aiGuardrailService';
 import { EprescriptionItem } from '../../../types';
+import { useApp } from '../../../contexts/AppContext';
 
 const ConsultationRoomScreen: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { consultations, endConsultation, showToast, eprescriptions } = useData();
+    const { consultations, endConsultation, eprescriptions } = useHealth();
+    const { showToast } = useApp();
     const consultation = consultations.find(c => c.id === id);
     const eprescription = consultation?.eprescriptionId ? eprescriptions.find(e => e.id === consultation.eprescriptionId) : null;
     const [time, setTime] = useState(0);

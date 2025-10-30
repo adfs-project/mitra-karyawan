@@ -1,7 +1,8 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from './AuthContext';
-import { useData } from './DataContext';
+import { useCore } from './DataContext';
 import { GoogleGenAI, Type } from '@google/genai';
+import { useMarketplace } from './MarketplaceContext';
 
 interface PersonalizationContextType {
     interestProfiles: Record<string, string[]>;
@@ -12,7 +13,8 @@ const PersonalizationContext = createContext<PersonalizationContextType | undefi
 
 export const PersonalizationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { user } = useAuth();
-    const { articles, products, users } = useData(); 
+    const { articles, users } = useCore(); 
+    const { products } = useMarketplace();
     const [interestProfiles, setInterestProfiles] = useState<Record<string, string[]>>({});
     const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({});
     const isInitialMount = useRef(true);

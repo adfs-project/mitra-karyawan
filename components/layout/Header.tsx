@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingCartIcon, BellIcon, LanguageIcon, XMarkIcon, StarIcon } from '@heroicons/react/24/outline';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { Notification } from '../../types';
+import { useMarketplace } from '../../contexts/MarketplaceContext';
 
 const NotificationPanel: React.FC<{
     isOpen: boolean;
@@ -39,7 +41,8 @@ const NotificationPanel: React.FC<{
 
 const Header: React.FC = () => {
     const { user } = useAuth();
-    const { notifications, cart, markNotificationsAsRead } = useData();
+    const { notifications, markNotificationsAsRead } = useCore();
+    const { cart } = useMarketplace();
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
     const [language, setLanguage] = useState<'ID' | 'EN'>('ID');
@@ -78,7 +81,7 @@ const Header: React.FC = () => {
                 </span>
                 {user?.profile.branch && (
                     <>
-                        <div className="h-5 w-px bg-border-color"></div>
+                        <div className="h-5 w-5 bg-border-color"></div>
                         <span className="text-sm font-semibold text-text-secondary bg-surface-light px-2 py-1 rounded-md">{user.profile.branch}</span>
                     </>
                 )}

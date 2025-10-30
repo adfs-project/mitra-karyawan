@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { XMarkIcon, PaperAirplaneIcon, BeakerIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
 import { buildSecurePrompt } from '../../../services/aiGuardrailService';
-import { useData } from '../../../contexts/DataContext';
+import { useApp } from '../../../contexts/AppContext';
 
 interface Message {
     sender: 'user' | 'ai';
@@ -14,7 +14,7 @@ const SymptomCheckerModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
 }> = ({ isOpen, onClose }) => {
-    const { showToast } = useData();
+    const { showToast } = useApp();
     const [messages, setMessages] = useState<Message[]>([]);
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);

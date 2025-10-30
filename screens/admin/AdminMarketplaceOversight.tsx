@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../contexts/DataContext';
 import { Product } from '../../types';
 import { ShoppingCartIcon, BanknotesIcon, ShieldExclamationIcon, LockClosedIcon, TrashIcon, PlusIcon, PencilIcon, ArrowUpTrayIcon } from '@heroicons/react/24/solid';
 import ProductFormModal from '../../components/user/market/ProductFormModal';
 import BulkUploadProductsModal from '../../components/admin/market/BulkUploadProductsModal';
+import { useMarketplace } from '../../contexts/MarketplaceContext';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType }> = ({ title, value, icon: Icon }) => (
     <div className="bg-surface p-6 rounded-lg border border-border-color">
@@ -20,7 +22,8 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.El
 );
 
 const AdminMarketplaceOversight: React.FC = () => {
-    const { products, transactions, disputes, deleteProduct, addProduct, updateProduct } = useData();
+    const { transactions, disputes } = useCore();
+    const { products, deleteProduct, addProduct, updateProduct } = useMarketplace();
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);

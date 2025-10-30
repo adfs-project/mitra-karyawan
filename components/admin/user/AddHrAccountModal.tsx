@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useData } from '../../../contexts/DataContext';
+// FIX: Replaced useData with useApp as useData is not an exported member.
+import { useApp } from '../../../contexts/AppContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 import { UserProfile } from '../../../types';
 
@@ -20,7 +21,8 @@ const initialFormState = {
 
 const AddHrAccountModal: React.FC<AddHrAccountModalProps> = ({ isOpen, onClose }) => {
     const { createHrAccountByAdmin } = useAuth();
-    const { showToast } = useData();
+    // FIX: showToast comes from useApp, not useData.
+    const { showToast } = useApp();
     const [formData, setFormData] = useState(initialFormState);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');

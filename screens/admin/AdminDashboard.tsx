@@ -1,6 +1,9 @@
 import React, { useMemo } from 'react';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../contexts/DataContext';
 import { UsersIcon, BanknotesIcon, ShoppingCartIcon, ArrowTrendingUpIcon, CursorArrowRaysIcon, SparklesIcon } from '@heroicons/react/24/outline';
+// FIX: Import useMarketplace to access marketplace-specific data.
+import { useMarketplace } from '../../contexts/MarketplaceContext';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType }> = ({ title, value, icon: Icon }) => (
     <div className="bg-surface p-6 rounded-lg border border-border-color">
@@ -17,7 +20,9 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.El
 );
 
 const EngagementAnalyticsDashboard: React.FC = () => {
-    const { engagementAnalytics, products, articles } = useData();
+    // FIX: Get products data from useMarketplace hook.
+    const { engagementAnalytics, articles, assistantLogs } = useCore();
+    const { products } = useMarketplace();
 
     const getMostClickedItem = (clicks: Record<string, number>) => {
         if (Object.keys(clicks).length === 0) return { name: 'N/A', clicks: 0 };
@@ -50,7 +55,7 @@ const EngagementAnalyticsDashboard: React.FC = () => {
                 />
                  <StatCard 
                     title="Smart Assistant Queries" 
-                    value={useData().assistantLogs.length}
+                    value={assistantLogs.length}
                     icon={SparklesIcon} 
                 />
             </div>
@@ -60,7 +65,9 @@ const EngagementAnalyticsDashboard: React.FC = () => {
 
 
 const AdminDashboard: React.FC = () => {
-    const { users, transactions, orders, adminWallets } = useData();
+    // FIX: Get orders data from useMarketplace hook.
+    const { users, transactions, adminWallets } = useCore();
+    const { orders } = useMarketplace();
 
     const totalUsers = users.length;
     const totalTransactions = transactions.length;

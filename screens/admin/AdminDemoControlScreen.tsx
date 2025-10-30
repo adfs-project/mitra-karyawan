@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../contexts/DataContext';
 import { ShieldCheckIcon, ShieldExclamationIcon, PuzzlePieceIcon } from '@heroicons/react/24/solid';
 import loggingService, { LogEntry } from '../../services/loggingService';
 
@@ -67,7 +68,7 @@ const AdminDemoControlScreen: React.FC = () => {
     const { 
         homePageConfig,
         updateHomePageConfig
-    } = useData();
+    } = useCore();
     const [activeTab, setActiveTab] = useState<'Settings' | 'Logs'>('Settings');
 
     const handleFeatureFlagToggle = (flagName: keyof typeof homePageConfig.featureFlags, enabled: boolean) => {

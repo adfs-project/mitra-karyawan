@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { useData } from '../../../contexts/DataContext';
+// FIX: Replaced useData with useApp as useData is not an exported member.
+import { useApp } from '../../../contexts/AppContext';
 import { XMarkIcon, DocumentArrowDownIcon, ArrowUpTrayIcon, CheckCircleIcon, ExclamationCircleIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 import * as XLSX from 'xlsx';
+import { useMarketplace } from '../../../contexts/MarketplaceContext';
 
 type PreviewRow = {
     data: any;
@@ -10,7 +12,9 @@ type PreviewRow = {
 };
 
 const BulkUploadProductsModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
-    const { addMultipleProductsByAdmin, showToast } = useData();
+    const { addMultipleProductsByAdmin } = useMarketplace();
+    // FIX: showToast comes from useApp, not useData.
+    const { showToast } = useApp();
     const [step, setStep] = useState(1); // 1: Upload, 2: Preview, 3: Result
     const [previewData, setPreviewData] = useState<PreviewRow[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);

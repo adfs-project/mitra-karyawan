@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useData } from '../../../contexts/DataContext';
+import { useCore } from '../../../contexts/DataContext';
 import { Budget, ScheduledPayment } from '../../../types';
 import { PlusIcon, BanknotesIcon, CalendarDaysIcon, PencilIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 import BudgetModal from './BudgetModal';
@@ -21,14 +21,13 @@ const BudgetCard: React.FC<{ budget: Budget; onEdit: () => void; onDelete: () =>
                 </div>
                 <div className="flex space-x-1">
                      <button onClick={onEdit} className="p-1 text-text-secondary hover:text-primary"><PencilIcon className="h-4 w-4" /></button>
-                     <button 
+                     <span 
                         onClick={onDelete} 
-                        disabled={true} 
-                        className="p-1 text-gray-500 cursor-not-allowed"
+                        className="p-1 text-gray-500 cursor-pointer"
                         title="Penghapusan dinonaktifkan secara permanen oleh sistem."
                      >
                         <LockClosedIcon className="h-4 w-4" />
-                    </button>
+                    </span>
                 </div>
             </div>
             <div className="w-full bg-surface rounded-full h-2.5">
@@ -62,14 +61,13 @@ const ScheduledPaymentCard: React.FC<{ payment: ScheduledPayment; onEdit: () => 
                     </div>
                     <div className="flex flex-col ml-2">
                         <button onClick={onEdit} className="p-1 text-text-secondary hover:text-primary"><PencilIcon className="h-4 w-4" /></button>
-                        <button 
+                        <span 
                             onClick={onDelete} 
-                            disabled={true} 
-                            className="p-1 text-gray-500 cursor-not-allowed"
+                            className="p-1 text-gray-500 cursor-pointer"
                             title="Penghapusan dinonaktifkan secara permanen oleh sistem."
                         >
                             <LockClosedIcon className="h-4 w-4" />
-                        </button>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -79,7 +77,7 @@ const ScheduledPaymentCard: React.FC<{ payment: ScheduledPayment; onEdit: () => 
 
 const FinancialPlanning: React.FC = () => {
     const { user } = useAuth();
-    const { budgets, scheduledPayments, deleteBudget, deleteScheduledPayment } = useData();
+    const { budgets, scheduledPayments, deleteBudget, deleteScheduledPayment } = useCore();
 
     const [isBudgetModalOpen, setBudgetModalOpen] = useState(false);
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);

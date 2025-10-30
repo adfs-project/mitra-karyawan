@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { useData } from '../../contexts/DataContext';
 import { useLocation } from 'react-router-dom';
 import ProductCard from '../../components/user/market/ProductCard';
 import { Product } from '../../types';
@@ -7,10 +6,11 @@ import { MagnifyingGlassIcon, FunnelIcon, SparklesIcon } from '@heroicons/react/
 import AiRecommendations from '../../components/user/market/AiRecommendations';
 import { usePersonalization } from '../../contexts/PersonalizationContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useMarketplace } from '../../contexts/MarketplaceContext';
 
 const AiPoweredRecommendations: React.FC = () => {
     const { user } = useAuth();
-    const { products, addToCart } = useData();
+    const { products, addToCart } = useMarketplace();
     const { interestProfiles } = usePersonalization();
 
     const recommendedProducts = useMemo(() => {
@@ -56,7 +56,7 @@ const AiPoweredRecommendations: React.FC = () => {
 
 
 const MarketScreen: React.FC = () => {
-    const { products, addToCart } = useData();
+    const { products, addToCart } = useMarketplace();
     const { user } = useAuth();
     const { interestProfiles } = usePersonalization();
     const location = useLocation();

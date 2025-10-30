@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { useData } from '../../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../../contexts/DataContext';
 import { ShieldCheckIcon, PlusIcon, ArrowUpCircleIcon, ArrowDownCircleIcon } from '@heroicons/react/24/solid';
 import ExpenseModal from './ExpenseModal';
 import { Transaction } from '../../../types';
 
 const CashWalletCard: React.FC = () => {
-    const { adminWallets, transactions, recordOperationalExpense } = useData();
+    const { adminWallets, transactions, recordOperationalExpense } = useCore();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const cashFlowHistory = useMemo(() => {

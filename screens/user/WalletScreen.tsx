@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+import { useCore } from '../../contexts/DataContext';
 import { SparklesIcon } from '@heroicons/react/24/solid';
-import { FunnelIcon, ArrowUpCircleIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/outline';
+// FIX: Import ArrowDownCircleIcon from heroicons and remove dummy component.
+import { FunnelIcon, ArrowUpCircleIcon, ArrowsRightLeftIcon, ArrowDownCircleIcon } from '@heroicons/react/24/outline';
 import { Transaction } from '../../types';
 
 import WalletAnalytics from '../../components/user/wallet/WalletAnalytics';
@@ -25,13 +26,11 @@ const getTransactionIcon = (type: Transaction['type']) => {
              return <ArrowDownCircleIcon className="h-8 w-8 text-red-400" />;
     }
 };
-// Dummy icon for filtering
-const ArrowDownCircleIcon = (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 
 
 const WalletScreen: React.FC = () => {
     const { user } = useAuth();
-    const { transactions } = useData();
+    const { transactions } = useCore();
     
     const [activeTab, setActiveTab] = useState<Tab>('Analitik');
     const [filterType, setFilterType] = useState<TransactionType>('All');

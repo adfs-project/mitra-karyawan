@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { useData } from '../../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../../contexts/DataContext';
 import { ArrowLongRightIcon, UserGroupIcon, BuildingStorefrontIcon, BanknotesIcon, DocumentTextIcon, ShieldCheckIcon } from '@heroicons/react/24/solid';
 
 const formatCurrency = (value: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(value);
@@ -19,7 +20,7 @@ const Connector: React.FC<{ height?: string }> = ({ height = 'h-12' }) => (
 );
 
 const SankeyDiagram: React.FC = () => {
-    const { transactions } = useData();
+    const { transactions } = useCore();
 
     const data = useMemo(() => {
         const totalTopUps = transactions.filter(t => t.type === 'Top-Up').reduce((s, t) => s + t.amount, 0);

@@ -1,9 +1,10 @@
 
+
 import React, { useState } from 'react';
-import { useData } from '../../contexts/DataContext';
+import { useCore } from '../../contexts/DataContext';
 
 const DeactivatedAccountScreen: React.FC = () => {
-    const { addNotification } = useData();
+    const { addNotification } = useCore();
     const [email, setEmail] = useState('');
     const [whatsapp, setWhatsapp] = useState('');
     const [submitted, setSubmitted] = useState(false);

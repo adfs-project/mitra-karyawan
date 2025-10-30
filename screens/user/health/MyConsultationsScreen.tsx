@@ -1,12 +1,12 @@
 import React from 'react';
-import { useData } from '../../../contexts/DataContext';
+import { useHealth } from '../../../contexts/HealthContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, VideoCameraIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 
 const MyConsultationsScreen: React.FC = () => {
     const { user } = useAuth();
-    const { consultations } = useData();
+    const { consultations } = useHealth();
     const navigate = useNavigate();
 
     const userConsultations = consultations

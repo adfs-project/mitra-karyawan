@@ -1,9 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useCore as useData is not an exported member.
+import { useCore } from '../../contexts/DataContext';
 import { CheckCircleIcon, XCircleIcon, EyeIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { OpexRequest } from '../../types';
 import LocationName from '../../components/common/LocationName';
+// FIX: Import useHR hook to access HR-related data like opexRequests.
+import { useHR } from '../../contexts/HRContext';
 
 const PhotoViewerModal: React.FC<{
     isOpen: boolean;
@@ -23,7 +26,10 @@ const PhotoViewerModal: React.FC<{
 
 const FinanceDashboard: React.FC = () => {
     const { user: financeUser } = useAuth();
-    const { opexRequests, approveOpexByFinance, rejectOpexByFinance } = useData();
+    // FIX: Get finance-specific actions from useCore.
+    const { approveOpexByFinance, rejectOpexByFinance } = useCore();
+    // FIX: Get opexRequests from useHR.
+    const { opexRequests } = useHR();
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
 

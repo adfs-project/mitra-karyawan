@@ -1,9 +1,9 @@
 import React from 'react';
-import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, CreditCardIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { OpexRequest, OpexRequestStatus } from '../../types';
+import { useHR } from '../../contexts/HRContext';
 
 const getStatusChip = (status: OpexRequestStatus) => {
     switch (status) {
@@ -19,7 +19,7 @@ const getStatusChip = (status: OpexRequestStatus) => {
 
 const OpexScreen: React.FC = () => {
     const { user } = useAuth();
-    const { opexRequests } = useData();
+    const { opexRequests } = useHR();
     const navigate = useNavigate();
 
     const userRequests = opexRequests

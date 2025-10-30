@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useData } from '../../../contexts/DataContext';
+// FIX: Replaced useData with useApp since it's only used for showToast.
+import { useApp } from '../../../contexts/AppContext';
 import { ArrowLeftIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI, Type } from "@google/genai";
+import { useHealth } from '../../../contexts/HealthContext';
 
 type Tab = 'Makan' | 'Latihan' | 'Mood';
 
@@ -20,7 +22,7 @@ const AIResultDisplay: React.FC<{ content: string }> = ({ content }) => (
 const HealthPlusScreen: React.FC = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const { showToast } = useData();
+    const { showToast } = useApp();
     const [activeTab, setActiveTab] = useState<Tab>('Makan');
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState('');

@@ -1,15 +1,16 @@
 
+
 import React, { useState } from 'react';
-import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, ClipboardDocumentListIcon, CameraIcon } from '@heroicons/react/24/solid';
 import LocationName from '../../components/common/LocationName';
 import PhotoViewerModal from '../../components/common/PhotoViewerModal';
+import { useHR } from '../../contexts/HRContext';
 
 const AttendanceHistoryScreen: React.FC = () => {
     const { user } = useAuth();
-    const { attendanceRecords } = useData();
+    const { attendanceRecords } = useHR();
     const navigate = useNavigate();
     const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
     const [viewingPhotoUrl, setViewingPhotoUrl] = useState<string | null>(null);

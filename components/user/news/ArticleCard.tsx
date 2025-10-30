@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Article } from '../../../types';
-import { useData } from '../../../contexts/DataContext';
+import { useCore } from '../../../contexts/DataContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { BookmarkIcon, ChatBubbleBottomCenterTextIcon, HandThumbUpIcon, PlayCircleIcon } from '@heroicons/react/24/outline';
 import { HandThumbUpIcon as HandThumbUpSolidIcon, BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
 
 const PollComponent: React.FC<{ article: Article }> = ({ article }) => {
-    const { voteOnPoll } = useData();
+    const { voteOnPoll } = useCore();
     const { user } = useAuth();
 
     const totalVotes = article.pollOptions?.reduce((sum, opt) => sum + opt.votes.length, 0) || 0;
@@ -69,7 +69,7 @@ const LazyVideo: React.FC<{ youtubeId: string; title: string }> = ({ youtubeId, 
 
 const ArticleCard: React.FC<{ article: Article; onOpenComments: () => void; }> = ({ article, onOpenComments }) => {
     const { user } = useAuth();
-    const { toggleArticleLike, toggleArticleBookmark } = useData();
+    const { toggleArticleLike, toggleArticleBookmark } = useCore();
     
     const isLiked = user ? article.likes.includes(user.id) : false;
     const isBookmarked = user ? user.bookmarkedArticles.includes(article.id) : false;

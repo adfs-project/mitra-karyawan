@@ -1,7 +1,10 @@
 import React, { useMemo } from 'react';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useCore as useData is not an exported member.
+import { useCore } from '../../contexts/DataContext';
 import { BanknotesIcon, ClockIcon, UsersIcon, ArrowUpCircleIcon } from '@heroicons/react/24/solid';
 import { Transaction } from '../../types';
+// FIX: Import useHR hook to access HR-related data like opexRequests.
+import { useHR } from '../../contexts/HRContext';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType }> = ({ title, value, icon: Icon }) => (
     <div className="bg-surface p-6 rounded-lg border border-border-color">
@@ -22,7 +25,10 @@ const getTransactionIcon = (type: Transaction['type']) => {
 };
 
 const BranchFinancialOverview: React.FC<{ branch: string }> = ({ branch }) => {
-    const { opexRequests, transactions, users } = useData();
+    // FIX: Get transactions and users from useCore.
+    const { transactions, users } = useCore();
+    // FIX: Get opexRequests from useHR.
+    const { opexRequests } = useHR();
 
     const branchData = useMemo(() => {
         const branchUsers = users.filter(u => u.profile.branch === branch);

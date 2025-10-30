@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useData } from '../../../contexts/DataContext';
+import { useHealth } from '../../../contexts/HealthContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, ShieldCheckIcon, PaperClipIcon, ClockIcon } from '@heroicons/react/24/solid';
 import { InsuranceClaim } from '../../../types';
+import { useApp } from '../../../contexts/AppContext';
 
 const getStatusChip = (status: InsuranceClaim['status']) => {
     switch (status) {
@@ -18,7 +19,8 @@ const getStatusChip = (status: InsuranceClaim['status']) => {
 
 const InsuranceClaimScreen: React.FC = () => {
     const { user } = useAuth();
-    const { insuranceClaims, submitInsuranceClaim, showToast } = useData();
+    const { insuranceClaims, submitInsuranceClaim } = useHealth();
+    const { showToast } = useApp();
     const navigate = useNavigate();
     
     const [claimType, setClaimType] = useState<'Rawat Jalan' | 'Rawat Inap' | 'Kacamata'>('Rawat Jalan');
@@ -97,25 +99,4 @@ const InsuranceClaimScreen: React.FC = () => {
             
             <div className="bg-surface p-4 rounded-lg border border-border-color">
                 <h2 className="text-xl font-bold mb-4 flex items-center"><ClockIcon className="h-5 w-5 mr-2"/> Riwayat Klaim</h2>
-                 {userClaims.length > 0 ? (
-                    <div className="space-y-3">
-                        {userClaims.map(claim => (
-                            <div key={claim.id} className="bg-surface-light p-3 rounded-lg flex justify-between items-center">
-                                <div>
-                                    <p className="font-semibold text-text-primary">{claim.type} - {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(claim.amount)}</p>
-                                    <p className="text-xs text-text-secondary">Diajukan pada: {new Date(claim.submissionDate).toLocaleDateString()}</p>
-                                </div>
-                                {getStatusChip(claim.status)}
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-sm text-center text-text-secondary py-8">Anda belum pernah mengajukan klaim.</p>
-                )}
-            </div>
-
-        </div>
-    );
-};
-
-export default InsuranceClaimScreen;
+                 {userClaims.length > 

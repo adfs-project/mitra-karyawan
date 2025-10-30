@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useData } from '../../../contexts/DataContext';
+import { useCore } from '../../../contexts/DataContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const amountSuggestions = [50000, 100000, 250000, 500000];
@@ -10,7 +10,7 @@ const paymentMethods = ['BCA Virtual Account', 'GoPay', 'OVO', 'Alfamart'];
 
 const TopUpModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
     const { user } = useAuth();
-    const { addTransaction, addNotification } = useData();
+    const { addTransaction, addNotification } = useCore();
     const [amount, setAmount] = useState(0);
     const [selectedMethod, setSelectedMethod] = useState(paymentMethods[0]);
     const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +22,6 @@ const TopUpModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpe
             return;
         }
         setIsLoading(true);
-        // FIX: Added the 'status' property to the transaction object to match the 'Transaction' type expected by 'addTransaction'.
         const result = await addTransaction({
             userId: user.id,
             type: 'Top-Up',

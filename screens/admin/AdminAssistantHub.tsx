@@ -1,12 +1,10 @@
-
-
-
 import React, { useMemo } from 'react';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../contexts/DataContext';
 import { ChatBubbleLeftRightIcon, ChartPieIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
 
 const AdminAssistantHub: React.FC = () => {
-    const { assistantLogs } = useData();
+    const { assistantLogs } = useCore();
 
     const intentAnalytics = useMemo(() => {
         const intentCounts = assistantLogs.reduce((acc: Record<string, number>, log) => {

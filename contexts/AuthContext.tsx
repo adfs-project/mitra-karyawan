@@ -2,9 +2,14 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import { User, Role, UserProfile } from '../types';
 import vaultService from '../services/vaultService';
 
+type LoginResult = 
+    | { result: '2fa_required'; otp: string }
+    | { result: 'success' | 'not_found' | 'inactive' | 'incorrect_password' };
+
+
 interface AuthContextType {
     user: User | null;
-    login: (email: string, password: string) => Promise<'success' | '2fa_required' | 'not_found' | 'inactive' | 'incorrect_password'>;
+    login: (email: string, password: string) => Promise<LoginResult>;
     verify2FA: (otp: string) => Promise<'success' | 'failed'>;
     logout: () => void;
     register: (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData'>) => Promise<'success' | 'exists'>;
@@ -49,19 +54,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, []);
 
-    const login = async (email: string, password: string): Promise<'success' | '2fa_required' | 'not_found' | 'inactive' | 'incorrect_password'> => {
+    const login = async (email: string, password: string): Promise<LoginResult> => {
         const foundUser = vaultService.findUserByEmail(email);
         
         if (!foundUser) {
-            return 'not_found';
+            return { result: 'not_found' };
         }
 
         if (!vaultService.verifyPassword(foundUser, password)) {
-            return 'incorrect_password';
+            return { result: 'incorrect_password' };
         }
 
         if (foundUser.status === 'inactive') {
-            return 'inactive';
+            return { result: 'inactive' };
         }
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -69,9 +74,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setPendingOTP(otp);
 
         console.log(`[SIMULASI EMAIL] Kode OTP untuk ${foundUser.email} adalah: ${otp}`);
-        alert(`[SIMULASI] Kode OTP untuk ${foundUser.email} adalah: ${otp}\n(Cek console untuk melihat kode ini lagi)`);
-
-        return '2fa_required';
+        
+        return { result: '2fa_required', otp };
     };
     
     const verify2FA = async (otp: string): Promise<'success' | 'failed'> => {
@@ -165,13 +169,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let success = 0;
         let failed = 0;
         const errors: string[] = [];
-        
-        const allUserEmails = new Set(vaultService.getSanitizedData().users.map(u => u.email.toLowerCase()));
+        const emailsInThisUpload = new Set<string>();
 
         for (const employeeData of employeesData) {
-            if (allUserEmails.has(employeeData.email.toLowerCase())) {
+            const email = employeeData.email.toLowerCase();
+            if (vaultService.findUserByEmail(email) || emailsInThisUpload.has(email)) {
                 failed++;
-                errors.push(`Email already exists: ${employeeData.email}`);
+                errors.push(`Email already exists or is duplicated in file: ${employeeData.email}`);
                 continue;
             }
 
@@ -197,7 +201,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 }
             };
             vaultService.addNewUser(newUser);
-            allUserEmails.add(newUser.email.toLowerCase()); 
+            emailsInThisUpload.add(email); 
             success++;
         }
 

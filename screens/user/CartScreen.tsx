@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { useData } from '../../contexts/DataContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCartIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
+import { useMarketplace } from '../../contexts/MarketplaceContext';
+import { useApp } from '../../contexts/AppContext';
 
 const CartScreen: React.FC = () => {
-    const { cart, products, removeFromCart, updateCartQuantity, checkoutCart, showToast } = useData();
+    const { cart, products, removeFromCart, updateCartQuantity, checkoutCart } = useMarketplace();
+    const { showToast } = useApp(); // Still need this for global notifications
     const { user } = useAuth();
     const navigate = useNavigate();
     const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -25,7 +27,6 @@ const CartScreen: React.FC = () => {
         if (!user || subtotal <= 0) return;
 
         setIsCheckingOut(true);
-        // FIX: The checkoutCart function does not take any arguments. Called without arguments.
         const result = await checkoutCart();
 
         if (result.success) {

@@ -1,95 +1,106 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../contexts/DataContext';
 import { User } from '../../types';
 import { BanknotesIcon, DocumentTextIcon, PrinterIcon } from '@heroicons/react/24/solid';
 
 const PayslipView: React.FC<{ employee: User; period: string, payrollData: any }> = ({ employee, period, payrollData }) => {
     
-    const fullPayslipString = useMemo(() => {
-        const currentUser = employee;
-        const currentPeriod = period;
-        const payroll = payrollData;
-
-        if (!payroll) return 'Informasi gaji tidak tersedia untuk akun ini.';
-
-        const totalWidth = 96;
-        const colWidth = 43;
-        const gapWidth = 10;
-        const labelWidth = 25;
-        const currencyWidth = 5;
-        const amountWidth = 13;
-        
-        const formatAmount = (value: number) => new Intl.NumberFormat('id-ID').format(value);
-
-        const formatLine = (label: string, value: number | null) => {
-            if (value === null) return ''.padEnd(colWidth);
-            const formattedValue = formatAmount(value);
-            return `${label.padEnd(labelWidth)}${'Rp.'.padStart(currencyWidth)}${formattedValue.padStart(amountWidth)}`;
-        };
-
-        let lines: string[] = [];
-        const itemSeparator = ''.padStart(labelWidth) + ''.padStart(currencyWidth + amountWidth, '-');
-        const fullSeparator = ''.padStart(totalWidth, '-');
-
-        lines.push('PT. Mitra Karyawan'.padEnd(totalWidth - 'CONFIDENTIAL'.length) + 'CONFIDENTIAL');
-        lines.push('-'.repeat('PT. Mitra Karyawan'.length));
-        lines.push('');
-
-        lines.push(`COST CENTER : ${currentUser.profile.branch || 'N/A'}`.padEnd(colWidth + gapWidth) + 'SLIP PEMBAYARAN');
-        lines.push(`NIK         : ${currentUser.id}`.padEnd(colWidth + gapWidth) + `PERIODE : ${currentPeriod}`);
-        lines.push(`NAMA        : ${currentUser.profile.name}`.padEnd(colWidth + gapWidth) + 'NPWP    : N/A');
-        lines.push('');
-
-        const pendapatanItems = [{ label: 'Basic Salary', value: payroll.gajiPokok }, { label: 'Performance Incentive', value: payroll.insentifKinerja }, { label: 'BPJS TK (0.54%)', value: payroll.bpjsTkNatura }];
-        const potonganItems = [{ label: 'Tax', value: payroll.pajakPph21 }, { label: 'BPJS TK Kary. (2%)', value: payroll.bpjsTkKaryawan2 }, { label: 'BPJS TK (0.54%)', value: payroll.bpjsTkKaryawan054 }, { label: 'BPJS Pensiun Kary (1%)', value: payroll.bpjsPensiunKaryawan }];
-        const lainLainItems = [{ label: 'BPJS Pensiun Persh (2%)', value: payroll.bpjsPensiunPerusahaan }, { label: 'BPJS TK Persh (3,7%)', value: payroll.bpjsTkPerusahaan }];
-
-        lines.push('A. PENDAPATAN'.padEnd(colWidth + gapWidth) + 'B. POTONGAN');
-        const maxRows = Math.max(pendapatanItems.length, potonganItems.length);
-        for (let i = 0; i < maxRows; i++) {
-            const left = pendapatanItems[i] ? formatLine(pendapatanItems[i].label, pendapatanItems[i].value) : ''.padEnd(colWidth);
-            const right = potonganItems[i] ? formatLine(potonganItems[i].label, potonganItems[i].value) : ''.padEnd(colWidth);
-            lines.push(left + ''.padEnd(gapWidth) + right);
-        }
-        
-        lines.push(itemSeparator.padEnd(colWidth + gapWidth) + itemSeparator);
-        lines.push(formatLine('TOTAL PENDAPATAN (A):', payroll.totalPendapatan).padEnd(colWidth + gapWidth) + formatLine('TOTAL POTONGAN (B):', payroll.totalPotongan));
-        lines.push('');
-
-        lines.push('LAIN LAIN (C):'.padEnd(colWidth + gapWidth) + 'SALDO PINJAMAN');
-        lines.push(formatLine(lainLainItems[0].label, lainLainItems[0].value).padEnd(colWidth + gapWidth) + formatLine('', payroll.saldoPinjaman));
-        lines.push(formatLine(lainLainItems[1].label, lainLainItems[1].value));
-        
-        lines.push(fullSeparator);
-        const takeHomeLine = `YANG DIBAYARKAN (A - B) = Rp. ${formatAmount(payroll.takeHomePay).padStart(amountWidth)}`;
-        lines.push(''.padEnd(colWidth + gapWidth) + takeHomeLine);
-        lines.push(fullSeparator);
-        lines.push('');
-        lines.push('BSM');
-        lines.push('');
-        
-        const footerText = '#PAYSLIP INI DICETAK MELALUI SISTEM, TIDAK MEMERLUKAN STAMP ATAU TANDA TANGAN#';
-        const padding = Math.floor((totalWidth - footerText.length) / 2);
-        lines.push(''.padStart(padding) + footerText);
-
-        return lines.join('\n');
-    }, [payrollData, employee, period]);
-
     if (!payrollData) return null;
+    
+    const formatAmount = (value: number) => new Intl.NumberFormat('id-ID').format(value);
 
     return (
-        <div className="bg-white text-black p-4 font-mono text-xs max-w-5xl mx-auto border border-gray-300">
-             <pre id="payslip-to-print" className="p-0 m-0 leading-relaxed whitespace-pre" style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '12px' }}>
-                {fullPayslipString}
-            </pre>
+        <div id="payslip-to-print" className="bg-white text-black p-4 font-mono text-xs max-w-4xl mx-auto border border-gray-300">
+            <p className="font-bold">PT. Mitra Karyawan</p>
+            <hr className="border-black my-1"/>
+             <table className="w-full my-2">
+                <tbody>
+                    <tr>
+                        <td>COST CENTER : {employee.profile.branch || 'N/A'}</td>
+                        <td className="text-right font-bold">SLIP PEMBAYARAN</td>
+                    </tr>
+                     <tr>
+                        <td>NIK : {employee.id}</td>
+                        <td className="text-right">PERIODE : {period}</td>
+                    </tr>
+                     <tr>
+                        <td>NAMA : {employee.profile.name}</td>
+                        <td className="text-right">NPWP : N/A</td>
+                    </tr>
+                </tbody>
+            </table>
+             <table className="w-full my-2">
+                 <tbody>
+                    <tr>
+                        <td className="font-bold w-1/2 align-top">A. PENDAPATAN</td>
+                        <td className="font-bold w-1/2 align-top">B. POTONGAN</td>
+                    </tr>
+                    <tr>
+                        <td className="align-top">
+                            <table className="w-full"><tbody>
+                                <tr><td>Basic Salary</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payrollData.gajiPokok)}</td></tr>
+                                <tr><td>Performance Incentive</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payrollData.insentifKinerja)}</td></tr>
+                                <tr><td>BPJS TK (0.54%)</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payrollData.bpjsTkNatura)}</td></tr>
+                            </tbody></table>
+                        </td>
+                         <td className="align-top">
+                             <table className="w-full"><tbody>
+                                <tr><td>Tax</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payrollData.pajakPph21)}</td></tr>
+                                <tr><td>BPJS TK Kary. (2%)</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payrollData.bpjsTkKaryawan2)}</td></tr>
+                                <tr><td>BPJS TK (0.54%)</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payrollData.bpjsTkKaryawan054)}</td></tr>
+                                <tr><td>BPJS Pensiun Kary (1%)</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payrollData.bpjsPensiunKaryawan)}</td></tr>
+                            </tbody></table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><hr className="border-black my-1"/>
+                            <table className="w-full"><tbody>
+                                <tr><td className="font-bold">TOTAL PENDAPATAN (A):</td><td className="text-right font-bold">Rp.</td><td className="text-right font-bold">{formatAmount(payrollData.totalPendapatan)}</td></tr>
+                            </tbody></table>
+                        </td>
+                        <td><hr className="border-black my-1"/>
+                             <table className="w-full"><tbody>
+                                <tr><td className="font-bold">TOTAL POTONGAN (B):</td><td className="text-right font-bold">Rp.</td><td className="text-right font-bold">{formatAmount(payrollData.totalPotongan)}</td></tr>
+                            </tbody></table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <table className="w-full my-2">
+                 <tbody>
+                     <tr>
+                        <td className="font-bold w-1/2 align-top">LAIN LAIN (C):</td>
+                        <td className="font-bold w-1/2 align-top">SALDO PINJAMAN</td>
+                    </tr>
+                    <tr>
+                         <td className="align-top">
+                             <table className="w-full"><tbody>
+                                <tr><td>BPJS Pensiun Persh (2%)</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payrollData.bpjsPensiunPerusahaan)}</td></tr>
+                                <tr><td>BPJS TK Persh (3,7%)</td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payrollData.bpjsTkPerusahaan)}</td></tr>
+                            </tbody></table>
+                        </td>
+                         <td className="align-top">
+                             <table className="w-full"><tbody><tr><td></td><td className="text-right">Rp.</td><td className="text-right">{formatAmount(payrollData.saldoPinjaman)}</td></tr></tbody></table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <hr className="border-black my-1"/><hr className="border-black mt-1 mb-2"/>
+            <p className="text-right font-bold">YANG DIBAYARKAN (A - B) = Rp. {formatAmount(payrollData.takeHomePay)}</p>
+             <hr className="border-black mt-2 mb-1"/><hr className="border-black mb-2"/>
+            <br/>
+            <p>BSM</p>
+            <br/><br/>
+            <p className="text-center">#PAYSLIP INI DICETAK MELALUI SISTEM, TIDAK MEMERLUKAN STAMP ATAU TANDA TANGAN#</p>
         </div>
     );
 };
 
 const HrPayroll: React.FC = () => {
     const { user: hrUser } = useAuth();
-    const { users, generatePayslipData } = useData();
+    const { users, generatePayslipData } = useCore();
     const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
 
     const branchEmployees = useMemo(() => {
@@ -109,15 +120,15 @@ const HrPayroll: React.FC = () => {
         const printContentNode = document.getElementById('payslip-to-print');
         if (!printContentNode) return;
         
-        const printContent = printContentNode.textContent;
+        const printContent = printContentNode.innerHTML;
         const originalContents = document.body.innerHTML;
+        
+        const styles = `<style>body { background-color: #fff; color: #000; font-family: 'Courier New', monospace; font-size: 12px; } table { width: 100%; border-collapse: collapse; } td { padding: 2px 4px; } .text-right { text-align: right; } .font-bold { font-weight: bold; } hr { border: none; border-top: 1px solid #000; margin: 4px 0; }</style>`;
 
-        if (printContent) {
-            document.body.innerHTML = `<pre style="font-family: 'Courier New', Courier, monospace; font-size: 12px; white-space: pre;">${printContent}</pre>`;
-            window.print();
-            document.body.innerHTML = originalContents;
-            window.location.reload(); 
-        }
+        document.body.innerHTML = `${styles}<div>${printContent}</div>`;
+        window.print();
+        document.body.innerHTML = originalContents;
+        window.location.reload(); 
     };
 
     return (

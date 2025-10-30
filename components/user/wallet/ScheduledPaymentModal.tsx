@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useData } from '../../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../../contexts/DataContext';
 import { ScheduledPayment } from '../../../types';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
@@ -10,7 +11,7 @@ interface ScheduledPaymentModalProps {
 }
 
 const ScheduledPaymentModal: React.FC<ScheduledPaymentModalProps> = ({ isOpen, onClose, payment }) => {
-    const { addScheduledPayment, updateScheduledPayment } = useData();
+    const { addScheduledPayment, updateScheduledPayment } = useCore();
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState(0);
     const [recurrence, setRecurrence] = useState<'monthly' | 'weekly'>('monthly');

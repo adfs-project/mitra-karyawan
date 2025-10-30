@@ -1,12 +1,13 @@
 
+
 import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useData } from '../../../contexts/DataContext';
+import { useCore } from '../../../contexts/DataContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const TransferModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
     const { user } = useAuth();
-    const { addTransaction, users, addNotification } = useData();
+    const { addTransaction, users, addNotification } = useCore();
     const [amount, setAmount] = useState(0);
     const [recipientEmail, setRecipientEmail] = useState('');
     const [note, setNote] = useState('');

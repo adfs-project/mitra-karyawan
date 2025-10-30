@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Article } from '../../../types';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useData } from '../../../contexts/DataContext';
+import { useCore } from '../../../contexts/DataContext';
 import { XMarkIcon, PaperAirplaneIcon, HandThumbUpIcon } from '@heroicons/react/24/outline';
 import { HandThumbUpIcon as HandThumbUpSolidIcon } from '@heroicons/react/24/solid';
 
 const CommentModal: React.FC<{ isOpen: boolean; onClose: () => void; article: Article | null; }> = ({ isOpen, onClose, article }) => {
     const { user } = useAuth();
-    const { addArticleComment, toggleCommentLike } = useData();
+    const { addArticleComment, toggleCommentLike } = useCore();
     const [newComment, setNewComment] = useState('');
     const commentsEndRef = useRef<HTMLDivElement>(null);
 

@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useCore and added useApp for showToast.
+import { useCore } from '../../contexts/DataContext';
+import { useApp } from '../../contexts/AppContext';
 import { HomePageConfig } from '../../types';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { SparklesIcon } from '@heroicons/react/24/outline';
+// FIX: Import useMarketplace to get products data.
+import { useMarketplace } from '../../contexts/MarketplaceContext';
 
 
 const AdminHomePageOrchestrator: React.FC = () => {
-    const { homePageConfig, updateHomePageConfig, products, articles, showToast } = useData();
+    // FIX: Get products data from useMarketplace hook.
+    const { homePageConfig, updateHomePageConfig, articles } = useCore();
+    const { showToast } = useApp();
+    const { products } = useMarketplace();
     const [config, setConfig] = useState<HomePageConfig>(homePageConfig);
     const [isSaving, setIsSaving] = useState(false);
 

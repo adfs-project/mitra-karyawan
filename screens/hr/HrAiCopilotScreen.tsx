@@ -1,13 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { SparklesIcon, PaperAirplaneIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useApp to get showToast function.
+import { useApp } from '../../contexts/AppContext';
 import { GoogleGenAI } from "@google/genai";
 import { ChatMessage } from '../../types';
+import { useHR } from '../../contexts/HRContext';
 
 const HrAiCopilotScreen: React.FC = () => {
     const { user } = useAuth();
-    const { getBranchMoodAnalytics, showToast } = useData();
+    const { getBranchMoodAnalytics } = useHR();
+    const { showToast } = useApp();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);

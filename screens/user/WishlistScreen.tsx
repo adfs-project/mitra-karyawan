@@ -1,13 +1,13 @@
 import React from 'react';
-import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { HeartIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
+import { useMarketplace } from '../../contexts/MarketplaceContext';
 
 const WishlistScreen: React.FC = () => {
     const { user } = useAuth();
-    const { products, toggleWishlist, addToCart } = useData();
+    const { products, toggleWishlist, addToCart } = useMarketplace();
 
     const wishlistProducts = products.filter(p => user?.wishlist.includes(p.id));
 

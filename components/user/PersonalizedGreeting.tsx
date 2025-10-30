@@ -1,10 +1,10 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+import { useCore } from '../../contexts/DataContext';
 
 const PersonalizedGreeting: React.FC = () => {
     const { user } = useAuth();
-    const { notifications } = useData();
+    const { notifications } = useCore();
 
     const getGreeting = () => {
         const hour = new Date().getHours();

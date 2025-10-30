@@ -1,8 +1,10 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
+import { useCore } from '../../contexts/DataContext';
 import { Link } from 'react-router-dom';
 import { UsersIcon, CalendarDaysIcon, UserPlusIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import { useHR } from '../../contexts/HRContext';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType; to: string; }> = ({ title, value, icon: Icon, to }) => (
     <Link to={to} className="bg-surface p-6 rounded-lg border border-border-color hover:border-primary transition-all">
@@ -20,7 +22,8 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.El
 
 const HrDashboard: React.FC = () => {
     const { user } = useAuth();
-    const { users, leaveRequests } = useData();
+    const { users } = useCore();
+    const { leaveRequests } = useHR();
 
     if (!user || user.role !== 'HR') return null;
 
