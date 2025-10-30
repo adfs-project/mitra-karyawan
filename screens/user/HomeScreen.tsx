@@ -4,7 +4,7 @@ import SmartAssistant from '../../components/user/SmartAssistant';
 import ForYouWidget from '../../components/user/ForYouWidget';
 import CompactArticleCard from '../../components/user/news/CompactArticleCard';
 import { useData } from '../../contexts/DataContext';
-import { BuildingStorefrontIcon, CurrencyDollarIcon, HeartIcon, NewspaperIcon, ClockIcon } from '@heroicons/react/24/solid';
+import { BuildingStorefrontIcon, CurrencyDollarIcon, HeartIcon, NewspaperIcon, ClockIcon, Squares2X2Icon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import AttendanceCameraModal from '../../components/user/AttendanceCameraModal';
@@ -28,6 +28,12 @@ const QuickAccess: React.FC = () => {
                     </Link>
                 ))}
             </div>
+             <Link to="/features" className="mt-4 block bg-surface p-3 rounded-lg text-center font-semibold text-primary hover:bg-surface-light transition-colors">
+                <div className="flex items-center justify-center">
+                    <Squares2X2Icon className="h-5 w-5 mr-2" />
+                    <span>Lihat Semua Layanan</span>
+                </div>
+            </Link>
         </div>
     );
 };

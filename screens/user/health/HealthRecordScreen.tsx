@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useData } from '../../../contexts/DataContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeftIcon, DocumentPlusIcon, DocumentTextIcon, TrashIcon, XMarkIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import { ArrowLeftIcon, DocumentPlusIcon, DocumentTextIcon, LockClosedIcon, XMarkIcon, SparklesIcon } from '@heroicons/react/24/solid';
 
 const UploadModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
     const { addHealthDocument, showToast } = useData();
@@ -73,9 +73,7 @@ const HealthRecordScreen: React.FC = () => {
     const isLimitReached = !user?.isPremium && userDocuments.length >= DOCUMENT_LIMIT;
 
     const handleDelete = (docId: string) => {
-        if (window.confirm("Apakah Anda yakin ingin menghapus dokumen ini?")) {
-            deleteHealthDocument(docId);
-        }
+        deleteHealthDocument(docId);
     };
 
     return (
@@ -117,8 +115,13 @@ const HealthRecordScreen: React.FC = () => {
                                 </div>
                                 <div className="flex items-center space-x-2">
                                      <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-primary hover:underline">Lihat</a>
-                                     <button onClick={() => handleDelete(doc.id)} className="p-1 text-red-500 hover:text-red-400">
-                                        <TrashIcon className="h-5 w-5"/>
+                                     <button 
+                                        onClick={() => handleDelete(doc.id)} 
+                                        disabled={true} 
+                                        className="p-1 text-gray-500 cursor-not-allowed"
+                                        title="Penghapusan dinonaktifkan secara permanen oleh sistem."
+                                     >
+                                        <LockClosedIcon className="h-5 w-5"/>
                                      </button>
                                 </div>
                             </div>

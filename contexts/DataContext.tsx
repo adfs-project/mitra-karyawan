@@ -601,8 +601,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const deleteHealthDocument = async (docId: string) => {
-        updateState('healthDocuments', appData.healthDocuments.filter(doc => doc.id !== docId));
-        showToast("Document deleted.", "success");
+        showToast("Penghapusan data inti dinonaktifkan secara permanen untuk melindungi integritas sistem.", 'warning');
     };
     
     const createHealthChallenge = async (challenge: Omit<HealthChallenge, 'id' | 'creator' | 'participants'>) => {
@@ -725,8 +724,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         showToast("Budget updated.", "success");
     };
     const deleteBudget = async (id: string) => {
-        updateState('budgets', appData.budgets.filter(b => b.id !== id));
-        showToast("Budget deleted.", "success");
+        showToast("Penghapusan data inti dinonaktifkan secara permanen untuk melindungi integritas sistem.", 'warning');
     };
     const addScheduledPayment = async (payment: Omit<ScheduledPayment, 'id'|'userId'>) => {
         if (!user) return;
@@ -739,8 +737,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         showToast("Scheduled payment updated.", "success");
     };
     const deleteScheduledPayment = async (id: string) => {
-        updateState('scheduledPayments', appData.scheduledPayments.filter(p => p.id !== id));
-        showToast("Scheduled payment deleted.", "success");
+        showToast("Penghapusan data inti dinonaktifkan secara permanen untuk melindungi integritas sistem.", 'warning');
     };
     const applyForPayLater = async () => {
         showToast("Fitur PayLater dinonaktifkan sementara.", "info");

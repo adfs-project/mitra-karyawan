@@ -41,6 +41,7 @@ const SubscriptionUpsellScreen = lazy(() => import('./screens/user/health/Subscr
 const AttendanceHistoryScreen = lazy(() => import('./screens/user/AttendanceHistoryScreen'));
 const OpexScreen = lazy(() => import('./screens/user/OpexScreen'));
 const NewOpexRequestScreen = lazy(() => import('./screens/user/opex/NewOpexRequestScreen'));
+const AllFeaturesScreen = lazy(() => import('./screens/user/AllFeaturesScreen'));
 
 
 // Main Placeholder Screens
@@ -241,6 +242,7 @@ const App: React.FC = () => {
                     <Route path="opex" element={<OpexScreen />} />
                     <Route path="opex/new" element={<NewOpexRequestScreen />} />
                     <Route path="under-construction" element={<UnderConstructionScreen />} />
+                    <Route path="features" element={<AllFeaturesScreen />} />
                     
                     {/* Main placeholder routes */}
                     <Route path="ppob" element={<PPOBScreen />} />
