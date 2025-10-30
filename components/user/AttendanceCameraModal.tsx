@@ -5,9 +5,11 @@ interface AttendanceCameraModalProps {
     isOpen: boolean;
     onClose: () => void;
     onCapture: (photoUrl: string) => void;
+    aspectRatio?: 'square' | 'video';
+    facingMode?: 'user' | 'environment';
 }
 
-const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({ isOpen, onClose, onCapture }) => {
+const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({ isOpen, onClose, onCapture, aspectRatio = 'square', facingMode = 'user' }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
@@ -17,7 +19,11 @@ const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({ isOpen, o
     useEffect(() => {
         if (isOpen) {
             setError(null);
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+            const constraints: MediaStreamConstraints = {
+                video: { facingMode }
+            };
+
+            navigator.mediaDevices.getUserMedia(constraints)
                 .then(mediaStream => {
                     setStream(mediaStream);
                     if (videoRef.current) {
@@ -34,7 +40,7 @@ const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({ isOpen, o
                 setStream(null);
             }
         }
-    }, [isOpen]);
+    }, [isOpen, facingMode]);
 
     const handleCapture = () => {
         if (videoRef.current && canvasRef.current) {
@@ -45,9 +51,11 @@ const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({ isOpen, o
             canvas.height = video.videoHeight;
             const context = canvas.getContext('2d');
             if (context) {
-                // Flip the image horizontally for a mirror effect
-                context.translate(canvas.width, 0);
-                context.scale(-1, 1);
+                // Flip the image horizontally for a mirror effect only for selfie cam
+                if (facingMode === 'user') {
+                    context.translate(canvas.width, 0);
+                    context.scale(-1, 1);
+                }
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
                 // Get the data URL
@@ -65,15 +73,15 @@ const AttendanceCameraModal: React.FC<AttendanceCameraModalProps> = ({ isOpen, o
             <button onClick={onClose} className="absolute top-4 right-4 p-2 text-white bg-black/50 rounded-full">
                 <XMarkIcon className="h-6 w-6" />
             </button>
-            <div className="w-full max-w-md aspect-square bg-black rounded-lg overflow-hidden border-2 border-border-color relative">
+            <div className={`w-full max-w-md ${aspectRatio === 'square' ? 'aspect-square' : 'aspect-video'} bg-black rounded-lg overflow-hidden border-2 border-border-color relative`}>
                 {error ? (
                     <div className="flex items-center justify-center h-full text-center text-red-400 p-4">{error}</div>
                 ) : (
-                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover transform -scale-x-100" />
+                    <video ref={videoRef} autoPlay playsInline className={`w-full h-full object-cover ${facingMode === 'user' ? 'transform -scale-x-100' : ''}`} />
                 )}
                  <canvas ref={canvasRef} className="hidden" />
             </div>
-            <p className="text-white text-center mt-4 mb-6">Posisikan wajah Anda di dalam bingkai.</p>
+            <p className="text-white text-center mt-4 mb-6">Posisikan {facingMode === 'user' ? 'wajah Anda' : 'objek'} di dalam bingkai.</p>
             <button 
                 onClick={handleCapture} 
                 disabled={!!error || isCapturing}
