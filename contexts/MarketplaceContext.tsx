@@ -1,21 +1,13 @@
-import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, ReactNode, useCallback } from 'react';
 import { Product, CartItem, Order, Role } from '../types';
-import vaultService from '../services/vaultService';
 import { useAuth } from './AuthContext';
 import { useCore } from './DataContext';
 import { useApp } from './AppContext';
-
-type MarketplaceData = {
-    products: Product[];
-    cart: CartItem[];
-    orders: Order[];
-}
 
 interface MarketplaceContextType {
     products: Product[];
     cart: CartItem[];
     orders: Order[];
-
     addProduct: (product: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'>) => Promise<void>;
     updateProduct: (product: Product) => Promise<void>;
     deleteProduct: (productId: string) => Promise<void>;
@@ -31,103 +23,80 @@ interface MarketplaceContextType {
 const MarketplaceContext = createContext<MarketplaceContextType | undefined>(undefined);
 
 export const MarketplaceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // --- Dependencies from other contexts ---
     const { user, updateCurrentUser } = useAuth();
-    const { addTransaction, taxConfig } = useCore();
+    // FIX: Destructure properties directly from useCore hook instead of non-existent 'appData' property.
+    const { products, cart, orders, taxConfig, updateState, addTransaction } = useCore();
     const { showToast } = useApp();
 
-    // --- State managed by this context ---
-    const [marketplaceData, setMarketplaceData] = useState({
-        products: vaultService.getSanitizedData().products,
-        cart: vaultService.getSanitizedData().cart,
-        orders: vaultService.getSanitizedData().orders,
-    });
-
-    // Helper to update both vault and local state
-    const updateState = <K extends keyof MarketplaceData>(key: K, value: MarketplaceData[K]) => {
-        vaultService.setData(key, value as any);
-        setMarketplaceData(prev => ({...prev, [key]: value}));
-    };
-
-    // --- Marketplace Functions ---
-
-    const addProduct = async (productData: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'>) => {
+    const addProduct = useCallback(async (productData: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'>) => {
         if (!user) return;
         const newProduct: Product = { ...productData, id: `p-${Date.now()}`, sellerId: user.id, sellerName: user.profile.name, reviews: [], rating: 0, reviewCount: 0 };
-        updateState('products', [newProduct, ...marketplaceData.products]);
+        updateState('products', [newProduct, ...products]);
         showToast("Product listed successfully!", "success");
-    };
+    }, [user, products, updateState, showToast]);
 
-    const updateProduct = async (product: Product) => {
-        updateState('products', marketplaceData.products.map(p => p.id === product.id ? product : p));
+    const updateProduct = useCallback(async (product: Product) => {
+        updateState('products', products.map(p => p.id === product.id ? product : p));
         showToast("Product updated successfully!", "success");
-    };
+    }, [products, updateState, showToast]);
 
-    const deleteProduct = async (productId: string) => {
-        updateState('products', marketplaceData.products.filter(p => p.id !== productId));
+    const deleteProduct = useCallback(async (productId: string) => {
+        updateState('products', products.filter(p => p.id !== productId));
         showToast("Product deleted successfully.", "success");
-    };
-    
-    const addMultipleProductsByAdmin = async (productsData: any[]): Promise<{ success: number; failed: number; errors: string[] }> => {
+    }, [products, updateState, showToast]);
+
+    const addMultipleProductsByAdmin = useCallback(async (productsData: any[]): Promise<{ success: number; failed: number; errors: string[] }> => {
         if (!user || user.role !== Role.Admin) {
             return { success: 0, failed: productsData.length, errors: ["Unauthorized"] };
         }
         let success = 0;
         const newProducts: Product[] = [];
-        for(const product of productsData) {
-             const newProduct: Product = { 
-                ...product, 
-                id: `p-${Date.now()}-${success}`, 
-                sellerId: user.id, 
-                sellerName: user.profile.name, 
-                reviews: [], 
-                rating: 0, 
-                reviewCount: 0 
-            };
+        for (const product of productsData) {
+            const newProduct: Product = { ...product, id: `p-${Date.now()}-${success}`, sellerId: user.id, sellerName: user.profile.name, reviews: [], rating: 0, reviewCount: 0 };
             newProducts.push(newProduct);
             success++;
         }
-        updateState('products', [...newProducts, ...marketplaceData.products]);
+        updateState('products', [...newProducts, ...products]);
         return { success, failed: 0, errors: [] };
-    };
+    }, [user, products, updateState]);
 
-    const addToCart = (productId: string, quantity: number) => {
-        const product = marketplaceData.products.find(p => p.id === productId);
+    const addToCart = useCallback((productId: string, quantity: number) => {
+        const product = products.find(p => p.id === productId);
         if (!product || product.stock <= 0) {
             showToast("Product is out of stock.", "error");
             return;
         }
-        const existingItem = marketplaceData.cart.find(item => item.productId === productId);
+        const existingItem = cart.find(item => item.productId === productId);
         let newCart;
         if (existingItem) {
-            newCart = marketplaceData.cart.map(item => item.productId === productId ? { ...item, quantity: item.quantity + quantity } : item);
+            newCart = cart.map(item => item.productId === productId ? { ...item, quantity: item.quantity + quantity } : item);
         } else {
-            newCart = [...marketplaceData.cart, { productId, quantity }];
+            newCart = [...cart, { productId, quantity }];
         }
         updateState('cart', newCart);
         showToast("Item added to cart", "success");
-    };
+    }, [products, cart, updateState, showToast]);
 
-    const removeFromCart = (productId: string) => {
-        updateState('cart', marketplaceData.cart.filter(item => item.productId !== productId));
-    };
+    const removeFromCart = useCallback((productId: string) => {
+        updateState('cart', cart.filter(item => item.productId !== productId));
+    }, [cart, updateState]);
 
-    const updateCartQuantity = (productId: string, quantity: number) => {
+    const updateCartQuantity = useCallback((productId: string, quantity: number) => {
         if (quantity < 1) {
             removeFromCart(productId);
             return;
         }
-        updateState('cart', marketplaceData.cart.map(item => item.productId === productId ? { ...item, quantity } : item));
-    };
+        updateState('cart', cart.map(item => item.productId === productId ? { ...item, quantity } : item));
+    }, [cart, updateState, removeFromCart]);
 
-    const clearCart = () => updateState('cart', []);
+    const clearCart = useCallback(() => updateState('cart', []), [updateState]);
 
-    const checkoutCart = async (): Promise<{ success: boolean; message: string; }> => {
-        if (!user || marketplaceData.cart.length === 0) return { success: false, message: "Your cart is empty." };
-    
+    const checkoutCart = useCallback(async (): Promise<{ success: boolean; message: string; }> => {
+        if (!user || cart.length === 0) return { success: false, message: "Your cart is empty." };
+        
         try {
-            const cartDetails = marketplaceData.cart.map(item => {
-                const product = marketplaceData.products.find(p => p.id === item.productId);
+            const cartDetails = cart.map(item => {
+                const product = products.find(p => p.id === item.productId);
                 if (!product) throw new Error(`Product with ID ${item.productId} not found.`);
                 return { ...item, product };
             });
@@ -144,16 +113,12 @@ export const MarketplaceProvider: React.FC<{ children: ReactNode }> = ({ childre
                 status: 'Completed'
             });
 
-            if (!txResult.success) {
-                throw new Error(txResult.message);
-            }
+            if (!txResult.success) throw new Error(txResult.message);
             
-            const newProducts = [...marketplaceData.products];
+            const newProducts = [...products];
             cartDetails.forEach(item => {
                 const productIndex = newProducts.findIndex(p => p.id === item.productId);
-                if (productIndex !== -1) {
-                    newProducts[productIndex].stock -= item.quantity;
-                }
+                if (productIndex !== -1) newProducts[productIndex].stock -= item.quantity;
             });
             updateState('products', newProducts);
             updateState('cart', []);
@@ -164,30 +129,21 @@ export const MarketplaceProvider: React.FC<{ children: ReactNode }> = ({ childre
             showToast(`Checkout failed: ${errorMessage}`, 'error');
             return { success: false, message: errorMessage };
         }
-    };
+    }, [user, cart, products, taxConfig, addTransaction, updateState, showToast]);
     
-    const toggleWishlist = (productId: string) => {
+    const toggleWishlist = useCallback((productId: string) => {
         if (!user) return;
         const newWishlist = user.wishlist.includes(productId)
             ? user.wishlist.filter(id => id !== productId)
             : [...user.wishlist, productId];
         updateCurrentUser({ ...user, wishlist: newWishlist });
-    };
+    }, [user, updateCurrentUser]);
 
     const value: MarketplaceContextType = {
-        products: marketplaceData.products,
-        cart: marketplaceData.cart,
-        orders: marketplaceData.orders,
-        addProduct,
-        updateProduct,
-        deleteProduct,
-        addMultipleProductsByAdmin,
-        addToCart,
-        removeFromCart,
-        updateCartQuantity,
-        clearCart,
-        checkoutCart,
-        toggleWishlist,
+        products, cart, orders,
+        addProduct, updateProduct, deleteProduct, addMultipleProductsByAdmin,
+        addToCart, removeFromCart, updateCartQuantity, clearCart,
+        checkoutCart, toggleWishlist,
     };
 
     return (
