@@ -14,7 +14,8 @@ const AdminAssistantHub: React.FC = () => {
         }, {});
 
         return Object.entries(intentCounts)
-            .sort(([, a], [, b]) => b - a)
+            // FIX: Explicitly name destructured variables in sort to avoid type inference issues.
+            .sort(([, countA], [, countB]) => countB - countA)
             .map(([intent, count]) => ({ intent, count }));
     }, [assistantLogs]);
 

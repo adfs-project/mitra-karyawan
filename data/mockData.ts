@@ -1,4 +1,4 @@
-import { Role, User, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig, HomePageConfig, AdminWallets, PersonalizationRule, Order, HealthChallenge, InsuranceClaim, AttendanceRecord, OpexRequest } from '../types';
+import { Role, User, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig, HomePageConfig, AdminWallets, PersonalizationRule, Order, HealthChallenge, InsuranceClaim, AttendanceRecord, OpexRequest } from '../types/index';
 
 export const initialUsers: User[] = [
     {

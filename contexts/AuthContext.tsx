@@ -14,6 +14,11 @@ interface AuthContextType {
         password: string;
         profile: Omit<UserProfile, 'photoUrl' | 'branch'>;
     }) => Promise<'success' | 'exists'>;
+    createHrAccountByAdmin: (hrData: {
+        email: string;
+        password: string;
+        profile: Omit<UserProfile, 'photoUrl'>;
+    }) => Promise<'success' | 'exists' | 'unauthorized'>;
     changePassword: (currentPassword: string, newPassword: string) => Promise<'success' | 'incorrect_password'>;
 }
 
@@ -137,6 +142,42 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         vaultService.addNewUser(newUser);
         return 'success';
     };
+
+    const createHrAccountByAdmin = async (hrData: {
+        email: string;
+        password: string;
+        profile: Omit<UserProfile, 'photoUrl'>;
+    }): Promise<'success' | 'exists' | 'unauthorized'> => {
+        if (!user || user.role !== Role.Admin) {
+            return 'unauthorized';
+        }
+        if (vaultService.findUserByEmail(hrData.email)) {
+            return 'exists';
+        }
+    
+        const newHrUser: User = {
+            id: `hr-${Date.now()}`,
+            email: hrData.email,
+            password: hrData.password, // Will be hashed by vault
+            role: Role.HR,
+            status: 'active',
+            profile: {
+                ...hrData.profile,
+                photoUrl: `https://i.pravatar.cc/150?u=${hrData.email}`,
+            },
+            wallet: { balance: 0, isFrozen: false },
+            achievements: [],
+            loyaltyPoints: 0,
+            wishlist: [],
+            bookmarkedArticles: [],
+            healthData: {
+                moodHistory: [],
+                activeChallenges: []
+            }
+        };
+        vaultService.addNewUser(newHrUser);
+        return 'success';
+    };
     
     const updateCurrentUser = (updatedUser: User) => {
         // This function now receives a sanitized user, but we need to update the real user in the vault.
@@ -175,7 +216,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, verify2FA, logout, register, updateCurrentUser, createEmployee, changePassword }}>
+        <AuthContext.Provider value={{ user, login, verify2FA, logout, register, updateCurrentUser, createEmployee, createHrAccountByAdmin, changePassword }}>
             {children}
         </AuthContext.Provider>
     );
