@@ -95,6 +95,7 @@ const HrAttendanceManagement = lazy(() => import('./screens/hr/HrAttendanceManag
 // Finance Screens
 const FinanceDashboard = lazy(() => import('./screens/finance/FinanceDashboard'));
 const FinanceCommandCenter = lazy(() => import('./screens/finance/FinanceCommandCenter'));
+const FinancePayrollReport = lazy(() => import('./screens/finance/FinancePayrollReport'));
 
 
 const Spinner = () => (
@@ -225,6 +226,7 @@ const App: React.FC = () => {
                         <Route index element={<Navigate to="/finance/dashboard" />} />
                         <Route path="finance/dashboard" element={<FinanceDashboard />} />
                         <Route path="finance/command-center" element={<FinanceCommandCenter />} />
+                        <Route path="finance/payroll-report" element={<FinancePayrollReport />} />
                         <Route path="*" element={<Navigate to="/finance/dashboard" />} />
                     </Routes>
                 </FinanceLayout>

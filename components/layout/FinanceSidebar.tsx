@@ -5,6 +5,7 @@ import { ChartBarIcon, BanknotesIcon, Cog6ToothIcon } from '@heroicons/react/24/
 const navigation = [
     { name: 'Opex Approval', href: '/finance/dashboard', icon: ChartBarIcon },
     { name: 'Command Center', href: '/finance/command-center', icon: BanknotesIcon },
+    { name: 'Payroll Report', href: '/finance/payroll-report', icon: BanknotesIcon },
 ];
 
 const FinanceSidebar: React.FC = () => {
