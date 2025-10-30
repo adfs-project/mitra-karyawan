@@ -38,7 +38,9 @@ const AdminMarketplaceOversight: React.FC = () => {
     ), [products, searchTerm]);
 
     const handleDelete = (productId: string) => {
-        deleteProduct(productId);
+        if (window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+            deleteProduct(productId);
+        }
     };
     
     const handleOpenModal = (product: Product | null = null) => {
@@ -114,13 +116,8 @@ const AdminMarketplaceOversight: React.FC = () => {
                                             <button onClick={() => handleOpenModal(p)} className="p-2 rounded hover:bg-surface-light" title="Edit Product">
                                                 <PencilIcon className="h-4 w-4 text-yellow-400"/>
                                             </button>
-                                            <button
-                                                onClick={() => handleDelete(p.id)}
-                                                disabled={true}
-                                                title="Penghapusan dinonaktifkan secara permanen oleh sistem."
-                                                className="p-2 rounded cursor-not-allowed"
-                                            >
-                                                <LockClosedIcon className="h-4 w-4 text-gray-500"/>
+                                            <button onClick={() => handleDelete(p.id)} className="p-2 rounded hover:bg-surface-light" title="Delete Product">
+                                                <TrashIcon className="h-4 w-4 text-red-500"/>
                                             </button>
                                         </div>
                                     </td>

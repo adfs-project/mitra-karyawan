@@ -81,7 +81,9 @@ const AdminHealthProviderManagement: React.FC = () => {
     };
 
     const handleDelete = (doctorId: string) => {
-        deleteDoctor(doctorId);
+        if (window.confirm('Are you sure you want to remove this health provider? This action cannot be undone.')) {
+            deleteDoctor(doctorId);
+        }
     };
 
     return (
@@ -115,13 +117,12 @@ const AdminHealthProviderManagement: React.FC = () => {
                                     <td className="px-6 py-4">{consultations.filter(c => c.doctorId === doc.id).length}</td>
                                     <td className="px-6 py-4 space-x-2">
                                         <button onClick={() => handleOpenModal(doc)} className="p-2 rounded hover:bg-surface-light"><PencilIcon className="h-4 w-4 text-yellow-400"/></button>
-                                        <button 
+                                        <button
                                             onClick={() => handleDelete(doc.id)}
-                                            disabled={true} 
-                                            title="Penghapusan dinonaktifkan secara permanen oleh sistem."
-                                            className="p-2 rounded cursor-not-allowed"
+                                            title="Delete Provider"
+                                            className="p-2 rounded hover:bg-surface-light"
                                         >
-                                            <LockClosedIcon className="h-4 w-4 text-gray-500"/>
+                                            <TrashIcon className="h-4 w-4 text-red-500"/>
                                         </button>
                                     </td>
                                 </tr>

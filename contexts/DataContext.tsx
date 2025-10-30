@@ -859,7 +859,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const deletePersonalizationRule = async (id: string) => { showToast("Penghapusan data inti dinonaktifkan secara permanen untuk melindungi integritas sistem.", 'warning'); };
     const addProduct = async (productData: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'>) => { if (!user) return; const newProduct: Product = { ...productData, id: `p-${Date.now()}`, sellerId: user.id, sellerName: user.profile.name, reviews: [], rating: 0, reviewCount: 0 }; updateState('products', [newProduct, ...appData.products]); showToast("Product listed successfully!", "success"); };
     const updateProduct = async (product: Product) => { updateState('products', appData.products.map(p => p.id === product.id ? product : p)); showToast("Product updated successfully!", "success"); };
-    const deleteProduct = async (productId: string) => { showToast("Penghapusan data inti dinonaktifkan secara permanen untuk melindungi integritas sistem.", 'warning'); };
+    const deleteProduct = async (productId: string) => {
+        updateState('products', appData.products.filter(p => p.id !== productId));
+        showToast("Product deleted successfully.", "success");
+    };
     
     const addMultipleProductsByAdmin = async (productsData: any[]): Promise<{ success: number; failed: number; errors: string[] }> => {
         if (!user || user.role !== Role.Admin) {
@@ -886,7 +889,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     const addArticle = async (articleData: Omit<Article, 'id' | 'author' | 'timestamp' | 'likes' | 'comments' | 'pollOptions'>) => { const newArticle: Article = { ...articleData, id: `a-${Date.now()}`, author: 'Admin', timestamp: new Date().toISOString(), likes: [], comments: [] }; updateState('articles', [newArticle, ...appData.articles]); showToast("Article created successfully.", "success"); };
     const updateArticle = async (article: Article) => { updateState('articles', appData.articles.map(a => a.id === article.id ? article : a)); showToast("Article updated successfully.", "success"); };
-    const deleteArticle = async (articleId: string) => { showToast("Penghapusan data inti dinonaktifkan secara permanen untuk melindungi integritas sistem.", 'warning'); };
+    const deleteArticle = async (articleId: string) => {
+        updateState('articles', appData.articles.filter(a => a.id !== articleId));
+        showToast("Article deleted successfully.", "success");
+    };
     
      const addMultipleArticlesByAdmin = async (articlesData: any[]): Promise<{ success: number; failed: number; errors: string[] }> => {
         if (!user || user.role !== Role.Admin) {
@@ -912,7 +918,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const addDoctor = async (doctorData: Omit<Doctor, 'id' | 'availableSlots'>) => { const newDoctor: Doctor = { ...doctorData, id: `doc-${Date.now()}`, availableSlots: [{ time: '09:00', isBooked: false }, { time: '10:00', isBooked: false }, { time: '11:00', isBooked: false }, { time: '13:00', isBooked: false }, { time: '14:00', isBooked: false }, { time: '15:00', isBooked: false }] }; updateState('doctors', [newDoctor, ...appData.doctors]); showToast("New health provider added.", "success"); };
     const updateDoctor = async (doctor: Doctor) => { updateState('doctors', appData.doctors.map(d => d.id === doctor.id ? doctor : d)); showToast("Health provider updated.", "success"); };
-    const deleteDoctor = async (doctorId: string) => { showToast("Penghapusan data inti dinonaktifkan secara permanen untuk melindungi integritas sistem.", 'warning'); };
+    const deleteDoctor = async (doctorId: string) => {
+        updateState('doctors', appData.doctors.filter(d => d.id !== doctorId));
+        showToast("Health provider removed successfully.", "success");
+    };
 
     const generatePayslipData = (userId: string) => {
         const salary = vaultService.getRawSalaryForUser(userId);

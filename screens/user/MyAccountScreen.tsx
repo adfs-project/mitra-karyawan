@@ -246,35 +246,11 @@ const PayslipModal: React.FC<{
     onClose: () => void;
     user: User;
 }> = ({ isOpen, onClose, user }) => {
+    const { generatePayslipData } = useData();
 
     const payroll = useMemo(() => {
-        if (!user || !user.profile.salary) return null;
-
-        const grossSalary = user.profile.salary;
-        
-        const gajiPokok = grossSalary;
-        const insentifKinerja = 0;
-        const bpjsTkNatura = grossSalary * 0.0054;
-        const totalPendapatan = gajiPokok + insentifKinerja + bpjsTkNatura;
-
-        const pajakPph21 = grossSalary * 0.025;
-        const bpjsTkKaryawan2 = grossSalary * 0.02;
-        const bpjsTkKaryawan054 = grossSalary * 0.0054;
-        const bpjsPensiunKaryawan = grossSalary * 0.01;
-        const totalPotongan = pajakPph21 + bpjsTkKaryawan2 + bpjsTkKaryawan054 + bpjsPensiunKaryawan;
-        
-        const bpjsPensiunPerusahaan = grossSalary * 0.02;
-        const bpjsTkPerusahaan = grossSalary * 0.037;
-        
-        const takeHomePay = (gajiPokok + insentifKinerja) - totalPotongan;
-
-        return {
-            gajiPokok, insentifKinerja, totalPendapatan, pajakPph21,
-            bpjsTkKaryawan2, bpjsTkKaryawan054, bpjsPensiunKaryawan, totalPotongan,
-            bpjsPensiunPerusahaan, bpjsTkPerusahaan, takeHomePay, saldoPinjaman: 0,
-            bpjsTkNatura
-        };
-    }, [user]);
+        return generatePayslipData(user.id);
+    }, [user.id, generatePayslipData]);
 
     const fullPayslipString = useMemo(() => {
         const currentUser = user;
@@ -496,7 +472,7 @@ const MyAccountScreen: React.FC = () => {
                 <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-sm">
                     <div>
                         <p className="text-text-secondary">Gaji Bulanan (IDR)</p>
-                        <p className="font-semibold text-text-primary">{user.profile.salary ? new Intl.NumberFormat('id-ID').format(user.profile.salary) : '-'}</p>
+                        <p className="font-semibold text-text-primary">***RAHASIA***</p>
                     </div>
                      <div>
                         <p className="text-text-secondary">Cabang</p>

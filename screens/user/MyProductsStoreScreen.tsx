@@ -27,7 +27,9 @@ const MyProductsStoreScreen: React.FC = () => {
     };
 
     const handleDeleteProduct = async (productId: string) => {
-        await deleteProduct(productId);
+        if (window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+            await deleteProduct(productId);
+        }
     };
 
     return (
@@ -57,11 +59,10 @@ const MyProductsStoreScreen: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={() => handleDeleteProduct(product.id)}
-                                    disabled={true}
-                                    title="Penghapusan dinonaktifkan secara permanen oleh sistem."
-                                    className="p-2 bg-surface-light rounded-full cursor-not-allowed"
+                                    title="Delete Product"
+                                    className="p-2 bg-surface-light rounded-full hover:bg-border-color"
                                 >
-                                    <LockClosedIcon className="h-5 w-5 text-gray-500" />
+                                    <TrashIcon className="h-5 w-5 text-red-500" />
                                 </button>
                             </div>
                         </div>

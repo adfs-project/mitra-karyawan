@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import { Role, User } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -102,6 +102,7 @@ const LeaveRequestModal: React.FC<{
     );
 };
 
+/*
 const PayLaterModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -162,6 +163,7 @@ const PayLaterModal: React.FC<{
         </div>
     );
 };
+*/
 
 const ChangePasswordModal: React.FC<{
     isOpen: boolean;
@@ -248,7 +250,7 @@ const PayslipModal: React.FC<{
 
     const payroll = useMemo(() => {
         return generatePayslipData(user.id);
-    }, [user, generatePayslipData]);
+    }, [user.id, generatePayslipData]);
 
     const fullPayslipString = useMemo(() => {
         const currentUser = user;
@@ -381,9 +383,10 @@ const ThemeToggle: React.FC = () => {
 
 const MyAccountScreen: React.FC = () => {
     const { user, logout } = useAuth();
+    const { applyForPayLater } = useData();
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [isLeaveModalOpen, setLeaveModalOpen] = useState(false);
-    const [isPayLaterModalOpen, setPayLaterModalOpen] = useState(false);
+    // const [isPayLaterModalOpen, setPayLaterModalOpen] = useState(false);
     const [isChangePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
     const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
 
@@ -394,8 +397,10 @@ const MyAccountScreen: React.FC = () => {
         { name: 'Wishlist Saya', icon: HeartIcon, path: '/wishlist' },
         { name: 'Toko Saya', icon: BuildingStorefrontIcon, path: '/my-products' },
         { name: 'Artikel Tersimpan', icon: BookmarkIcon, path: '/bookmarked-articles' },
+        { name: 'Riwayat Absensi', icon: ClipboardDocumentListIcon, path: '/attendance-history' },
+        { name: 'Pengajuan Dana Opex', icon: CreditCardIcon, path: '/opex' },
         { name: 'Ajukan Cuti', icon: CalendarDaysIcon, path: '#', action: () => setLeaveModalOpen(true) },
-        { name: 'Aplikasi PayLater', icon: CreditCardIcon, path: '#', action: () => setPayLaterModalOpen(true) },
+        { name: 'Aplikasi PayLater', icon: CreditCardIcon, path: '#', action: () => applyForPayLater() },
         { name: 'Ubah Password', icon: KeyIcon, path: '#', action: () => setChangePasswordModalOpen(true) },
         { name: 'Slip Gaji', icon: BanknotesIcon, path: '#', action: () => setIsPayslipModalOpen(true) },
     ];
@@ -416,6 +421,7 @@ const MyAccountScreen: React.FC = () => {
         return item.path === '#' ? <button onClick={item.action} className="w-full">{content}</button> : <Link to={item.path} className="block">{content}</Link>;
     };
     
+    /*
     const payLaterStatusMap = {
         not_applied: { text: "Belum Aktif", color: "text-text-secondary" },
         pending: { text: "Menunggu Persetujuan", color: "text-yellow-400" },
@@ -423,6 +429,7 @@ const MyAccountScreen: React.FC = () => {
         rejected: { text: "Ditolak", color: "text-red-400" },
     };
     const payLaterInfo = user.payLater ? payLaterStatusMap[user.payLater.status] : payLaterStatusMap['not_applied'];
+    */
 
 
     return (
@@ -441,6 +448,7 @@ const MyAccountScreen: React.FC = () => {
                         <PencilSquareIcon className="h-6 w-6 text-primary"/>
                     </button>
                 </div>
+                {/*
                  <div className="mt-4 bg-surface-light p-3 rounded-lg flex justify-between items-center">
                     <div>
                         <p className="text-xs font-bold text-text-secondary">STATUS PAYLATER</p>
@@ -453,6 +461,7 @@ const MyAccountScreen: React.FC = () => {
                         </div>
                     )}
                 </div>
+                */}
             </div>
 
             <div className="m-4 bg-surface rounded-lg border border-border-color p-4">
@@ -462,10 +471,14 @@ const MyAccountScreen: React.FC = () => {
                 </h2>
                 <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-sm">
                     <div>
-                        <p className="text-text-secondary">Gaji Bulanan</p>
+                        <p className="text-text-secondary">Gaji Bulanan (IDR)</p>
                         <p className="font-semibold text-text-primary">***RAHASIA***</p>
                     </div>
                      <div>
+                        <p className="text-text-secondary">Cabang</p>
+                        <p className="font-semibold text-text-primary">{user.profile.branch || '-'}</p>
+                    </div>
+                    <div>
                         <p className="text-text-secondary">Status Kepegawaian</p>
                         <p className="font-semibold text-text-primary">{user.profile.employmentStatus || '-'}</p>
                     </div>
@@ -501,7 +514,7 @@ const MyAccountScreen: React.FC = () => {
                         <ChevronRightIcon className="h-5 w-5 text-primary" />
                     </Link>
                 )}
-                {menuItems.map((item) => <MenuItem key={item.name} item={item} />)}
+                {menuItems.filter(item => item.name !== 'Aplikasi PayLater').map((item) => <MenuItem key={item.name} item={item} />)}
             </div>
 
              <div className="m-4">
@@ -516,7 +529,7 @@ const MyAccountScreen: React.FC = () => {
             
             <EditProfileModal isOpen={isEditModalOpen} onClose={() => setEditModalOpen(false)} user={user} />
             <LeaveRequestModal isOpen={isLeaveModalOpen} onClose={() => setLeaveModalOpen(false)} />
-            <PayLaterModal isOpen={isPayLaterModalOpen} onClose={() => setPayLaterModalOpen(false)} />
+            {/*<PayLaterModal isOpen={isPayLaterModalOpen} onClose={() => setPayLaterModalOpen(false)} />*/}
             <ChangePasswordModal isOpen={isChangePasswordModalOpen} onClose={() => setChangePasswordModalOpen(false)} />
             <PayslipModal isOpen={isPayslipModalOpen} onClose={() => setIsPayslipModalOpen(false)} user={user} />
         </div>

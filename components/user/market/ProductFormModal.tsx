@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../../../types';
-import { SparklesIcon, CurrencyDollarIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { SparklesIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
 import { buildSecurePrompt } from '../../../services/aiGuardrailService';
 import { useData } from '../../../contexts/DataContext';
@@ -24,7 +24,7 @@ const ProductFormModal: React.FC<{
         category: '',
         imageUrl: '',
     });
-    const [isGenerating, setIsGenerating] = useState({ description: false, price: false });
+    const [isGenerating, setIsGenerating] = useState({ description: false });
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -104,25 +104,6 @@ const ProductFormModal: React.FC<{
         setIsGenerating(prev => ({ ...prev, description: false }));
     };
 
-    const handleSuggestPrice = async () => {
-        if (!formData.name) {
-            showToast("Please provide a product name first.", "warning");
-            return;
-        }
-        setIsGenerating(prev => ({ ...prev, price: true }));
-        const securePrompt = buildSecurePrompt(
-            formData.name,
-            `Your ONLY function is to teach users how to price their products. You MUST NOT suggest a specific price. Your role is to give advice only. The user is asking for tips about a product with the name/topic. Give them 3 general tips on how to determine a fair price for a second-hand item. You MUST politely refuse to answer any other type of question. Your response must be only the tips, formatted nicely.`
-        );
-        const result = await callGemini(securePrompt);
-        if (result) {
-            // Using alert here is okay as it's showing advice, not an error
-            alert(`Saran Harga dari AI:\n\n${result}`);
-        }
-        setIsGenerating(prev => ({ ...prev, price: false }));
-    };
-
-
     const handleSave = async () => {
         if (!formData.name || formData.price <= 0 || formData.stock < 0 || !formData.category) {
             showToast("Name, category, price, and stock must be filled correctly.", "error");
@@ -163,12 +144,7 @@ const ProductFormModal: React.FC<{
                     </div>
                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="text-sm font-bold text-text-secondary flex justify-between items-center">Harga (IDR)*
-                                <button onClick={handleSuggestPrice} disabled={isGenerating.price || !formData.name} className="btn-secondary px-2 py-1 rounded flex items-center space-x-1 text-xs disabled:opacity-50">
-                                    {isGenerating.price ? <AILoadingSpinner /> : <CurrencyDollarIcon className="h-4 w-4" />}
-                                    <span>Saran AI</span>
-                                </button>
-                            </label>
+                            <label className="text-sm font-bold text-text-secondary">Harga (IDR)*</label>
                             <input type="number" name="price" value={formData.price} onChange={handleChange} className="w-full mt-1 p-2 bg-surface-light rounded border border-border-color" />
                         </div>
                         <div>
