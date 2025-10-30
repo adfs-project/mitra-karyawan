@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { useCore } from '../../contexts/DataContext';
 import { useApp } from '../../contexts/AppContext';
 import { LinkIcon, BoltIcon, TicketIcon, PhoneIcon, ChevronDownIcon } from '@heroicons/react/24/solid';
 import { IntegrationStatus } from '../../types';
@@ -43,8 +42,8 @@ const featureGroups: FeatureGroup[] = [
 ];
 
 const ServiceLinkageCard: React.FC<{ group: FeatureGroup }> = ({ group }) => {
-    const { apiIntegrations, serviceLinkage, updateServiceLinkage } = useCore();
-    const { showToast } = useApp();
+    // FIX: Replaced useCore with useApp and consolidated hooks.
+    const { apiIntegrations, serviceLinkage, updateServiceLinkage, showToast } = useApp();
     
     const activeApis = useMemo(() => 
         apiIntegrations.filter(api => api.status === IntegrationStatus.Active), 

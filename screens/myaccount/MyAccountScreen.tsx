@@ -4,9 +4,10 @@ import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, 
 import { Link } from 'react-router-dom';
 import { Role, User } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useCore } from '../../contexts/DataContext';
+// FIX: Replaced useCore with useApp
 import { useApp } from '../../contexts/AppContext';
-import { useHR } from '../../contexts/HRContext';
+// FIX: Replaced useHR from HRContext with useHR from hooks
+import { useHR } from '../../hooks/useHR';
 
 
 const EditProfileModal: React.FC<{
@@ -185,7 +186,7 @@ const PayslipModal: React.FC<{
     onClose: () => void;
     user: User;
 }> = ({ isOpen, onClose, user }) => {
-    const { generatePayslipData } = useCore();
+    const { generatePayslipData } = useApp();
 
     const payroll = useMemo(() => {
         return generatePayslipData(user.id);
@@ -330,7 +331,7 @@ const ThemeToggle: React.FC = () => {
 
 const MyAccountScreen: React.FC = () => {
     const { user, logout } = useAuth();
-    const { applyForPayLater } = useCore();
+    const { applyForPayLater } = useApp();
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [isLeaveModalOpen, setLeaveModalOpen] = useState(false);
     const [isChangePasswordModalOpen, setChangePasswordModalOpen] = useState(false);

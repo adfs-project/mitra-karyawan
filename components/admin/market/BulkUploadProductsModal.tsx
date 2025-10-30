@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { useApp } from '../../../contexts/AppContext';
 import { XMarkIcon, DocumentArrowDownIcon, ArrowUpTrayIcon, CheckCircleIcon, ExclamationCircleIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 import * as XLSX from 'xlsx';
-import { useMarketplace } from '../../../contexts/MarketplaceContext';
+// FIX: Changed import path to hooks directory
+import { useMarketplace } from '../../../hooks/useMarketplace';
 
 type PreviewRow = {
     data: any;

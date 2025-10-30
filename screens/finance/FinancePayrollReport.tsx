@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useCore } from '../../contexts/DataContext';
+import { useApp } from '../../contexts/AppContext';
 import { BanknotesIcon, ShieldCheckIcon } from '@heroicons/react/24/solid';
 
 const StatCard: React.FC<{ title: string; value: string | number; description: string; }> = ({ title, value, description }) => (
@@ -13,7 +13,8 @@ const StatCard: React.FC<{ title: string; value: string | number; description: s
 
 const FinancePayrollReport: React.FC = () => {
     const { user: financeUser } = useAuth();
-    const { users, generatePayslipData } = useCore();
+    // FIX: Replaced useCore with useApp
+    const { users, generatePayslipData } = useApp();
 
     const payrollReport = useMemo(() => {
         if (!financeUser?.profile.branch) return null;
