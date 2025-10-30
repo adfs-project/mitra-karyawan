@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// FIX: Replaced useData with useApp since it's only used for showToast.
 import { useApp } from '../../../contexts/AppContext';
 import { useHealth } from '../../../contexts/HealthContext';
 import { ArrowLeftIcon, SparklesIcon, CheckCircleIcon } from '@heroicons/react/24/solid';

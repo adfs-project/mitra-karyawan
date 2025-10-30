@@ -55,8 +55,8 @@ const MyConsultationsScreen: React.FC = () => {
                                 <p className="font-bold text-text-primary">Konsultasi dengan {c.doctorName}</p>
                                 <p className="text-sm text-text-secondary">{c.doctorSpecialty}</p>
                                 <p className="text-sm text-text-secondary mt-1">Selesai pada: {new Date(c.scheduledTime).toLocaleString()}</p>
-                                {c.prescription && (
-                                    <Link to={`/consultation/${c.id}`} className="mt-2 inline-flex items-center bg-secondary/20 text-secondary px-3 py-1 text-sm rounded-full">
+                                {c.eprescriptionId && (
+                                    <Link to={`/prescriptions`} className="mt-2 inline-flex items-center bg-secondary/20 text-secondary px-3 py-1 text-sm rounded-full">
                                         <DocumentTextIcon className="h-4 w-4 mr-1"/>
                                         Lihat Resep
                                     </Link>

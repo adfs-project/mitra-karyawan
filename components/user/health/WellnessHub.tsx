@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useHealth } from '../../../contexts/HealthContext';
-import { useCore } from '../../../contexts/CoreContext';
+import { useApp } from '../../../contexts/AppContext';
 import { TrophyIcon, BookOpenIcon, SparklesIcon, FireIcon, UserGroupIcon } from '@heroicons/react/24/solid';
 import { MoodHistory, HealthChallenge } from '../../../types';
 
@@ -42,7 +42,7 @@ const ChallengeCard: React.FC<{ challenge: HealthChallenge }> = ({ challenge }) 
 const WellnessHub: React.FC = () => {
     const { user } = useAuth();
     const { addMoodEntry, healthChallenges } = useHealth();
-    const { addNotification } = useCore(); // Still needed for now
+    const { addNotification } = useApp();
 
     const handleMoodClick = (mood: MoodHistory['mood']) => {
         addMoodEntry(mood);

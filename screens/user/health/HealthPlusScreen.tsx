@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
-// FIX: Replaced useData with useApp since it's only used for showToast.
 import { useApp } from '../../../contexts/AppContext';
 import { ArrowLeftIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI, Type } from "@google/genai";

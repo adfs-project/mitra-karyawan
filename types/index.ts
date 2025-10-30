@@ -100,6 +100,9 @@ export interface Product {
     rating: number;
     reviewCount: number;
     reviews: ProductReview[];
+    status: 'Listed' | 'Unlisted' | 'Needs Review';
+    isFeatured?: boolean;
+    createdAt: string;
 }
 
 export interface ArticleComment {
@@ -296,6 +299,7 @@ export interface OrderItem {
     productId: string;
     quantity: number;
     price: number;
+    productName: string;
 }
 
 export interface Order {

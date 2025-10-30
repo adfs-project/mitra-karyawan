@@ -11,29 +11,27 @@ import { AppProvider } from './contexts/AppContext';
 const APP_VERSION = (import.meta as any)?.env?.VITE_APP_VERSION || '1.5.3';
 console.log(`Mitra Karyawan App Version: ${APP_VERSION}`);
 
-// Crash loop detection logic
-// App.tsx will clear this on successful mount.
-// If App crashes before mounting, this counter will persist and increment on reload.
-const crashCount = parseInt(sessionStorage.getItem('crash_count') || '0', 10);
-sessionStorage.setItem('crash_count', (crashCount + 1).toString());
+// Crash loop detection logic - Temporarily disabled
+// const crashCount = parseInt(sessionStorage.getItem('crash_count') || '0', 10);
+// sessionStorage.setItem('crash_count', (crashCount + 1).toString());
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 
-if (crashCount > 2) {
-    // After 3 failed attempts, show recovery UI and stop trying.
-    root.render(<RecoveryUI />);
-} else {
-    root.render(
-        <React.StrictMode>
-            <ErrorBoundary FallbackComponent={RecoveryUI}>
-                <ThemeProvider>
-                    <AuthProvider>
-                        <AppProvider>
-                            <App />
-                        </AppProvider>
-                    </AuthProvider>
-                </ThemeProvider>
-            </ErrorBoundary>
-        </React.StrictMode>
-    );
-}
+// Crash loop check temporarily disabled.
+// if (crashCount > 2) {
+//     root.render(<RecoveryUI />);
+// } else {
+root.render(
+    <React.StrictMode>
+        <ErrorBoundary FallbackComponent={RecoveryUI}>
+            <ThemeProvider>
+                <AuthProvider>
+                    <AppProvider>
+                        <App />
+                    </AppProvider>
+                </AuthProvider>
+            </ThemeProvider>
+        </ErrorBoundary>
+    </React.StrictMode>
+);
+// }

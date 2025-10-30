@@ -16,14 +16,15 @@ const LocationName: React.FC<LocationNameProps> = ({ location }) => {
             return;
         }
 
-        // Kunci cache unik berdasarkan koordinat dengan presisi 5 angka desimal
-        const cacheKey = `geocache_${location.latitude.toFixed(5)}_${location.longitude.toFixed(5)}`;
-        const cachedName = sessionStorage.getItem(cacheKey);
+        // Temporarily disabled sessionStorage caching
+        // // Kunci cache unik berdasarkan koordinat dengan presisi 5 angka desimal
+        // const cacheKey = `geocache_${location.latitude.toFixed(5)}_${location.longitude.toFixed(5)}`;
+        // const cachedName = sessionStorage.getItem(cacheKey);
 
-        if (cachedName) {
-            setName(cachedName);
-            return;
-        }
+        // if (cachedName) {
+        //     setName(cachedName);
+        //     return;
+        // }
 
         const fetchLocationName = async () => {
             setIsLoading(true);
@@ -36,7 +37,7 @@ const LocationName: React.FC<LocationNameProps> = ({ location }) => {
                 // Ambil 2 bagian pertama dari display_name untuk alamat yang lebih singkat
                 const displayName = data.display_name ? data.display_name.split(',').slice(0, 2).join(', ') : 'Location not found';
                 setName(displayName);
-                sessionStorage.setItem(cacheKey, displayName);
+                // sessionStorage.setItem(cacheKey, displayName); // Temporarily disabled
             } catch (error) {
                 console.error("Reverse geocoding failed:", error);
                 // Fallback ke koordinat jika API gagal

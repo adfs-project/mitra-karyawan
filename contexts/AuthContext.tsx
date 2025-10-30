@@ -45,13 +45,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [pendingOTP, setPendingOTP] = useState<string | null>(null);
 
     useEffect(() => {
-        const loggedInUser = sessionStorage.getItem('loggedInUser');
-        if (loggedInUser) {
-            const parsedUser = JSON.parse(loggedInUser);
-            // We only store the sanitized user in session storage for safety.
-            // On reload, this is sufficient for the UI until DataContext provides full sanitized data.
-            setUser(parsedUser);
-        }
+        // Temporarily disabled session persistence
+        // const loggedInUser = sessionStorage.getItem('loggedInUser');
+        // if (loggedInUser) {
+        //     const parsedUser = JSON.parse(loggedInUser);
+        //     // We only store the sanitized user in session storage for safety.
+        //     // On reload, this is sufficient for the UI until DataContext provides full sanitized data.
+        //     setUser(parsedUser);
+        // }
     }, []);
 
     const login = async (email: string, password: string): Promise<LoginResult> => {
@@ -82,7 +83,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (pendingLogin && pendingOTP && otp === pendingOTP) {
             const sanitizedUser = vaultService.getSanitizedData().users.find(u => u.id === pendingLogin.id)!;
             setUser(sanitizedUser);
-            sessionStorage.setItem('loggedInUser', JSON.stringify(sanitizedUser));
+            // sessionStorage.setItem('loggedInUser', JSON.stringify(sanitizedUser)); // Temporarily disabled
             setPendingLogin(null);
             setPendingOTP(null);
             return 'success';
@@ -92,7 +93,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const logout = () => {
         setUser(null);
-        sessionStorage.removeItem('loggedInUser');
+        // sessionStorage.removeItem('loggedInUser'); // Temporarily disabled
         setPendingLogin(null);
         setPendingOTP(null);
     };
@@ -297,11 +298,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
              vaultService.updateUser(mergedUser);
              const sanitizedUser = vaultService.getSanitizedData().users.find(u => u.id === mergedUser.id)!;
              setUser(sanitizedUser);
-             sessionStorage.setItem('loggedInUser', JSON.stringify(sanitizedUser));
+             // sessionStorage.setItem('loggedInUser', JSON.stringify(sanitizedUser)); // Temporarily disabled
         }
     };
 
-    const changePassword = async (currentPassword: string, newPassword:string): Promise<'success' | 'incorrect_password'> => {
+    const changePassword = async (currentPassword: string, newPassword: string): Promise<'success' | 'incorrect_password'> => {
         if (!user) {
             return 'incorrect_password';
         }

@@ -24,7 +24,6 @@ const HomeScreen = lazy(() => import('./screens/user/HomeScreen'));
 const WalletScreen = lazy(() => import('./screens/user/WalletScreen'));
 const MarketScreen = lazy(() => import('./screens/user/MarketScreen'));
 const InfoNewsScreen = lazy(() => import('./screens/user/InfoNewsScreen'));
-const HealthScreen = lazy(() => import('./screens/user/HealthScreen'));
 const MyAccountScreen = lazy(() => import('./screens/user/MyAccountScreen'));
 const CartScreen = lazy(() => import('./screens/user/CartScreen'));
 const WishlistScreen = lazy(() => import('./screens/user/WishlistScreen'));
@@ -35,6 +34,18 @@ const AttendanceHistoryScreen = lazy(() => import('./screens/user/AttendanceHist
 const OpexScreen = lazy(() => import('./screens/user/OpexScreen'));
 const NewOpexRequestScreen = lazy(() => import('./screens/user/opex/NewOpexRequestScreen'));
 const AllFeaturesScreen = lazy(() => import('./screens/user/AllFeaturesScreen'));
+
+// Health Screens
+const HealthScreen = lazy(() => import('./screens/user/HealthScreen'));
+const DoctorDetailScreen = lazy(() => import('./screens/user/health/DoctorDetailScreen'));
+const MyConsultationsScreen = lazy(() => import('./screens/user/health/MyConsultationsScreen'));
+const ConsultationRoomScreen = lazy(() => import('./screens/user/health/ConsultationRoomScreen'));
+const EprescriptionScreen = lazy(() => import('./screens/user/health/EprescriptionScreen'));
+const PharmacyCheckoutScreen = lazy(() => import('./screens/user/health/PharmacyCheckoutScreen'));
+const HealthRecordScreen = lazy(() => import('./screens/user/health/HealthRecordScreen'));
+const InsuranceClaimScreen = lazy(() => import('./screens/user/health/InsuranceClaimScreen'));
+const HealthPlusScreen = lazy(() => import('./screens/user/health/HealthPlusScreen'));
+const SubscriptionUpsellScreen = lazy(() => import('./screens/user/health/SubscriptionUpsellScreen'));
 
 
 // Main Placeholder Screens
@@ -126,7 +137,7 @@ const App: React.FC = () => {
 
     // Signal a successful render to the crash loop detector.
     useEffect(() => {
-        sessionStorage.removeItem('crash_count');
+        // sessionStorage.removeItem('crash_count'); // Temporarily disabled
     }, []);
 
     // PWA Install Prompt Logic
@@ -134,10 +145,10 @@ const App: React.FC = () => {
         const handleBeforeInstallPrompt = (e: Event) => {
             e.preventDefault();
             setInstallPromptEvent(e);
-            // Check if the user has already dismissed the banner in this session
-            if (!sessionStorage.getItem('app_install_dismissed')) {
+            // Check if the user has already dismissed the banner in this session (Temporarily disabled)
+            // if (!sessionStorage.getItem('app_install_dismissed')) {
                 setShowInstallBanner(true);
-            }
+            // }
         };
 
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -157,7 +168,7 @@ const App: React.FC = () => {
     };
     
     const handleDismissInstall = () => {
-        sessionStorage.setItem('app_install_dismissed', 'true');
+        // sessionStorage.setItem('app_install_dismissed', 'true'); // Temporarily disabled
         setShowInstallBanner(false);
     };
 
@@ -248,6 +259,17 @@ const App: React.FC = () => {
                         <Route path="opex/new" element={<NewOpexRequestScreen />} />
                         <Route path="under-construction" element={<UnderConstructionScreen />} />
                         <Route path="features" element={<AllFeaturesScreen />} />
+
+                        {/* Health Routes */}
+                        <Route path="doctor/:id" element={<DoctorDetailScreen />} />
+                        <Route path="my-consultations" element={<MyConsultationsScreen />} />
+                        <Route path="consultation/:id" element={<ConsultationRoomScreen />} />
+                        <Route path="prescriptions" element={<EprescriptionScreen />} />
+                        <Route path="pharmacy-checkout/:eprescriptionId" element={<PharmacyCheckoutScreen />} />
+                        <Route path="health-records" element={<HealthRecordScreen />} />
+                        <Route path="insurance-claims" element={<InsuranceClaimScreen />} />
+                        <Route path="health-plus" element={<HealthPlusScreen />} />
+                        <Route path="subscribe-health-plus" element={<SubscriptionUpsellScreen />} />
                         
                         {/* Main placeholder routes */}
                         <Route path="ppob" element={<PPOBScreen />} />

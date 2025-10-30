@@ -9,6 +9,7 @@ import {
 import { testApiConnection } from '../services/apiService';
 import { useAuth } from './AuthContext';
 import vaultService from '../services/vaultService';
+import { HealthProvider } from './HealthContext';
 
 type AppData = ReturnType<typeof vaultService.getSanitizedData>;
 
@@ -203,7 +204,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         addArticle, updateArticle, deleteArticle, addMultipleArticlesByAdmin,
     };
 
-    return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+    return (
+        <AppContext.Provider value={value}>
+            <HealthProvider>
+                {children}
+            </HealthProvider>
+        </AppContext.Provider>
+    );
 };
 
 export const useApp = (): AppContextType => {
