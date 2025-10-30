@@ -1,9 +1,9 @@
-// FIX: Replaced mock data and circular import with actual type definitions.
-// This resolves a large number of 'type not found' and 'not exported' errors across the application.
+
 export enum Role {
     Admin = 'Admin',
     HR = 'HR',
     User = 'User',
+    Finance = 'Finance',
 }
 
 export enum IntegrationStatus {
@@ -260,6 +260,7 @@ export interface LeaveRequest {
 }
 
 export type OpexRequestType = 'Bensin' | 'Token Listrik' | 'Beli Barang' | 'Fotocopy' | 'Parkir';
+export type OpexRequestStatus = 'Pending HR Verification' | 'Pending Finance Approval' | 'Approved' | 'Rejected';
 
 export interface OpexRequest {
     id: string;
@@ -270,13 +271,17 @@ export interface OpexRequest {
     amount: number;
     description: string;
     timestamp: string;
-    status: 'Pending' | 'Approved' | 'Rejected';
+    status: OpexRequestStatus;
     proofPhotoUrl1: string;
     proofPhotoUrl2: string;
     proofLocation: Coordinates;
-    resolvedBy?: string;
-    resolvedTimestamp?: string;
+    hrApproverId?: string;
+    hrApprovalTimestamp?: string;
+    financeApproverId?: string;
+    financeApprovalTimestamp?: string;
+    rejectionReason?: string;
 }
+
 
 export interface Budget {
     id: string;

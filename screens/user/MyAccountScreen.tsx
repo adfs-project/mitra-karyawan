@@ -499,6 +499,10 @@ const MyAccountScreen: React.FC = () => {
                         <p className="font-semibold text-text-primary">{user.profile.salary ? new Intl.NumberFormat('id-ID').format(user.profile.salary) : '-'}</p>
                     </div>
                      <div>
+                        <p className="text-text-secondary">Cabang</p>
+                        <p className="font-semibold text-text-primary">{user.profile.branch || '-'}</p>
+                    </div>
+                    <div>
                         <p className="text-text-secondary">Status Kepegawaian</p>
                         <p className="font-semibold text-text-primary">{user.profile.employmentStatus || '-'}</p>
                     </div>

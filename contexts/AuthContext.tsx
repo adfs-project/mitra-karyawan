@@ -19,6 +19,11 @@ interface AuthContextType {
         password: string;
         profile: Omit<UserProfile, 'photoUrl'>;
     }) => Promise<'success' | 'exists' | 'unauthorized'>;
+    createFinanceAccountByAdmin: (financeData: {
+        email: string;
+        password: string;
+        profile: Omit<UserProfile, 'photoUrl'>;
+    }) => Promise<'success' | 'exists' | 'unauthorized'>;
     changePassword: (currentPassword: string, newPassword: string) => Promise<'success' | 'incorrect_password'>;
 }
 
@@ -178,6 +183,42 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         vaultService.addNewUser(newHrUser);
         return 'success';
     };
+
+    const createFinanceAccountByAdmin = async (financeData: {
+        email: string;
+        password: string;
+        profile: Omit<UserProfile, 'photoUrl'>;
+    }): Promise<'success' | 'exists' | 'unauthorized'> => {
+        if (!user || user.role !== Role.Admin) {
+            return 'unauthorized';
+        }
+        if (vaultService.findUserByEmail(financeData.email)) {
+            return 'exists';
+        }
+    
+        const newFinanceUser: User = {
+            id: `finance-${Date.now()}`,
+            email: financeData.email,
+            password: financeData.password, // Will be hashed by vault
+            role: Role.Finance,
+            status: 'active',
+            profile: {
+                ...financeData.profile,
+                photoUrl: `https://i.pravatar.cc/150?u=${financeData.email}`,
+            },
+            wallet: { balance: 0, isFrozen: false },
+            achievements: [],
+            loyaltyPoints: 0,
+            wishlist: [],
+            bookmarkedArticles: [],
+            healthData: {
+                moodHistory: [],
+                activeChallenges: []
+            }
+        };
+        vaultService.addNewUser(newFinanceUser);
+        return 'success';
+    };
     
     const updateCurrentUser = (updatedUser: User) => {
         // This function now receives a sanitized user, but we need to update the real user in the vault.
@@ -216,7 +257,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, verify2FA, logout, register, updateCurrentUser, createEmployee, createHrAccountByAdmin, changePassword }}>
+        <AuthContext.Provider value={{ user, login, verify2FA, logout, register, updateCurrentUser, createEmployee, createHrAccountByAdmin, createFinanceAccountByAdmin, changePassword }}>
             {children}
         </AuthContext.Provider>
     );

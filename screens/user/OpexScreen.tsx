@@ -3,12 +3,13 @@ import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, CreditCardIcon, PlusIcon } from '@heroicons/react/24/solid';
-import { OpexRequest } from '../../types';
+import { OpexRequest, OpexRequestStatus } from '../../types';
 
-const getStatusChip = (status: OpexRequest['status']) => {
+const getStatusChip = (status: OpexRequestStatus) => {
     switch (status) {
-        case 'Pending':
-            return <span className="text-xs font-semibold bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full">{status}</span>;
+        case 'Pending HR Verification':
+        case 'Pending Finance Approval':
+            return <span className="text-xs font-semibold bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full">Pending</span>;
         case 'Approved':
             return <span className="text-xs font-semibold bg-green-500/20 text-green-400 px-2 py-1 rounded-full">{status}</span>;
         case 'Rejected':

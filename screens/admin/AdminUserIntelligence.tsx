@@ -6,6 +6,7 @@ import WalletAdjustmentModal from '../../components/admin/financial/WalletAdjust
 import UserDetailsModal from '../../components/admin/user/UserDetailsModal';
 import { XMarkIcon, CheckIcon, PlusIcon } from '@heroicons/react/24/solid';
 import AddHrAccountModal from '../../components/admin/user/AddHrAccountModal';
+import AddFinanceAccountModal from '../../components/admin/user/AddFinanceAccountModal';
 
 const Toggle: React.FC<{ checked: boolean; onChange: (checked: boolean) => void; disabled?: boolean }> = ({ checked, onChange, disabled }) => {
     return (
@@ -45,6 +46,7 @@ const AdminUserIntelligence: React.FC = () => {
     const [walletModalOpen, setWalletModalOpen] = useState(false);
     const [detailsModalOpen, setDetailsModalOpen] = useState(false);
     const [isHrModalOpen, setIsHrModalOpen] = useState(false);
+    const [isFinanceModalOpen, setIsFinanceModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [action, setAction] = useState<'activate' | 'deactivate' | null>(null);
     const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
@@ -90,13 +92,22 @@ const AdminUserIntelligence: React.FC = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-primary">User Intelligence</h1>
-                <button 
-                    onClick={() => setIsHrModalOpen(true)}
-                    className="btn-primary flex items-center px-4 py-2 rounded-lg font-bold"
-                >
-                    <PlusIcon className="h-5 w-5 mr-2" />
-                    Add HR Account
-                </button>
+                <div className="flex space-x-2">
+                    <button 
+                        onClick={() => setIsHrModalOpen(true)}
+                        className="btn-primary flex items-center px-4 py-2 rounded-lg font-bold"
+                    >
+                        <PlusIcon className="h-5 w-5 mr-2" />
+                        Add HR Account
+                    </button>
+                    <button 
+                        onClick={() => setIsFinanceModalOpen(true)}
+                        className="btn-secondary flex items-center px-4 py-2 rounded-lg font-bold"
+                    >
+                        <PlusIcon className="h-5 w-5 mr-2" />
+                        Add Finance Account
+                    </button>
+                </div>
             </div>
             <div className="bg-surface p-6 rounded-lg border border-border-color">
                 <h2 className="text-xl font-bold mb-4">User Management</h2>
@@ -175,6 +186,10 @@ const AdminUserIntelligence: React.FC = () => {
             <AddHrAccountModal
                 isOpen={isHrModalOpen}
                 onClose={() => setIsHrModalOpen(false)}
+            />
+            <AddFinanceAccountModal
+                isOpen={isFinanceModalOpen}
+                onClose={() => setIsFinanceModalOpen(false)}
             />
         </div>
     );

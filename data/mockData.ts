@@ -1,4 +1,6 @@
-import { Role, User, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig, HomePageConfig, AdminWallets, PersonalizationRule, Order, HealthChallenge, InsuranceClaim, AttendanceRecord, OpexRequest } from '../types/index';
+// FIX: Replaced mock data and circular import with actual type definitions.
+// This resolves a large number of 'type not found' and 'not exported' errors across the application.
+import { Role, User, Product, Article, Transaction, Notification, Doctor, Consultation, Dispute, ApiIntegration, IntegrationStatus, ScalabilityService, ScalabilityServiceStatus, LeaveRequest, MonetizationConfig, TaxConfig, HomePageConfig, AdminWallets, PersonalizationRule, Order, HealthChallenge, InsuranceClaim, AttendanceRecord, OpexRequest } from '../types';
 
 export const initialUsers: User[] = [
     {
@@ -22,6 +24,36 @@ export const initialUsers: User[] = [
         achievements: [], loyaltyPoints: 50, wishlist: [], bookmarkedArticles: [], healthData: { moodHistory: [], activeChallenges: [] }
     },
     {
+        id: 'hr-bandung-001',
+        email: 'hr.bandung@mitra.com',
+        password: 'password',
+        profile: { name: 'HR Bandung', phone: '081234567895', photoUrl: 'https://i.pravatar.cc/150?u=hr-bandung-001', branch: 'Bandung', joinDate: '2022-02-15', salary: 14000000 },
+        role: Role.HR,
+        status: 'active',
+        wallet: { balance: 100000, isFrozen: false },
+        achievements: [], loyaltyPoints: 40, wishlist: [], bookmarkedArticles: [], healthData: { moodHistory: [], activeChallenges: [] }
+    },
+     {
+        id: 'finance-head-001',
+        email: 'finance.head@mitra.com',
+        password: 'password',
+        profile: { name: 'Finance Head (Jakarta)', phone: '081234567888', photoUrl: 'https://i.pravatar.cc/150?u=finance-head-001', branch: 'Jakarta' },
+        role: Role.Finance,
+        status: 'active',
+        wallet: { balance: 0, isFrozen: false },
+        achievements: [], loyaltyPoints: 0, wishlist: [], bookmarkedArticles: [], healthData: { moodHistory: [], activeChallenges: [] }
+    },
+    {
+        id: 'finance-bandung-001',
+        email: 'finance.bandung@mitra.com',
+        password: 'password',
+        profile: { name: 'Finance Bandung', phone: '081234567889', photoUrl: 'https://i.pravatar.cc/150?u=finance-bandung-001', branch: 'Bandung' },
+        role: Role.Finance,
+        status: 'active',
+        wallet: { balance: 0, isFrozen: false },
+        achievements: [], loyaltyPoints: 0, wishlist: [], bookmarkedArticles: [], healthData: { moodHistory: [], activeChallenges: [] }
+    },
+    {
         id: 'user-jakarta-001',
         email: 'budi.jakarta@mitra.com',
         password: 'password',
@@ -30,6 +62,16 @@ export const initialUsers: User[] = [
         status: 'active',
         wallet: { balance: 500000, isFrozen: false },
         achievements: ['First Purchase'], loyaltyPoints: 120, wishlist: ['p-001'], bookmarkedArticles: ['a-001'], healthData: { moodHistory: [{ date: '2023-10-26', mood: 'Senang'}], activeChallenges: [] }
+    },
+    {
+        id: 'user-bandung-001',
+        email: 'dina.bandung@mitra.com',
+        password: 'password',
+        profile: { name: 'Dina Sari', phone: '081234567894', photoUrl: 'https://i.pravatar.cc/150?u=user-bandung-001', branch: 'Bandung', joinDate: '2023-05-10', salary: 7800000 },
+        role: Role.User,
+        status: 'active',
+        wallet: { balance: 200000, isFrozen: false },
+        achievements: [], loyaltyPoints: 30, wishlist: [], bookmarkedArticles: [], healthData: { moodHistory: [], activeChallenges: [] }
     },
     {
         id: 'user-inactive-001',
@@ -78,7 +120,58 @@ export const initialScalabilityServices: ScalabilityService[] = [
   { id: 'scale-006', name: 'Database Sharding', type: 'db_sharding', description: 'Horizontally partitions the database to distribute load across multiple instances.', status: ScalabilityServiceStatus.Inactive, logs: [], cost: 0, metadata: {} },
 ];
 export const initialLeaveRequests: LeaveRequest[] = [];
-export const initialOpexRequests: OpexRequest[] = [];
+export const initialOpexRequests: OpexRequest[] = [
+    {
+        id: 'opex-jkt-001',
+        userId: 'user-jakarta-001',
+        userName: 'Budi Santoso',
+        branch: 'Jakarta',
+        type: 'Bensin',
+        amount: 150000,
+        description: 'Bensin untuk perjalanan dinas meeting klien',
+        timestamp: '2023-10-28T09:00:00Z',
+        status: 'Pending Finance Approval',
+        proofPhotoUrl1: 'https://picsum.photos/seed/fuel/400/400',
+        proofPhotoUrl2: 'https://picsum.photos/seed/receipt1/400/400',
+        proofLocation: { latitude: -6.2088, longitude: 106.8456 },
+        hrApproverId: 'hr-jakarta-001',
+        hrApprovalTimestamp: '2023-10-28T10:00:00Z',
+    },
+    {
+        id: 'opex-bdg-001',
+        userId: 'user-bandung-001',
+        userName: 'Dina Sari',
+        branch: 'Bandung',
+        type: 'Parkir',
+        amount: 25000,
+        description: 'Parkir di gedung klien',
+        timestamp: '2023-10-28T11:00:00Z',
+        status: 'Pending Finance Approval',
+        proofPhotoUrl1: 'https://picsum.photos/seed/parking/400/400',
+        proofPhotoUrl2: 'https://picsum.photos/seed/receipt2/400/400',
+        proofLocation: { latitude: -6.9175, longitude: 107.6191 },
+        hrApproverId: 'hr-bandung-001',
+        hrApprovalTimestamp: '2023-10-28T12:00:00Z',
+    },
+    {
+        id: 'opex-jkt-002',
+        userId: 'user-jakarta-001',
+        userName: 'Budi Santoso',
+        branch: 'Jakarta',
+        type: 'Beli Barang',
+        amount: 75000,
+        description: 'Pembelian ATK untuk kantor',
+        timestamp: '2023-10-27T14:00:00Z',
+        status: 'Approved',
+        proofPhotoUrl1: 'https://picsum.photos/seed/atk/400/400',
+        proofPhotoUrl2: 'https://picsum.photos/seed/receipt3/400/400',
+        proofLocation: { latitude: -6.2088, longitude: 106.8456 },
+        hrApproverId: 'hr-jakarta-001',
+        hrApprovalTimestamp: '2023-10-27T15:00:00Z',
+        financeApproverId: 'finance-head-001',
+        financeApprovalTimestamp: '2023-10-27T16:00:00Z',
+    }
+];
 export const initialMonetizationConfig: MonetizationConfig = { marketplaceCommission: 0.05, marketingCPA: 25000 };
 export const initialTaxConfig: TaxConfig = { ppnRate: 0.11, pph21Rate: 0.025 };
 export const initialHomePageConfig: HomePageConfig = { pinnedItemId: null, featureFlags: { aiInvestmentBot: false } };

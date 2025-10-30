@@ -2,10 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { CheckCircleIcon, XCircleIcon, EyeIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { OpexRequest, User } from '../../types';
+import { OpexRequest } from '../../types';
 import LocationName from '../../components/common/LocationName';
-
-type Tab = 'Opex Requests';
 
 const PhotoViewerModal: React.FC<{
     isOpen: boolean;
@@ -23,46 +21,42 @@ const PhotoViewerModal: React.FC<{
     );
 };
 
-
-const HrOpexManagementScreen: React.FC = () => {
-    const { user: hrUser } = useAuth();
-    const { users, opexRequests, approveOpexByHr, rejectOpexByHr } = useData();
-    const [activeTab, setActiveTab] = useState<Tab>('Opex Requests');
+const FinanceDashboard: React.FC = () => {
+    const { user: financeUser } = useAuth();
+    const { opexRequests, approveOpexByFinance, rejectOpexByFinance } = useData();
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
 
-    const branchEmployees = useMemo(() => {
-        if (!hrUser) return [];
-        return users.filter(u => u.profile.branch === hrUser.profile.branch && u.role === 'User');
-    }, [users, hrUser]);
+    const pendingRequests = useMemo(() => opexRequests.filter(r => 
+        r.status === 'Pending Finance Approval' && r.branch === financeUser?.profile.branch
+    ), [opexRequests, financeUser]);
+    
+    const historyRequests = useMemo(() => opexRequests.filter(r => r.financeApproverId === financeUser?.id), [opexRequests, financeUser]);
 
-    const pendingOpex = useMemo(() => opexRequests.filter(r => r.branch === hrUser?.profile.branch && r.status === 'Pending HR Verification'), [opexRequests, hrUser]);
-    const historyOpex = useMemo(() => opexRequests.filter(r => r.branch === hrUser?.profile.branch && r.status !== 'Pending HR Verification'), [opexRequests, hrUser]);
-
-    const handleApproveOpex = async (id: string) => {
+    const handleApprove = async (id: string) => {
         setProcessingId(id);
-        await approveOpexByHr(id);
+        await approveOpexByFinance(id);
         setProcessingId(null);
     };
 
-    const handleRejectOpex = async (id: string) => {
+    const handleReject = async (id: string) => {
         const reason = prompt("Please provide a reason for rejection:");
         if (reason) {
             setProcessingId(id);
-            await rejectOpexByHr(id, reason);
+            await rejectOpexByFinance(id, reason);
             setProcessingId(null);
         }
     };
-
+    
     const formatCurrency = (value: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(value);
 
-    const renderOpexContent = (title: string, requests: OpexRequest[]) => (
-        <div className="bg-surface p-4 rounded-lg border border-border-color">
+    const renderRequestTable = (title: string, requests: OpexRequest[]) => (
+         <div className="bg-surface p-4 rounded-lg border border-border-color">
             <h2 className="text-xl font-bold mb-4">{title}</h2>
             <div className="overflow-x-auto">
                 {requests.length > 0 ? (
                     <table className="w-full text-sm text-left text-text-secondary">
-                        <thead className="text-xs uppercase bg-surface-light">
+                         <thead className="text-xs uppercase bg-surface-light">
                             <tr>
                                 <th className="px-6 py-3">Karyawan</th>
                                 <th className="px-6 py-3">Jenis</th>
@@ -75,7 +69,7 @@ const HrOpexManagementScreen: React.FC = () => {
                         <tbody>
                             {requests.map(req => (
                                 <tr key={req.id} className="border-b border-border-color">
-                                    <td className="px-6 py-4 font-medium text-text-primary">{req.userName}</td>
+                                    <td className="px-6 py-4 font-medium text-text-primary">{req.userName} ({req.branch})</td>
                                     <td className="px-6 py-4">{req.type}</td>
                                     <td className="px-6 py-4 font-semibold">{formatCurrency(req.amount)}</td>
                                     <td className="px-6 py-4"><LocationName location={req.proofLocation} /></td>
@@ -86,21 +80,17 @@ const HrOpexManagementScreen: React.FC = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        {req.status === 'Pending HR Verification' ? (
+                                         {req.status === 'Pending Finance Approval' ? (
                                             processingId === req.id ? (
                                                 <div className="flex justify-center"><div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div></div>
                                             ) : (
                                                 <div className="flex justify-center space-x-2">
-                                                    <button onClick={() => handleApproveOpex(req.id)} className="p-2 rounded-full bg-green-500/20 hover:bg-green-500/40" title="Verify & Forward to Finance"><CheckCircleIcon className="h-5 w-5 text-green-400" /></button>
-                                                    <button onClick={() => handleRejectOpex(req.id)} className="p-2 rounded-full bg-red-500/20 hover:bg-red-500/40"><XCircleIcon className="h-5 w-5 text-red-400" /></button>
+                                                    <button onClick={() => handleApprove(req.id)} className="p-2 rounded-full bg-green-500/20 hover:bg-green-500/40"><CheckCircleIcon className="h-5 w-5 text-green-400" /></button>
+                                                    <button onClick={() => handleReject(req.id)} className="p-2 rounded-full bg-red-500/20 hover:bg-red-500/40"><XCircleIcon className="h-5 w-5 text-red-400" /></button>
                                                 </div>
                                             )
                                         ) : (
-                                             <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                                 req.status === 'Approved' ? 'bg-green-500/20 text-green-400' : 
-                                                 req.status === 'Rejected' ? 'bg-red-500/20 text-red-400' : 
-                                                 'bg-blue-500/20 text-blue-400'}`
-                                             }>{req.status}</span>
+                                             <span className={`px-2 py-1 rounded-full text-xs font-semibold ${req.status === 'Approved' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{req.status}</span>
                                         )}
                                     </td>
                                 </tr>
@@ -111,34 +101,18 @@ const HrOpexManagementScreen: React.FC = () => {
             </div>
         </div>
     );
-    
-    const renderContent = () => {
-        return (
-            <div className="space-y-6">
-                {renderOpexContent("Permintaan Verifikasi", pendingOpex)}
-                {renderOpexContent("Riwayat", historyOpex)}
-            </div>
-        );
-    };
 
     return (
-        <div className="p-4 space-y-6">
-            <h1 className="text-3xl font-bold text-primary">Manajemen Dana Opex</h1>
-            <p className="text-text-secondary">Verifikasi dan teruskan pengajuan dana operasional dari karyawan di cabang Anda ke departemen Keuangan.</p>
+        <div className="space-y-6">
+            <h1 className="text-3xl font-bold text-primary">Opex Final Approval</h1>
+            <p className="text-text-secondary">Tinjau dan berikan persetujuan akhir untuk semua pengajuan dana operasional yang telah diverifikasi oleh HR.</p>
             
-            <div className="flex border-b border-border-color">
-                {(['Opex Requests'] as Tab[]).map(tab => (
-                    <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 font-semibold ${activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-text-secondary'}`}>
-                        {tab}
-                    </button>
-                ))}
-            </div>
-
-            {renderContent()}
+            {renderRequestTable("Menunggu Persetujuan", pendingRequests)}
+            {renderRequestTable("Riwayat Persetujuan Saya", historyRequests)}
 
             <PhotoViewerModal isOpen={!!viewingPhoto} onClose={() => setViewingPhoto(null)} photoUrl={viewingPhoto} />
         </div>
     );
 };
 
-export default HrOpexManagementScreen;
+export default FinanceDashboard;

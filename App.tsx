@@ -8,6 +8,7 @@ import ToastContainer from './components/common/ToastContainer';
 const UserLayout = lazy(() => import('./components/layout/UserLayout'));
 const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
 const HrLayout = lazy(() => import('./components/layout/HrLayout'));
+const FinanceLayout = lazy(() => import('./components/layout/FinanceLayout'));
 const LoginScreen = lazy(() => import('./screens/auth/LoginScreen'));
 const RegisterScreen = lazy(() => import('./screens/auth/RegisterScreen'));
 const DeactivatedAccountScreen = lazy(() => import('./screens/auth/DeactivatedAccountScreen'));
@@ -90,6 +91,10 @@ const HrAiCopilotScreen = lazy(() => import('./screens/hr/HrAiCopilotScreen'));
 const HrBenefitManagement = lazy(() => import('./screens/hr/HrBenefitManagement'));
 const HrWellnessManagement = lazy(() => import('./screens/hr/HrWellnessManagement'));
 const HrAttendanceManagement = lazy(() => import('./screens/hr/HrAttendanceManagement'));
+
+// Finance Screens
+const FinanceDashboard = lazy(() => import('./screens/finance/FinanceDashboard'));
+const FinanceCommandCenter = lazy(() => import('./screens/finance/FinanceCommandCenter'));
 
 
 const Spinner = () => (
@@ -186,6 +191,7 @@ const App: React.FC = () => {
         if (user.status === 'inactive') {
             return <Navigate to="/deactivated" />;
         }
+
         if (user.role === Role.Admin) {
             return (
                 <AdminLayout>
@@ -209,6 +215,19 @@ const App: React.FC = () => {
                         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
                     </Routes>
                 </AdminLayout>
+            );
+        }
+
+        if (user.role === Role.Finance) {
+             return (
+                <FinanceLayout>
+                    <Routes>
+                        <Route index element={<Navigate to="/finance/dashboard" />} />
+                        <Route path="finance/dashboard" element={<FinanceDashboard />} />
+                        <Route path="finance/command-center" element={<FinanceCommandCenter />} />
+                        <Route path="*" element={<Navigate to="/finance/dashboard" />} />
+                    </Routes>
+                </FinanceLayout>
             );
         }
         

@@ -15,6 +15,7 @@ import {
     AdminWallets, PersonalizationRule, Order, Eprescription, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap,
     // FIX: Import IntegrationStatus type
     IntegrationStatus,
+    ScalabilityServiceStatus,
     AttendanceRecord,
     OpexRequest
 } from '../types';

@@ -103,9 +103,13 @@ interface DataContextType {
     createHealthChallenge: (challenge: Omit<HealthChallenge, 'id' | 'creator' | 'participants'>) => Promise<void>;
     approveInsuranceClaim: (claimId: string) => Promise<void>;
     rejectInsuranceClaim: (claimId: string) => Promise<void>;
-    submitOpexRequest: (requestData: Omit<OpexRequest, 'id' | 'userId' | 'userName' | 'branch' | 'status' | 'timestamp' | 'resolvedBy' | 'resolvedTimestamp'>) => Promise<void>;
-    approveOpexRequest: (id: string) => Promise<void>;
-    rejectOpexRequest: (id: string) => Promise<void>;
+    submitOpexRequest: (requestData: Omit<OpexRequest, 'id' | 'userId' | 'userName' | 'branch' | 'status' | 'timestamp' | 'hrApproverId' | 'hrApprovalTimestamp' | 'financeApproverId' | 'financeApprovalTimestamp' | 'rejectionReason'>) => Promise<void>;
+    approveOpexByHr: (id: string) => Promise<void>;
+    rejectOpexByHr: (id: string, reason: string) => Promise<void>;
+    
+    // Finance
+    approveOpexByFinance: (id: string) => Promise<void>;
+    rejectOpexByFinance: (id: string, reason: string) => Promise<void>;
 
 
     // Financial Planning
@@ -655,7 +659,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         showToast("Claim has been rejected.", "success");
     };
 
-    const submitOpexRequest = async (requestData: Omit<OpexRequest, 'id' | 'userId' | 'userName' | 'branch' | 'status' | 'timestamp' | 'resolvedBy' | 'resolvedTimestamp'>) => {
+    const submitOpexRequest = async (requestData: Omit<OpexRequest, 'id' | 'userId' | 'userName' | 'branch' | 'status' | 'timestamp' | 'hrApproverId' | 'hrApprovalTimestamp' | 'financeApproverId' | 'financeApprovalTimestamp' | 'rejectionReason'>) => {
         if (!user) return;
         const newRequest: OpexRequest = {
             ...requestData,
@@ -663,7 +667,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             userId: user.id,
             userName: user.profile.name,
             branch: user.profile.branch || 'N/A',
-            status: 'Pending',
+            status: 'Pending HR Verification',
             timestamp: new Date().toISOString(),
         };
         updateState('opexRequests', [...appData.opexRequests, newRequest]);
@@ -675,7 +679,40 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
     
-    const approveOpexRequest = async (id: string) => {
+    const approveOpexByHr = async (id: string) => {
+        const request = appData.opexRequests.find(r => r.id === id);
+        if (!user || !request) {
+            showToast("Request not found.", "error");
+            return;
+        }
+
+        const updatedRequest: OpexRequest = {
+            ...request,
+            status: 'Pending Finance Approval',
+            hrApproverId: user.id,
+            hrApprovalTimestamp: new Date().toISOString(),
+        };
+        updateState('opexRequests', appData.opexRequests.map(r => r.id === id ? updatedRequest : r));
+        
+        const financeUser = appData.users.find(u => u.role === Role.Finance);
+        if (financeUser) {
+            addNotification(financeUser.id, `An opex request from ${request.userName} needs your approval.`, 'info');
+        }
+        
+        addNotification(request.userId, `Your opex request for ${request.type} has been verified by HR and is now pending final approval.`, 'info');
+        showToast("Opex request has been forwarded to Finance for final approval.", "success");
+    };
+
+    const rejectOpexByHr = async (id: string, reason: string) => {
+        const request = appData.opexRequests.find(r => r.id === id);
+        if (!user || !request) { return; }
+        const updatedRequest: OpexRequest = { ...request, status: 'Rejected', hrApproverId: user.id, hrApprovalTimestamp: new Date().toISOString(), rejectionReason: `Rejected by HR: ${reason}` };
+        updateState('opexRequests', appData.opexRequests.map(r => (r.id === id ? updatedRequest : r)));
+        addNotification(request.userId, `Your opex request for ${request.type} has been rejected by HR.`, 'warning');
+        showToast("Opex request has been rejected.", "success");
+    };
+
+    const approveOpexByFinance = async (id: string) => {
         const request = appData.opexRequests.find(r => r.id === id);
         if (!user || !request) {
             showToast("Request not found.", "error");
@@ -686,31 +723,29 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             userId: request.userId,
             type: 'Dana Opex',
             amount: request.amount,
-            description: `Reimbursement for Opex: ${request.type} - ${request.description}`,
+            description: `Reimbursement for Opex: ${request.type}`,
             status: 'Completed'
         });
 
         if (txResult.success) {
-            const updatedRequest = { ...request, status: 'Approved' as 'Approved', resolvedBy: user.id, resolvedTimestamp: new Date().toISOString() };
+            const updatedRequest: OpexRequest = { ...request, status: 'Approved', financeApproverId: user.id, financeApprovalTimestamp: new Date().toISOString() };
             updateState('opexRequests', appData.opexRequests.map(r => r.id === id ? updatedRequest : r));
-            addNotification(request.userId, `Your opex request for ${request.type} has been approved.`, 'success');
+            addNotification(request.userId, `Your opex request for ${request.type} has been approved and funds have been disbursed.`, 'success');
             showToast("Opex request approved and funds disbursed.", "success");
         } else {
             showToast("Failed to disburse funds. " + txResult.message, "error");
         }
     };
 
-    const rejectOpexRequest = async (id: string) => {
+    const rejectOpexByFinance = async (id: string, reason: string) => {
         const request = appData.opexRequests.find(r => r.id === id);
-        if (!user || !request) {
-            showToast("Request not found.", "error");
-            return;
-        }
-        const updatedRequest = { ...request, status: 'Rejected' as 'Rejected', resolvedBy: user.id, resolvedTimestamp: new Date().toISOString() };
-        updateState('opexRequests', appData.opexRequests.map(r => r.id === id ? updatedRequest : r));
-        addNotification(request.userId, `Your opex request for ${request.type} has been rejected.`, 'warning');
+        if (!user || !request) { return; }
+        const updatedRequest: OpexRequest = { ...request, status: 'Rejected', financeApproverId: user.id, financeApprovalTimestamp: new Date().toISOString(), rejectionReason: `Rejected by Finance: ${reason}` };
+        updateState('opexRequests', appData.opexRequests.map(r => (r.id === id ? updatedRequest : r)));
+        addNotification(request.userId, `Your opex request for ${request.type} has been rejected by Finance.`, 'error');
         showToast("Opex request has been rejected.", "success");
     };
+
 
     const addBudget = async (budget: Omit<Budget, 'id'|'userId'|'spent'>) => {
         if(!user) return;
@@ -847,7 +882,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         subscribeToHealthPlus, redeemPrescription,
         submitLeaveRequest, updateLeaveRequestStatus, getBranchMoodAnalytics, createHealthChallenge,
         approveInsuranceClaim, rejectInsuranceClaim,
-        submitOpexRequest, approveOpexRequest, rejectOpexRequest,
+        submitOpexRequest, approveOpexByHr, rejectOpexByHr,
+        approveOpexByFinance, rejectOpexByFinance,
         addBudget, updateBudget, deleteBudget,
         addScheduledPayment, updateScheduledPayment, deleteScheduledPayment,
         applyForPayLater, approvePayLater, rejectPayLater,

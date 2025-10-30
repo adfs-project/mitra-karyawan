@@ -72,8 +72,16 @@ const Header: React.FC = () => {
 
     return (
         <header className="bg-surface sticky top-0 z-10 p-4 flex justify-between items-center border-b border-border-color">
-            <div className="text-xl font-bold text-primary">
-                {language === 'ID' ? 'Mitra Karyawan' : 'Employee Partner'}
+            <div className="flex items-center space-x-3">
+                <span className="text-xl font-bold text-primary">
+                    {language === 'ID' ? 'Mitra Karyawan' : 'Employee Partner'}
+                </span>
+                {user?.profile.branch && (
+                    <>
+                        <div className="h-5 w-px bg-border-color"></div>
+                        <span className="text-sm font-semibold text-text-secondary bg-surface-light px-2 py-1 rounded-md">{user.profile.branch}</span>
+                    </>
+                )}
             </div>
             <div className="flex items-center space-x-4">
                 <Link to="/cart" className="relative p-2 rounded-full hover:bg-surface-light">
