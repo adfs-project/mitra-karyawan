@@ -14,6 +14,11 @@ interface AuthContextType {
         password: string;
         profile: Omit<UserProfile, 'photoUrl' | 'branch'>;
     }) => Promise<'success' | 'exists'>;
+    createMultipleEmployeesByHr: (employeesData: {
+        email: string;
+        password: string;
+        profile: Omit<UserProfile, 'photoUrl' | 'branch'>;
+    }[]) => Promise<{ success: number; failed: number; errors: string[] }>;
     createHrAccountByAdmin: (hrData: {
         email: string;
         password: string;
@@ -148,6 +153,57 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return 'success';
     };
 
+    const createMultipleEmployeesByHr = async (employeesData: {
+        email: string;
+        password: string;
+        profile: Omit<UserProfile, 'photoUrl' | 'branch'>;
+    }[]): Promise<{ success: number; failed: number; errors: string[] }> => {
+        if (!user || user.role !== Role.HR) {
+            throw new Error("Only HR users can create new employees.");
+        }
+
+        let success = 0;
+        let failed = 0;
+        const errors: string[] = [];
+        
+        const allUserEmails = new Set(vaultService.getSanitizedData().users.map(u => u.email.toLowerCase()));
+
+        for (const employeeData of employeesData) {
+            if (allUserEmails.has(employeeData.email.toLowerCase())) {
+                failed++;
+                errors.push(`Email already exists: ${employeeData.email}`);
+                continue;
+            }
+
+            const newUser: User = {
+                id: `user-${Date.now()}-${success}`,
+                email: employeeData.email,
+                password: employeeData.password,
+                role: Role.User,
+                status: 'active',
+                profile: {
+                    ...employeeData.profile,
+                    branch: user.profile.branch,
+                    photoUrl: `https://i.pravatar.cc/150?u=${employeeData.email}`,
+                },
+                wallet: { balance: 0, isFrozen: false },
+                achievements: [],
+                loyaltyPoints: 0,
+                wishlist: [],
+                bookmarkedArticles: [],
+                healthData: {
+                    moodHistory: [],
+                    activeChallenges: []
+                }
+            };
+            vaultService.addNewUser(newUser);
+            allUserEmails.add(newUser.email.toLowerCase()); 
+            success++;
+        }
+
+        return { success, failed, errors };
+    };
+
     const createHrAccountByAdmin = async (hrData: {
         email: string;
         password: string;
@@ -257,7 +313,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, verify2FA, logout, register, updateCurrentUser, createEmployee, createHrAccountByAdmin, createFinanceAccountByAdmin, changePassword }}>
+        <AuthContext.Provider value={{ user, login, verify2FA, logout, register, updateCurrentUser, createEmployee, createMultipleEmployeesByHr, createHrAccountByAdmin, createFinanceAccountByAdmin, changePassword }}>
             {children}
         </AuthContext.Provider>
     );

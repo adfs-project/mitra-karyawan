@@ -14,7 +14,8 @@
     "react-dom": "^19.2.0",
     "@heroicons/react": "^2.2.0",
     "@google/genai": "^1.27.0",
-    "react-error-boundary": "^4.0.13"
+    "react-error-boundary": "^4.0.13",
+    "xlsx": "latest"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
