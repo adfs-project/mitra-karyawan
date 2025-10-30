@@ -4,8 +4,10 @@ import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, 
 import { Link } from 'react-router-dom';
 import { Role, User } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
+// FIX: Replaced useData with useCore and useApp as useData is not an exported member.
 import { useCore } from '../../contexts/DataContext';
 import { useApp } from '../../contexts/AppContext';
+// FIX: Import useHR hook to access HR-specific functions like submitLeaveRequest.
 import { useHR } from '../../contexts/HRContext';
 
 
@@ -53,6 +55,7 @@ const LeaveRequestModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
 }> = ({ isOpen, onClose }) => {
+    // FIX: submitLeaveRequest is part of HRContext, not DataContext.
     const { submitLeaveRequest } = useHR();
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -109,6 +112,7 @@ const ChangePasswordModal: React.FC<{
     onClose: () => void;
 }> = ({ isOpen, onClose }) => {
     const { changePassword } = useAuth();
+    // FIX: Replaced useData with useApp to get showToast.
     const { showToast } = useApp();
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -185,6 +189,7 @@ const PayslipModal: React.FC<{
     onClose: () => void;
     user: User;
 }> = ({ isOpen, onClose, user }) => {
+    // FIX: Replaced useData with useCore to get generatePayslipData.
     const { generatePayslipData } = useCore();
 
     const payroll = useMemo(() => {
@@ -330,7 +335,8 @@ const ThemeToggle: React.FC = () => {
 
 const MyAccountScreen: React.FC = () => {
     const { user, logout } = useAuth();
-    const { applyForPayLater, generatePayslipData } = useCore();
+    // FIX: Replaced useData with useCore to get applyForPayLater.
+    const { applyForPayLater } = useCore();
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [isLeaveModalOpen, setLeaveModalOpen] = useState(false);
     const [isChangePasswordModalOpen, setChangePasswordModalOpen] = useState(false);

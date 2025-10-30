@@ -1,171 +1,107 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useHealth } from '../../../contexts/HealthContext';
-import { VideoCameraIcon, PhoneIcon, ChatBubbleLeftRightIcon, DocumentTextIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
-import { GoogleGenAI, Type } from "@google/genai";
-import { getConsultationTemplatePrompt } from '../../../services/aiGuardrailService';
-import { EprescriptionItem } from '../../../types';
-import { useApp } from '../../../contexts/AppContext';
+import { PhoneIcon } from '@heroicons/react/24/solid';
+import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../../../contexts/AuthContext';
+
+interface ChatMessage {
+    sender: 'user' | 'doctor';
+    text: string;
+}
 
 const ConsultationRoomScreen: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { consultations, endConsultation, eprescriptions } = useHealth();
-    const { showToast } = useApp();
+    const { user } = useAuth();
+    const { consultations } = useHealth();
+    
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [input, setInput] = useState('');
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
     const consultation = consultations.find(c => c.id === id);
-    const eprescription = consultation?.eprescriptionId ? eprescriptions.find(e => e.id === consultation.eprescriptionId) : null;
-    const [time, setTime] = useState(0);
-    const [isEnding, setIsEnding] = useState(false);
 
     useEffect(() => {
-        if (consultation?.status === 'Scheduled') {
-            const timer = setInterval(() => setTime(prev => prev + 1), 1000);
-            return () => clearInterval(timer);
+        if (consultation) {
+            setMessages([{ sender: 'doctor', text: `Halo ${user?.profile.name}, saya Dr. ${consultation.doctorName}. Apa yang bisa saya bantu hari ini?` }]);
         }
-    }, [consultation]);
+    }, [consultation, user]);
 
-    const handleEndConsultation = async () => {
-        if (!consultation) return;
-        setIsEnding(true);
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
 
-        const securePrompt = getConsultationTemplatePrompt();
-
-        try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: securePrompt,
-                 config: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: Type.OBJECT,
-                        properties: {
-                            notes: { type: Type.STRING },
-                            prescription: {
-                                type: Type.ARRAY,
-                                items: {
-                                    type: Type.OBJECT,
-                                    properties: {
-                                        drugName: { type: Type.STRING },
-                                        dosage: { type: Type.STRING },
-                                        instructions: { type: Type.STRING }
-                                    },
-                                    required: ['drugName', 'dosage', 'instructions']
-                                }
-                            }
-                        },
-                        required: ['notes', 'prescription']
-                    }
-                }
-            });
-
-            const result: { notes: string; prescription: EprescriptionItem[] } = JSON.parse(response.text);
-            await endConsultation(consultation.id, result.notes, result.prescription);
-
-        } catch (err) {
-            console.error("AI Consultation Template Error:", err);
-            showToast("AI template generation failed. Using fallback.", "error");
-            // Fallback to a hardcoded template if AI fails
-            const fallbackPrescription: EprescriptionItem[] = [{
-                drugName: '[Gagal Memuat Resep AI]',
-                dosage: 'N/A',
-                instructions: 'Silakan hubungi dokter kembali.'
-            }]
-            await endConsultation(consultation.id, "[Gagal memuat templat AI]", fallbackPrescription);
-        } finally {
-            setIsEnding(false);
-        }
+    const handleSend = () => {
+        if (!input.trim()) return;
+        setMessages(prev => [...prev, { sender: 'user', text: input }]);
+        setInput('');
+        // Simulate doctor's response
+        setTimeout(() => {
+            setMessages(prev => [...prev, { sender: 'doctor', text: "Baik, saya mengerti. Bisa ceritakan lebih detail?" }]);
+        }, 1500);
     };
-
 
     if (!consultation) {
         return <div className="p-4 text-center">Konsultasi tidak ditemukan.</div>;
     }
-
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-        const secs = (seconds % 60).toString().padStart(2, '0');
-        return `${mins}:${secs}`;
-    };
     
-    const isSafetyAlert = consultation.prescription?.startsWith('SAFETY_ALERT:');
+    const isCompleted = consultation.status === 'Completed';
 
     return (
-        <div className="flex flex-col h-full">
-            <header className="p-4 flex items-center bg-surface border-b border-border-color">
-                <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-surface-light">
-                    <ArrowLeftIcon className="h-6 w-6" />
-                </button>
-                <div className="ml-4">
-                    <h1 className="text-lg font-bold">Konsultasi dengan {consultation.doctorName}</h1>
-                    {consultation.status === 'Scheduled' && (
-                        <p className="text-sm text-green-400">● Live ({formatTime(time)})</p>
-                    )}
-                </div>
-            </header>
+        <div className="p-4">
+             <div className="mb-4">
+                <h1 className="text-xl font-bold">Dr. {consultation.doctorName}</h1>
+                <p className="text-sm text-text-secondary">{consultation.doctorSpecialty}</p>
+            </div>
             
-            <main className="flex-grow flex flex-col md:flex-row bg-background">
-                {/* Video Feed Simulation */}
-                <div className="w-full md:w-2/3 bg-black flex flex-col items-center justify-center relative p-2">
-                    <div className="w-full aspect-video bg-gray-900 rounded-lg flex items-center justify-center text-white relative overflow-hidden">
-                        <img src={`https://i.pravatar.cc/400?u=${consultation.doctorId}`} alt="Doctor" className="w-full h-full object-cover"/>
-                        <div className="absolute bottom-2 left-2 bg-black/50 p-2 rounded">
-                            <p className="font-semibold">{consultation.doctorName}</p>
-                            <p className="text-xs">{consultation.doctorSpecialty}</p>
+            <div className="flex flex-col md:flex-row gap-4">
+                {/* Video Call Section */}
+                <div className="md:w-2/3 flex flex-col">
+                    <div className="relative w-full aspect-video bg-black rounded-lg flex items-center justify-center">
+                        <p className="text-white">Simulasi Panggilan Video...</p>
+                        <div className="absolute bottom-4 right-4 w-32 h-24 bg-surface rounded-md border-2 border-border-color">
+                             <p className="text-xs text-center p-2">Anda</p>
                         </div>
                     </div>
-                     <div className="absolute bottom-4 right-4 w-24 h-32 bg-gray-800 border-2 border-border-color rounded-lg overflow-hidden">
-                        <img src={`https://i.pravatar.cc/150?u=${consultation.userId}`} alt="You" className="w-full h-full object-cover"/>
-                     </div>
-
-                    {consultation.status === 'Scheduled' && (
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-4 bg-black/50 p-3 rounded-full">
-                            <button onClick={handleEndConsultation} disabled={isEnding} className="p-3 bg-red-600 rounded-full">
-                                {isEnding ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <PhoneIcon className="h-6 w-6 text-white" />}
+                    {!isCompleted && (
+                        <div className="flex justify-center space-x-4 mt-4">
+                            <button className="p-3 bg-red-500 text-white rounded-full">
+                                <PhoneIcon className="h-6 w-6" />
                             </button>
                         </div>
                     )}
                 </div>
 
-                {/* Info Panel */}
-                <div className="w-full md:w-1/3 bg-surface p-4 border-l border-border-color overflow-y-auto">
-                    {consultation.status === 'Completed' ? (
-                        <div>
-                            <h2 className="text-xl font-bold text-primary mb-4 flex items-center">
-                                <DocumentTextIcon className="h-6 w-6 mr-2"/>
-                                Ringkasan & Resep
-                            </h2>
-                            <div className="bg-surface-light p-4 rounded-lg space-y-2">
-                                <h3 className="font-bold">Catatan Dokter</h3>
-                                <p className="text-sm text-text-secondary">{consultation.notes || "Tidak ada catatan."}</p>
-                                <h3 className="font-bold pt-2 border-t border-border-color">Resep</h3>
-                                {eprescription ? (
-                                    <div className="space-y-2">
-                                        {eprescription.items.map((item, index) => (
-                                            <div key={index} className="text-sm">
-                                                <p className="font-semibold text-text-primary">{item.drugName} - {item.dosage}</p>
-                                                <p className="text-xs text-text-secondary">{item.instructions}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-text-secondary whitespace-pre-wrap">{consultation.prescription || "Tidak ada resep."}</p>
-                                )}
+                {/* Chat & Notes Section */}
+                <div className="md:w-1/3 border border-border-color rounded-lg flex flex-col h-96">
+                     <div className="flex-grow p-4 overflow-y-auto space-y-3">
+                        {messages.map((msg, index) => (
+                            <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-xs p-2 rounded-lg ${msg.sender === 'user' ? 'bg-primary text-black' : 'bg-surface-light'}`}>
+                                    <p className="text-sm">{msg.text}</p>
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div>
-                            <h2 className="text-xl font-bold text-primary mb-4 flex items-center">
-                                <ChatBubbleLeftRightIcon className="h-6 w-6 mr-2"/>
-                                Obrolan
-                            </h2>
-                            <div className="h-64 bg-surface-light rounded-lg p-2 flex flex-col items-center justify-center text-text-secondary">
-                                <p>Fitur obrolan segera hadir.</p>
-                            </div>
+                        ))}
+                        <div ref={messagesEndRef} />
+                    </div>
+                    {!isCompleted && (
+                        <div className="p-4 border-t border-border-color flex items-center space-x-2">
+                             <input
+                                type="text"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                                placeholder="Ketik pesan..."
+                                className="w-full bg-surface-light border border-border-color rounded-full py-2 px-4"
+                            />
+                            <button onClick={handleSend} className="p-2 btn-secondary rounded-full">
+                                <PaperAirplaneIcon className="h-5 w-5" />
+                            </button>
                         </div>
                     )}
                 </div>
-            </main>
+            </div>
         </div>
     );
 };
