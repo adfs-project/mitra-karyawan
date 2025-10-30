@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCartIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
-import { useMarketplace } from '../../contexts/MarketplaceContext';
+import { useMarketplace } from '../../hooks/useMarketplace';
 import { useApp } from '../../contexts/AppContext';
 
 const CartScreen: React.FC = () => {

@@ -1,9 +1,7 @@
 import React, { useMemo } from 'react';
-// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
-import { useCore } from '../../contexts/DataContext';
+import { useApp } from '../../contexts/AppContext';
 import { UsersIcon, BanknotesIcon, ShoppingCartIcon, ArrowTrendingUpIcon, CursorArrowRaysIcon, SparklesIcon } from '@heroicons/react/24/outline';
-// FIX: Import useMarketplace to access marketplace-specific data.
-import { useMarketplace } from '../../contexts/MarketplaceContext';
+import { useMarketplace } from '../../hooks/useMarketplace';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType }> = ({ title, value, icon: Icon }) => (
     <div className="bg-surface p-6 rounded-lg border border-border-color">
@@ -20,8 +18,7 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.El
 );
 
 const EngagementAnalyticsDashboard: React.FC = () => {
-    // FIX: Get products data from useMarketplace hook.
-    const { engagementAnalytics, articles, assistantLogs } = useCore();
+    const { engagementAnalytics, articles, assistantLogs } = useApp();
     const { products } = useMarketplace();
 
     const getMostClickedItem = (clicks: Record<string, number>) => {
@@ -65,8 +62,7 @@ const EngagementAnalyticsDashboard: React.FC = () => {
 
 
 const AdminDashboard: React.FC = () => {
-    // FIX: Get orders data from useMarketplace hook.
-    const { users, transactions, adminWallets } = useCore();
+    const { users, transactions, adminWallets } = useApp();
     const { orders } = useMarketplace();
 
     const totalUsers = users.length;

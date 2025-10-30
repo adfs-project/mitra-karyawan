@@ -1,5 +1,6 @@
 import React from 'react';
-import { useCore } from '../../contexts/DataContext';
+// FIX: Replaced useCore with useApp as DataContext is deprecated.
+import { useApp } from '../../contexts/AppContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { BookmarkIcon } from '@heroicons/react/24/outline';
@@ -8,7 +9,7 @@ import ArticleCard from '../../components/user/news/ArticleCard';
 
 const BookmarkedArticlesScreen: React.FC = () => {
     const { user } = useAuth();
-    const { articles } = useCore();
+    const { articles } = useApp();
 
     const bookmarkedArticles = articles.filter(a => user?.bookmarkedArticles.includes(a.id));
 

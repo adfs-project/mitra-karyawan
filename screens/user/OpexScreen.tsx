@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, CreditCardIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { OpexRequest, OpexRequestStatus } from '../../types';
-import { useHR } from '../../contexts/HRContext';
+import { useHR } from '../../hooks/useHR';
 
 const getStatusChip = (status: OpexRequestStatus) => {
     switch (status) {

@@ -1,7 +1,8 @@
 
 
 import React, { useState, useMemo } from 'react';
-import { useCore } from '../../contexts/DataContext';
+// FIX: Replaced useCore with useApp as DataContext is deprecated.
+import { useApp } from '../../contexts/AppContext';
 import { Article } from '../../types';
 import ArticleCard from '../../components/user/news/ArticleCard';
 import CommentModal from '../../components/user/news/CommentModal';
@@ -11,7 +12,7 @@ import { SparklesIcon, GlobeAltIcon } from '@heroicons/react/24/solid';
 type Tab = 'For You' | 'Global';
 
 const InfoNewsScreen: React.FC = () => {
-    const { articles } = useCore();
+    const { articles } = useApp();
     const [activeTab, setActiveTab] = useState<Tab>('For You');
     const [isCommentModalOpen, setCommentModalOpen] = useState(false);
     const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);

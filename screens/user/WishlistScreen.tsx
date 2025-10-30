@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { HeartIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
-import { useMarketplace } from '../../contexts/MarketplaceContext';
+import { useMarketplace } from '../../hooks/useMarketplace';
 
 const WishlistScreen: React.FC = () => {
     const { user } = useAuth();

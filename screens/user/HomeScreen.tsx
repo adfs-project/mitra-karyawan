@@ -3,13 +3,12 @@ import PersonalizedGreeting from '../../components/user/PersonalizedGreeting';
 import SmartAssistant from '../../components/user/SmartAssistant';
 import ForYouWidget from '../../components/user/ForYouWidget';
 import CompactArticleCard from '../../components/user/news/CompactArticleCard';
-import { useCore } from '../../contexts/DataContext';
 import { useApp } from '../../contexts/AppContext';
 import { BuildingStorefrontIcon, CurrencyDollarIcon, HeartIcon, NewspaperIcon, ClockIcon, Squares2X2Icon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import AttendanceCameraModal from '../../components/user/AttendanceCameraModal';
-import { useHR } from '../../contexts/HRContext';
+import { useHR } from '../../hooks/useHR';
 
 
 const QuickAccess: React.FC = () => {
@@ -134,7 +133,7 @@ const AttendanceCard: React.FC = () => {
 
 
 const HomeScreen: React.FC = () => {
-    const { articles } = useCore();
+    const { articles } = useApp();
 
     const latestNews = articles
         .filter(a => a.status === 'Published')

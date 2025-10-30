@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
-import { useCore } from '../../contexts/DataContext';
+// FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
+import { useApp } from '../../contexts/AppContext';
 import { BanknotesIcon, Cog6ToothIcon } from '@heroicons/react/24/solid';
 
 const StatCard: React.FC<{ title: string; value: string | number; }> = ({ title, value }) => (
@@ -11,7 +11,7 @@ const StatCard: React.FC<{ title: string; value: string | number; }> = ({ title,
 );
 
 const AdminMonetizationEngine: React.FC = () => {
-    const { monetizationConfig, updateMonetizationConfig, articles, transactions } = useCore();
+    const { monetizationConfig, updateMonetizationConfig, articles, transactions } = useApp();
     const [config, setConfig] = useState(monetizationConfig);
     const [isSaving, setIsSaving] = useState(false);
     const [saved, setSaved] = useState(false);

@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useCore } from '../../../contexts/DataContext';
+// FIX: Replaced useCore with useApp as DataContext is deprecated.
+import { useApp } from '../../../contexts/AppContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const TransferModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
     const { user } = useAuth();
-    const { addTransaction, users, addNotification } = useCore();
+    const { addTransaction, users, addNotification } = useApp();
     const [amount, setAmount] = useState(0);
     const [recipientEmail, setRecipientEmail] = useState('');
     const [note, setNote] = useState('');

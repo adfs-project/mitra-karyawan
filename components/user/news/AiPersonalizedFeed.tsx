@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useCore } from '../../../contexts/DataContext';
+// FIX: Replaced useCore with useApp as DataContext is deprecated.
+import { useApp } from '../../../contexts/AppContext';
 import { usePersonalization } from '../../../contexts/PersonalizationContext';
 import { Article } from '../../../types';
 import ArticleCard from './ArticleCard';
@@ -8,7 +9,7 @@ import { SparklesIcon } from '@heroicons/react/24/solid';
 
 const AiPersonalizedFeed: React.FC<{ onOpenComments: (article: Article) => void }> = ({ onOpenComments }) => {
     const { user } = useAuth();
-    const { articles } = useCore();
+    const { articles } = useApp();
     const { interestProfiles } = usePersonalization();
 
     const personalizedFeed = useMemo(() => {

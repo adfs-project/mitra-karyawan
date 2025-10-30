@@ -6,7 +6,7 @@ import { MagnifyingGlassIcon, FunnelIcon, SparklesIcon } from '@heroicons/react/
 import AiRecommendations from '../../components/user/market/AiRecommendations';
 import { usePersonalization } from '../../contexts/PersonalizationContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { useMarketplace } from '../../contexts/MarketplaceContext';
+import { useMarketplace } from '../../hooks/useMarketplace';
 
 const AiPoweredRecommendations: React.FC = () => {
     const { user } = useAuth();

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
-import { useCore } from '../../contexts/DataContext';
+// FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
+import { useApp } from '../../contexts/AppContext';
 import { Transaction } from '../../types';
 import { ShieldExclamationIcon } from '@heroicons/react/24/outline';
 import AnomalyDetectionWidget from '../../components/admin/financial/AnomalyDetectionWidget';
@@ -15,7 +15,7 @@ import SankeyDiagram from '../../components/admin/financial/SankeyDiagram';
 type Tab = 'Overview' | 'Financial Flow' | 'Disputes' | 'Risk Management' | 'Business Intelligence';
 
 const AdminFinancialHub: React.FC = () => {
-    const { transactions, reverseTransaction, disputes, resolveDispute } = useCore();
+    const { transactions, reverseTransaction, disputes, resolveDispute } = useApp();
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<Tab>('Overview');
     const [reversingTxId, setReversingTxId] = useState<string | null>(null);

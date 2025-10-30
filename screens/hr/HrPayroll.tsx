@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
-import { useCore } from '../../contexts/DataContext';
+import { useApp } from '../../contexts/AppContext';
 import { User } from '../../types';
 import { BanknotesIcon, DocumentTextIcon, PrinterIcon } from '@heroicons/react/24/solid';
 
@@ -100,7 +99,7 @@ const PayslipView: React.FC<{ employee: User; period: string, payrollData: any }
 
 const HrPayroll: React.FC = () => {
     const { user: hrUser } = useAuth();
-    const { users, generatePayslipData } = useCore();
+    const { users, generatePayslipData } = useApp();
     const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
 
     const branchEmployees = useMemo(() => {

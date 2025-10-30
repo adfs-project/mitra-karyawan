@@ -2,13 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
-import { CoreProvider } from './contexts/DataContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import RecoveryUI from './components/common/RecoveryUI';
-import { MarketplaceProvider } from './contexts/MarketplaceContext';
-import { HealthProvider } from './contexts/HealthContext';
-import { HRProvider } from './contexts/HRContext';
 import { AppProvider } from './contexts/AppContext';
 
 // Application version, reads from build environment or falls back to a hardcoded value.
@@ -33,15 +29,7 @@ if (crashCount > 2) {
                 <ThemeProvider>
                     <AuthProvider>
                         <AppProvider>
-                            <CoreProvider>
-                                <HRProvider>
-                                    <HealthProvider>
-                                        <MarketplaceProvider>
-                                            <App />
-                                        </MarketplaceProvider>
-                                    </HealthProvider>
-                                </HRProvider>
-                            </CoreProvider>
+                            <App />
                         </AppProvider>
                     </AuthProvider>
                 </ThemeProvider>

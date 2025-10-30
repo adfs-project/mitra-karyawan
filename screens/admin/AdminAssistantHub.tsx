@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
-// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
-import { useCore } from '../../contexts/DataContext';
+// FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
+import { useApp } from '../../contexts/AppContext';
 import { ChatBubbleLeftRightIcon, ChartPieIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
 
 const AdminAssistantHub: React.FC = () => {
-    const { assistantLogs } = useCore();
+    const { assistantLogs } = useApp();
 
     const intentAnalytics = useMemo(() => {
         const intentCounts = assistantLogs.reduce((acc: Record<string, number>, log) => {
@@ -13,8 +13,8 @@ const AdminAssistantHub: React.FC = () => {
         }, {});
 
         return Object.entries(intentCounts)
-            // FIX: Explicitly name destructured variables in sort to avoid type inference issues.
-            .sort(([, countA], [, countB]) => countB - countA)
+            // FIX: Explicitly use array indices in sort to avoid type inference issues with destructuring.
+            .sort((a, b) => b[1] - a[1])
             .map(([intent, count]) => ({ intent, count }));
     }, [assistantLogs]);
 

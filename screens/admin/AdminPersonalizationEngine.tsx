@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
-import { useCore } from '../../contexts/DataContext';
+// FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
+import { useApp } from '../../contexts/AppContext';
 import { PersonalizationRule, PersonalizationCondition, ConditionField, ConditionOperator, ActionType, Role } from '../../types';
 import { PlusIcon, PencilIcon, TrashIcon, SparklesIcon, XMarkIcon, LockClosedIcon } from '@heroicons/react/24/solid';
-// FIX: Import useMarketplace to get products data.
-import { useMarketplace } from '../../contexts/MarketplaceContext';
+// FIX: Import useMarketplace from hooks directory.
+import { useMarketplace } from '../../hooks/useMarketplace';
 
 const emptyRule: Omit<PersonalizationRule, 'id'> = {
     name: '',
@@ -20,7 +20,7 @@ const RuleModal: React.FC<{
     initialRule: Omit<PersonalizationRule, 'id'> | PersonalizationRule | null;
 }> = ({ isOpen, onClose, onSave, initialRule }) => {
     // FIX: Get products data from useMarketplace hook.
-    const { articles, users } = useCore();
+    const { articles, users } = useApp();
     const { products } = useMarketplace();
     const [rule, setRule] = useState(initialRule || emptyRule);
 
@@ -145,7 +145,7 @@ const RuleModal: React.FC<{
 };
 
 const AdminPersonalizationEngine: React.FC = () => {
-    const { personalizationRules, addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule } = useCore();
+    const { personalizationRules, addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule } = useApp();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRule, setEditingRule] = useState<PersonalizationRule | null>(null);
 

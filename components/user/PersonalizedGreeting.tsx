@@ -1,10 +1,11 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useCore } from '../../contexts/DataContext';
+// FIX: Replaced useCore with useApp as DataContext is deprecated.
+import { useApp } from '../../contexts/AppContext';
 
 const PersonalizedGreeting: React.FC = () => {
     const { user } = useAuth();
-    const { notifications } = useCore();
+    const { notifications } = useApp();
 
     const getGreeting = () => {
         const hour = new Date().getHours();

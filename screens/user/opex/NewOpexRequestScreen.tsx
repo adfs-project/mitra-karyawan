@@ -4,7 +4,7 @@ import { useApp } from '../../../contexts/AppContext';
 import { ArrowLeftIcon, CameraIcon } from '@heroicons/react/24/solid';
 import { OpexRequestType, Coordinates } from '../../../types';
 import AttendanceCameraModal from '../../../components/user/AttendanceCameraModal';
-import { useHR } from '../../../contexts/HRContext';
+import { useHR } from '../../../hooks/useHR';
 
 const opexTypes: OpexRequestType[] = ['Bensin', 'Token Listrik', 'Beli Barang', 'Fotocopy', 'Parkir', 'Tiket Pesawat/Kereta', 'Booking Hotel', 'Biaya Makan Perjalanan Dinas'];
 

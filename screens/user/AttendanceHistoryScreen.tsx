@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, ClipboardDocumentListIcon, CameraIcon } from '@heroicons/react/24/solid';
 import LocationName from '../../components/common/LocationName';
 import PhotoViewerModal from '../../components/common/PhotoViewerModal';
-import { useHR } from '../../contexts/HRContext';
+import { useHR } from '../../hooks/useHR';
 
 const AttendanceHistoryScreen: React.FC = () => {
     const { user } = useAuth();

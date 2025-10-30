@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Product } from '../../types';
 import { BuildingStorefrontIcon, PlusIcon, PencilIcon, TrashIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import ProductFormModal from '../../components/user/market/ProductFormModal';
-import { useMarketplace } from '../../contexts/MarketplaceContext';
+import { useMarketplace } from '../../hooks/useMarketplace';
 
 const MyProductsStoreScreen: React.FC = () => {
     const { user } = useAuth();

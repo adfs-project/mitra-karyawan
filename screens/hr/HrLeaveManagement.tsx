@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
-import { useHR } from '../../contexts/HRContext';
+import { useHR } from '../../hooks/useHR';
 
 const HrLeaveManagement: React.FC = () => {
     const { user } = useAuth();

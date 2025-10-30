@@ -1,10 +1,11 @@
 
 
 import React, { useState } from 'react';
-import { useCore } from '../../contexts/DataContext';
+// FIX: Replaced useCore with useApp as DataContext is deprecated.
+import { useApp } from '../../contexts/AppContext';
 
 const DeactivatedAccountScreen: React.FC = () => {
-    const { addNotification } = useCore();
+    const { addNotification } = useApp();
     const [email, setEmail] = useState('');
     const [whatsapp, setWhatsapp] = useState('');
     const [submitted, setSubmitted] = useState(false);

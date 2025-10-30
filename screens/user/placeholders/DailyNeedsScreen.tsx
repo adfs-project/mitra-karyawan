@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-// FIX: Import useMarketplace to get marketplace data and actions.
-import { useMarketplace } from '../../../contexts/MarketplaceContext';
+// FIX: Import useMarketplace from hooks directory.
+import { useMarketplace } from '../../../hooks/useMarketplace';
 import { ArrowLeftIcon, MagnifyingGlassIcon, ShoppingCartIcon, ClockIcon } from '@heroicons/react/24/solid';
 import { Product } from '../../../types';
 
@@ -60,45 +60,4 @@ const DailyNeedsScreen = () => {
                         className="w-full p-3 pl-10 bg-surface border border-border-color rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                 </div>
-                <div className="flex space-x-2 overflow-x-auto pb-2">
-                    {categories.map(cat => (
-                        <button 
-                            key={cat} 
-                            onClick={() => setSelectedCategory(cat)}
-                            className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap ${selectedCategory === cat ? 'bg-primary text-black' : 'bg-surface-light text-text-secondary'}`}
-                        >
-                            {cat}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            <div className="space-y-3">
-                {filteredProducts.map(product => (
-                    <div key={product.id} className="bg-surface p-3 rounded-lg flex items-center space-x-4 border border-border-color">
-                        <img src={product.imageUrl} alt={product.name} className="w-16 h-16 rounded-md object-cover flex-shrink-0" />
-                        <div className="flex-grow">
-                            <p className="font-semibold text-text-primary">{product.name}</p>
-                            <p className="font-bold text-primary">{formatCurrency(product.price)}</p>
-                        </div>
-                        <button 
-                            onClick={() => addToCart(product.id, 1)} 
-                            className="btn-primary p-3 rounded-full hover:scale-110 transition-transform"
-                            aria-label={`Tambah ${product.name} ke keranjang`}
-                        >
-                            <ShoppingCartIcon className="h-5 w-5" />
-                        </button>
-                    </div>
-                ))}
-                {filteredProducts.length === 0 && (
-                    <div className="text-center py-12">
-                        <MagnifyingGlassIcon className="h-16 w-16 mx-auto text-text-secondary opacity-50"/>
-                        <p className="mt-4 text-text-secondary">Produk tidak ditemukan.</p>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-export default DailyNeedsScreen;
+                <div className="flex space-x-2 overflow-

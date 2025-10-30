@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
-import { useCore } from '../../contexts/DataContext';
+// FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
+import { useApp } from '../../contexts/AppContext';
 import { ScalabilityService, ScalabilityServiceStatus } from '../../types';
 import { GlobeAltIcon, ServerIcon, CircleStackIcon, BoltIcon, QueueListIcon, DocumentDuplicateIcon, WifiIcon, CloudIcon } from '@heroicons/react/24/solid';
 import { provisionService } from '../../services/orchestratorService';
@@ -203,7 +203,7 @@ const OrchestrationCard: React.FC<{
 };
 
 const AdminScalability: React.FC = () => {
-    const { scalabilityServices, updateScalabilityService } = useCore();
+    const { scalabilityServices, updateScalabilityService } = useApp();
     const [isCloudConnected, setIsCloudConnected] = useState(false);
     const [isConnecting, setIsConnecting] = useState(false);
 

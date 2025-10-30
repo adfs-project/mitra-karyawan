@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
-// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
-import { useCore } from '../../contexts/DataContext';
+// FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
+import { useApp } from '../../contexts/AppContext';
 import { Product } from '../../types';
 import { ShoppingCartIcon, BanknotesIcon, ShieldExclamationIcon, LockClosedIcon, TrashIcon, PlusIcon, PencilIcon, ArrowUpTrayIcon } from '@heroicons/react/24/solid';
 import ProductFormModal from '../../components/user/market/ProductFormModal';
 import BulkUploadProductsModal from '../../components/admin/market/BulkUploadProductsModal';
-import { useMarketplace } from '../../contexts/MarketplaceContext';
+// FIX: Import useMarketplace from hooks directory.
+import { useMarketplace } from '../../hooks/useMarketplace';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType }> = ({ title, value, icon: Icon }) => (
     <div className="bg-surface p-6 rounded-lg border border-border-color">
@@ -22,7 +23,7 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.El
 );
 
 const AdminMarketplaceOversight: React.FC = () => {
-    const { transactions, disputes } = useCore();
+    const { transactions, disputes } = useApp();
     const { products, deleteProduct, addProduct, updateProduct } = useMarketplace();
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);

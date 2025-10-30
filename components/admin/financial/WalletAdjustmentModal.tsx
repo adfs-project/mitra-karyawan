@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '../../../types';
-// FIX: Replaced useData with useCore as it is the correct exported member from DataContext.
-import { useCore } from '../../../contexts/DataContext';
+// FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
+import { useApp } from '../../../contexts/AppContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const WalletAdjustmentModal: React.FC<{
@@ -9,7 +9,7 @@ const WalletAdjustmentModal: React.FC<{
     onClose: () => void;
     user: User | null;
 }> = ({ isOpen, onClose, user }) => {
-    const { adjustUserWallet, freezeUserWallet } = useCore();
+    const { adjustUserWallet, freezeUserWallet } = useApp();
     const [amount, setAmount] = useState(0);
     const [reason, setReason] = useState('');
     const [isFrozen, setIsFrozen] = useState(user?.wallet.isFrozen || false);

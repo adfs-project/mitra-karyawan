@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useCore } from '../../contexts/DataContext';
+import { useApp } from '../../contexts/AppContext';
 import { SparklesIcon } from '@heroicons/react/24/solid';
 // FIX: Import ArrowDownCircleIcon from heroicons and remove dummy component.
 import { FunnelIcon, ArrowUpCircleIcon, ArrowsRightLeftIcon, ArrowDownCircleIcon } from '@heroicons/react/24/outline';
@@ -30,7 +30,7 @@ const getTransactionIcon = (type: Transaction['type']) => {
 
 const WalletScreen: React.FC = () => {
     const { user } = useAuth();
-    const { transactions } = useCore();
+    const { transactions } = useApp();
     
     const [activeTab, setActiveTab] = useState<Tab>('Analitik');
     const [filterType, setFilterType] = useState<TransactionType>('All');
