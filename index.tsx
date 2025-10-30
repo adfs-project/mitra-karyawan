@@ -11,6 +11,10 @@ import { HealthProvider } from './contexts/HealthContext';
 import { HRProvider } from './contexts/HRContext';
 import { AppProvider } from './contexts/AppContext';
 
+// Application version, reads from build environment or falls back to a hardcoded value.
+const APP_VERSION = (import.meta as any)?.env?.VITE_APP_VERSION || '1.5.2';
+console.log(`Mitra Karyawan App Version: ${APP_VERSION}`);
+
 // Crash loop detection logic
 // App.tsx will clear this on successful mount.
 // If App crashes before mounting, this counter will persist and increment on reload.
