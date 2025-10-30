@@ -117,14 +117,19 @@ const HealthRecordScreen: React.FC = () => {
                                 </div>
                                 <div className="flex items-center space-x-2">
                                      <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-primary hover:underline">Lihat</a>
-                                     <button 
-                                        onClick={() => handleDelete(doc.id)} 
-                                        disabled={true} 
-                                        className="p-1 text-gray-500 cursor-not-allowed"
+                                     <span
+                                        onClick={() => handleDelete(doc.id)}
                                         title="Penghapusan dinonaktifkan secara permanen oleh sistem."
+                                        className="cursor-pointer"
                                      >
-                                        <LockClosedIcon className="h-5 w-5"/>
-                                     </button>
+                                         <button 
+                                            disabled={true} 
+                                            className="p-1 text-gray-500 cursor-not-allowed"
+                                            aria-label="Delete is disabled"
+                                         >
+                                            <LockClosedIcon className="h-5 w-5"/>
+                                         </button>
+                                     </span>
                                 </div>
                             </div>
                         ))}

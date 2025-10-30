@@ -74,9 +74,19 @@ export const HealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         if (!txResult.success) return { success: false, message: 'Payment failed.' };
 
         const pph21Amount = doctor.consultationFee * taxConfig.pph21Rate;
+        const netDoctorFee = doctor.consultationFee - pph21Amount;
         
-        vaultService.setData('adminWallets', { ...adminWallets, tax: adminWallets.tax + pph21Amount });
+        // Update admin wallets for tax and cash outflow for doctor payment
+        const currentWallets = vaultService.getSanitizedData().adminWallets;
+        vaultService.setData('adminWallets', {
+            ...currentWallets,
+            tax: currentWallets.tax + pph21Amount,
+            cash: currentWallets.cash - netDoctorFee, // Simulate paying the doctor from cash reserves
+        });
+        
+        // Create transaction records for tax and doctor payment
         await addTransaction({ userId: 'admin-001', type: 'Tax', amount: pph21Amount, description: `Potongan PPh 21 ${taxConfig.pph21Rate * 100}% untuk ${doctor.name}`, status: 'Completed' });
+        await addTransaction({ userId: 'admin-001', type: 'Internal Transfer', amount: -netDoctorFee, description: `Pembayaran honorarium untuk ${doctor.name}`, status: 'Completed' });
 
         const newConsultation: Consultation = { id: `consult-${Date.now()}`, userId: user.id, userName: user.profile.name, doctorId: doctor.id, doctorName: doctor.name, doctorSpecialty: doctor.specialty, scheduledTime: new Date().toISOString(), status: 'Scheduled' };
         updateState('consultations', [...healthData.consultations, newConsultation]);
@@ -92,7 +102,7 @@ export const HealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         let eprescriptionId: string | undefined = undefined;
         let prescriptionText = "Tidak ada resep.";
 
-        if (prescriptionItems && prescriptionItems.length > 0 && prescriptionItems.some(p => p.drugName)) {
+        if (prescriptionItems && prescriptionItems.length > 0 && prescriptionItems.some(p => p.drugName && !p.drugName.startsWith('['))) {
             const newEprescription: Eprescription = { id: `epres-${Date.now()}`, consultationId, patientId: consultation.userId, doctorId: consultation.doctorId, doctorName: consultation.doctorName, issueDate: new Date().toISOString(), items: prescriptionItems, status: 'New' };
             updateState('eprescriptions', [...healthData.eprescriptions, newEprescription]);
             eprescriptionId = newEprescription.id;
@@ -111,11 +121,25 @@ export const HealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         if (!user || !prescription) return { success: false, message: "Resep tidak ditemukan." };
         if (user.wallet.balance < totalCost) return { success: false, message: "Saldo tidak cukup." };
         const txResult = await addTransaction({ userId: user.id, type: 'Obat & Resep', amount: -totalCost, description: `Pembelian obat dari resep #${eprescriptionId.slice(-6)}`, status: 'Completed' });
+        
         if (txResult.success) {
             updateState('eprescriptions', healthData.eprescriptions.map(e => e.id === eprescriptionId ? { ...e, status: 'Redeemed' } : e));
             
             const commission = totalCost * 0.03; // 3% commission for pharmacy
-            vaultService.setData('adminWallets', { ...adminWallets, profit: adminWallets.profit + commission });
+            const supplierCost = totalCost - commission;
+            
+            // Update admin wallets for profit and cash outflow to supplier
+            const currentWallets = vaultService.getSanitizedData().adminWallets;
+            vaultService.setData('adminWallets', {
+                ...currentWallets,
+                profit: currentWallets.profit + commission,
+                cash: currentWallets.cash - supplierCost, // Simulate paying the supplier
+            });
+            
+            // Create transaction records for commission and supplier payment
+            await addTransaction({ userId: 'admin-001', type: 'Commission', amount: commission, description: `Komisi apotek untuk resep #${eprescriptionId.slice(-6)}`, status: 'Completed' });
+            await addTransaction({ userId: 'admin-001', type: 'Operational Expense', amount: -supplierCost, description: `Pembayaran ke pemasok apotek untuk resep #${eprescriptionId.slice(-6)}`, status: 'Completed' });
+
             return { success: true, message: "Pembayaran berhasil!" };
         } else {
             return { success: false, message: "Gagal memproses pembayaran." };
@@ -179,7 +203,8 @@ export const HealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         const claim = healthData.insuranceClaims.find(c => c.id === claimId);
         if (!claim) { showToast("Claim not found.", "error"); return; }
         
-        vaultService.setData('adminWallets', { ...adminWallets, cash: adminWallets.cash - claim.amount });
+        const currentWallets = vaultService.getSanitizedData().adminWallets;
+        vaultService.setData('adminWallets', { ...currentWallets, cash: currentWallets.cash - claim.amount });
         const txResult = await addTransaction({ userId: claim.userId, type: 'Insurance Claim', amount: claim.amount, description: `Reimbursement for ${claim.type} claim`, status: 'Completed' });
 
         if (txResult.success) {
@@ -187,7 +212,8 @@ export const HealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             addNotification(claim.userId, `Your insurance claim for ${claim.type} amounting to ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(claim.amount)} has been approved.`, 'success');
             showToast("Claim approved and funds disbursed.", "success");
         } else {
-            vaultService.setData('adminWallets', { ...adminWallets, cash: adminWallets.cash + claim.amount }); // Revert cash
+            const revertedWallets = vaultService.getSanitizedData().adminWallets;
+            vaultService.setData('adminWallets', { ...revertedWallets, cash: revertedWallets.cash + claim.amount }); // Revert cash
             showToast("Failed to disburse funds. Please check user wallet.", "error");
         }
     };
