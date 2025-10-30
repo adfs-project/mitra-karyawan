@@ -57,7 +57,6 @@ type AppData = {
     attendanceRecords: AttendanceRecord[];
     serviceLinkage: ServiceLinkageMap;
     isAiGuardrailDisabled: boolean;
-    // FIX: Add opexRequests to AppData type
     opexRequests: OpexRequest[];
 };
 
@@ -133,7 +132,6 @@ class VaultService {
             attendanceRecords: this._deobfuscate<AttendanceRecord[]>('app_attendance_records', initialAttendanceRecords),
             serviceLinkage: this._deobfuscate<ServiceLinkageMap>('app_service_linkage', {}),
             isAiGuardrailDisabled: this._deobfuscate<boolean>('app_ai_guardrail_disabled', false),
-            // FIX: Load opexRequests from storage or initial data.
             opexRequests: this._deobfuscate<OpexRequest[]>('app_opex_requests', initialOpexRequests),
         };
     }

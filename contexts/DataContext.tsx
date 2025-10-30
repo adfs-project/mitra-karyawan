@@ -53,7 +53,6 @@ interface DataContextType {
     serviceLinkage: ServiceLinkageMap;
     isAiGuardrailDisabled: boolean;
     toasts: Toast[];
-    // FIX: Add missing properties for OPEX management.
     opexRequests: OpexRequest[];
 
     // --- Methods ---
@@ -104,7 +103,7 @@ interface DataContextType {
     createHealthChallenge: (challenge: Omit<HealthChallenge, 'id' | 'creator' | 'participants'>) => Promise<void>;
     approveInsuranceClaim: (claimId: string) => Promise<void>;
     rejectInsuranceClaim: (claimId: string) => Promise<void>;
-    // FIX: Add missing properties for OPEX management.
+    submitOpexRequest: (requestData: Omit<OpexRequest, 'id' | 'userId' | 'userName' | 'branch' | 'status' | 'timestamp' | 'resolvedBy' | 'resolvedTimestamp'>) => Promise<void>;
     approveOpexRequest: (id: string) => Promise<void>;
     rejectOpexRequest: (id: string) => Promise<void>;
 
@@ -657,7 +656,26 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         showToast("Claim has been rejected.", "success");
     };
 
-    // FIX: Add approveOpexRequest and rejectOpexRequest implementations.
+    const submitOpexRequest = async (requestData: Omit<OpexRequest, 'id' | 'userId' | 'userName' | 'branch' | 'status' | 'timestamp' | 'resolvedBy' | 'resolvedTimestamp'>) => {
+        if (!user) return;
+        const newRequest: OpexRequest = {
+            ...requestData,
+            id: `opex-${Date.now()}`,
+            userId: user.id,
+            userName: user.profile.name,
+            branch: user.profile.branch || 'N/A',
+            status: 'Pending',
+            timestamp: new Date().toISOString(),
+        };
+        updateState('opexRequests', [...appData.opexRequests, newRequest]);
+        showToast('Opex request submitted.', 'success');
+    
+        const hrUser = appData.users.find(u => u.role === Role.HR && u.profile.branch === user.profile.branch);
+        if (hrUser) {
+            addNotification(hrUser.id, `${user.profile.name} submitted a new Opex request.`, 'info');
+        }
+    };
+    
     const approveOpexRequest = async (id: string) => {
         const request = appData.opexRequests.find(r => r.id === id);
         if (!user || !request) {
@@ -725,38 +743,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         showToast("Scheduled payment deleted.", "success");
     };
     const applyForPayLater = async () => {
-        if (!user) return;
-        const branchHr = appData.users.find(u => u.role === Role.HR && u.profile.branch === user.profile.branch);
-        const recipientId = branchHr ? branchHr.id : 'admin-001';
-        addNotification(recipientId, `${user.profile.name} has applied for PayLater.`, 'info');
-        updateCurrentUser({ ...user, payLater: { status: 'pending', limit: 0, used: 0 } });
-        showToast("Pengajuan PayLater Anda telah terkirim.", "success");
+        showToast("Fitur PayLater dinonaktifkan sementara.", "info");
+        return Promise.resolve();
     };
     const approvePayLater = async (userId: string, limit: number) => {
-        const userToUpdate = appData.users.find(u => u.id === userId);
-        if (!userToUpdate) {
-            showToast("User not found.", "error");
-            return;
-        }
-        const fullUser = vaultService.findUserByEmail(userToUpdate.email)!;
-        fullUser.payLater = { status: 'approved', limit, used: 0 };
-        vaultService.updateUser(fullUser);
-        setAppData(vaultService.getSanitizedData());
-        addNotification(userId, `Congratulations! Your PayLater application has been approved with a limit of ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(limit)}.`, 'success');
-        showToast(`PayLater for ${fullUser.profile.name} has been approved.`, 'success');
+        showToast("Fitur PayLater dinonaktifkan sementara.", 'info');
+        return Promise.resolve();
     };
     const rejectPayLater = async (userId: string) => {
-        const userToUpdate = appData.users.find(u => u.id === userId);
-        if (!userToUpdate) {
-            showToast("User not found.", "error");
-            return;
-        }
-        const fullUser = vaultService.findUserByEmail(userToUpdate.email)!;
-        fullUser.payLater = { status: 'rejected', limit: 0, used: 0 };
-        vaultService.updateUser(fullUser);
-        setAppData(vaultService.getSanitizedData());
-        addNotification(userId, `We regret to inform you that your PayLater application has been rejected at this time.`, 'error');
-        showToast(`PayLater for ${fullUser.profile.name} has been rejected.`, 'success');
+        showToast("Fitur PayLater dinonaktifkan sementara.", 'info');
+        return Promise.resolve();
     };
     const adjustUserWallet = async (userId: string, amount: number, reason: string) => {
         await addTransaction({ userId, type: 'Refund', amount, description: `Adjustment: ${reason}`, status: 'Completed' });
@@ -854,8 +850,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         subscribeToHealthPlus, redeemPrescription,
         submitLeaveRequest, updateLeaveRequestStatus, getBranchMoodAnalytics, createHealthChallenge,
         approveInsuranceClaim, rejectInsuranceClaim,
-        // FIX: Add missing properties for OPEX management to the context value.
-        approveOpexRequest, rejectOpexRequest,
+        submitOpexRequest, approveOpexRequest, rejectOpexRequest,
         addBudget, updateBudget, deleteBudget,
         addScheduledPayment, updateScheduledPayment, deleteScheduledPayment,
         applyForPayLater, approvePayLater, rejectPayLater,
