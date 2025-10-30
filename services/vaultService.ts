@@ -13,7 +13,6 @@ import {
     CartItem, Dispute, ApiIntegration, ScalabilityService, LeaveRequest, Budget, ScheduledPayment,
     MonetizationConfig, TaxConfig, HomePageConfig, AssistantLog, EngagementAnalytics,
     AdminWallets, PersonalizationRule, Order, Eprescription, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap,
-    // FIX: Import IntegrationStatus type
     IntegrationStatus,
     ScalabilityServiceStatus,
     AttendanceRecord,

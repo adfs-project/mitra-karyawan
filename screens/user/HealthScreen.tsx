@@ -1,120 +1,76 @@
 import React, { useState } from 'react';
-import { useHealth } from '../../contexts/HealthContext';
 import { Link } from 'react-router-dom';
-import { BeakerIcon, UserGroupIcon, DocumentTextIcon, ClipboardDocumentListIcon, ShieldCheckIcon, SparklesIcon } from '@heroicons/react/24/solid';
-import SymptomCheckerModal from '../../components/user/health/SymptomCheckerModal';
+import { StethoscopeIcon, ClipboardDocumentListIcon, DocumentTextIcon, ShieldCheckIcon, SparklesIcon, BeakerIcon } from '@heroicons/react/24/solid';
+import { useHealth } from '../../contexts/HealthContext';
+import { Doctor } from '../../types';
 import WellnessHub from '../../components/user/health/WellnessHub';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApp } from '../../contexts/AppContext';
+import SymptomCheckerModal from '../../components/user/health/SymptomCheckerModal';
 
-const DoctorCard: React.FC<{ doctor: import('../../types').Doctor }> = ({ doctor }) => (
-    <div className="bg-surface p-4 rounded-lg border border-border-color flex items-center space-x-4">
-        <img src={doctor.imageUrl} alt={doctor.name} className="w-16 h-16 rounded-full" />
-        <div className="flex-grow">
-            <p className="font-bold text-text-primary">{doctor.name}</p>
-            <p className="text-sm text-primary">{doctor.specialty}</p>
-        </div>
-        <Link to={`/doctor/${doctor.id}`} className="px-3 py-1 bg-primary text-black text-sm font-semibold rounded-full">
-            Lihat
-        </Link>
-    </div>
+const DoctorCard: React.FC<{ doctor: Doctor }> = ({ doctor }) => (
+    <Link to={`/doctor/${doctor.id}`} className="flex-shrink-0 w-40 bg-surface p-4 rounded-lg text-center border border-border-color hover:border-primary transition-colors">
+        <img src={doctor.imageUrl} alt={doctor.name} className="w-20 h-20 rounded-full mx-auto" />
+        <p className="font-bold text-sm mt-2">{doctor.name}</p>
+        <p className="text-xs text-text-secondary">{doctor.specialty}</p>
+    </Link>
 );
-
-const HealthPlusUpsellCard: React.FC = () => {
-    const { user } = useAuth();
-    if (!user) return null;
-
-    const destination = user.isPremium ? "/health-plus" : "/subscribe-health-plus";
-
-    return (
-        <Link to={destination} className="block bg-gradient-to-r from-primary/20 to-secondary/20 p-6 rounded-lg border border-primary/50 hover:border-primary transition-all mb-6">
-            <div className="flex items-center">
-                <SparklesIcon className="h-12 w-12 text-primary mr-4" />
-                <div>
-                    <div className="flex items-center">
-                        <h2 className="text-xl font-bold text-text-primary">Health+ AI Coach</h2>
-                        {!user.isPremium && (
-                             <span className="ml-2 text-xs font-bold bg-secondary text-black px-2 py-0.5 rounded-full">PREMIUM</span>
-                        )}
-                    </div>
-                    <p className="text-sm text-text-secondary">Dapatkan rencana makan, program latihan, dan analisis mood yang dipersonalisasi khusus untuk Anda.</p>
-                </div>
-            </div>
-        </Link>
-    );
-};
-
 
 const HealthScreen: React.FC = () => {
     const { doctors } = useHealth();
-    const { showToast } = useApp();
-    const [isSymptomModalOpen, setSymptomModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'Teleconsultation' | 'Wellness'>('Teleconsultation');
-    
-    const quickAccessButtons = [
-        { name: 'Rekam Medis Saya', icon: DocumentTextIcon, path: '/health-record' },
-        { name: 'Resep Digital Saya', icon: ClipboardDocumentListIcon, path: '/prescriptions' },
-        { name: 'Klaim Asuransi', icon: ShieldCheckIcon, path: '/insurance-claim' },
-    ];
+    const [isSymptomModalOpen, setIsSymptomModalOpen] = useState(false);
 
+    const quickAccessItems = [
+        { name: "Riwayat Konsultasi", icon: ClipboardDocumentListIcon, path: "/my-consultations" },
+        { name: "Resep Digital", icon: DocumentTextIcon, path: "/prescriptions" },
+        { name: "Rekam Medis Saya", icon: DocumentTextIcon, path: "/health-record" },
+        { name: "Klaim Asuransi", icon: ShieldCheckIcon, path: "/insurance-claim" },
+    ];
 
     return (
         <div className="p-4 space-y-6">
-            <h1 className="text-3xl font-bold text-primary">Layanan Kesehatan</h1>
-            
-            <div className="flex border-b border-border-color">
-                <button
-                    onClick={() => setActiveTab('Teleconsultation')}
-                    className={`px-4 py-2 font-semibold ${activeTab === 'Teleconsultation' ? 'text-primary border-b-2 border-primary' : 'text-text-secondary'}`}
-                >
-                    Telekonsultasi
-                </button>
-                 <button
-                    onClick={() => setActiveTab('Wellness')}
-                    className={`px-4 py-2 font-semibold ${activeTab === 'Wellness' ? 'text-primary border-b-2 border-primary' : 'text-text-secondary'}`}
-                >
-                    Kesehatan & Kebugaran
-                </button>
+            <h1 className="text-2xl font-bold text-primary">Kesehatan</h1>
+
+            <div className="bg-blue-500/10 border border-blue-400 text-blue-300 p-4 rounded-lg text-center">
+                <p className="font-bold">Darurat?</p>
+                <p className="text-sm mt-1">Segera hubungi 119 atau kunjungi fasilitas kesehatan terdekat.</p>
             </div>
             
-            {activeTab === 'Teleconsultation' ? (
-                <div className="space-y-4 animate-fade-in">
-                    <div onClick={() => showToast('Fitur AI dinonaktifkan untuk meningkatkan privasi pengguna.', 'info')}>
-                        <button disabled className="w-full flex items-center justify-center p-4 bg-gray-500/20 text-gray-500 rounded-lg font-bold text-lg cursor-not-allowed">
-                            <BeakerIcon className="h-6 w-6 mr-2" />
-                            Cek Gejala dengan AI (Dinonaktifkan)
-                        </button>
+            <div className="bg-surface p-4 rounded-lg">
+                <h3 className="text-lg font-bold flex items-center mb-4">
+                    <StethoscopeIcon className="h-5 w-5 mr-2 text-primary" />
+                    Konsultasi Online
+                </h3>
+                {doctors.length > 0 ? (
+                    <div className="flex overflow-x-auto space-x-4 pb-2">
+                        {doctors.map(doctor => (
+                            <DoctorCard key={doctor.id} doctor={doctor} />
+                        ))}
                     </div>
+                ) : (
+                    <p className="text-center text-sm text-text-secondary py-4">Saat ini belum ada dokter yang tersedia.</p>
+                )}
+            </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                         {quickAccessButtons.map(btn => (
-                             <Link key={btn.path} to={btn.path} className="flex flex-col items-center justify-center p-3 bg-surface-light rounded-lg font-semibold hover:bg-border-color text-center">
-                                <btn.icon className="h-6 w-6 mb-1 text-primary" />
-                                <span className="text-xs">{btn.name}</span>
-                            </Link>
-                         ))}
-                    </div>
-
-                    <div>
-                        <h2 className="text-xl font-bold text-text-primary my-4 flex items-center"><UserGroupIcon className="h-5 w-5 mr-2" /> Temui Dokter Kami</h2>
-                        <div className="space-y-3">
-                            {doctors.map(doctor => (
-                                <DoctorCard key={doctor.id} doctor={doctor} />
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            ) : (
-                <div className="animate-fade-in">
-                    <HealthPlusUpsellCard />
-                    <WellnessHub />
-                </div>
-            )}
+            <div className="grid grid-cols-2 gap-4">
+                {quickAccessItems.map(item => (
+                    <Link key={item.name} to={item.path} className="bg-surface p-4 rounded-lg flex flex-col items-center justify-center text-center">
+                        <item.icon className="h-8 w-8 text-primary mb-2" />
+                        <span className="text-xs font-semibold">{item.name}</span>
+                    </Link>
+                ))}
+            </div>
             
-            <SymptomCheckerModal 
-                isOpen={isSymptomModalOpen}
-                onClose={() => setSymptomModalOpen(false)}
-            />
+            <button 
+                onClick={() => setIsSymptomModalOpen(true)}
+                disabled={true}
+                className="w-full btn-secondary p-3 rounded-lg flex items-center justify-center font-bold space-x-2 disabled:bg-gray-600 disabled:cursor-not-allowed"
+            >
+                <BeakerIcon className="h-6 w-6" />
+                <span>Cek Info Kesehatan (AI Dinonaktifkan)</span>
+            </button>
+
+            <WellnessHub />
+            
+            <SymptomCheckerModal isOpen={isSymptomModalOpen} onClose={() => setIsSymptomModalOpen(false)} />
         </div>
     );
 };

@@ -1,107 +1,147 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useHealth } from '../../../contexts/HealthContext';
-import { PhoneIcon } from '@heroicons/react/24/solid';
-import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../../contexts/AuthContext';
-
-interface ChatMessage {
-    sender: 'user' | 'doctor';
-    text: string;
-}
+import { ArrowLeftIcon, PhoneIcon, PaperAirplaneIcon } from '@heroicons/react/24/solid';
+import { ChatMessage } from '../../../types';
 
 const ConsultationRoomScreen: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { consultations } = useHealth();
-    
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [input, setInput] = useState('');
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const { consultations, endConsultation } = useHealth();
+    const consultation = useMemo(() => consultations.find(c => c.id === id), [consultations, id]);
 
-    const consultation = consultations.find(c => c.id === id);
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+    const [newMessage, setNewMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [timer, setTimer] = useState(900); // 15 minutes in seconds
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const timerRef = useRef<number>();
+
+    const isEnded = consultation?.status === 'Completed';
 
     useEffect(() => {
-        if (consultation) {
-            setMessages([{ sender: 'doctor', text: `Halo ${user?.profile.name}, saya Dr. ${consultation.doctorName}. Apa yang bisa saya bantu hari ini?` }]);
+        if (consultation && !isEnded) {
+            setChatMessages([
+                { sender: 'ai', text: `Halo ${user?.profile.name}, saya Dr. ${consultation.doctorName}. Apa yang bisa saya bantu?` }
+            ]);
+            timerRef.current = window.setInterval(() => {
+                setTimer(prev => (prev > 0 ? prev - 1 : 0));
+            }, 1000);
+        } else if (isEnded) {
+             setChatMessages([
+                { sender: 'ai', text: `Konsultasi telah berakhir. Terima kasih.` }
+            ]);
         }
-    }, [consultation, user]);
+        
+        return () => clearInterval(timerRef.current);
+    }, [consultation, user, isEnded]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+    }, [chatMessages]);
 
-    const handleSend = () => {
-        if (!input.trim()) return;
-        setMessages(prev => [...prev, { sender: 'user', text: input }]);
-        setInput('');
-        // Simulate doctor's response
+    const handleSendMessage = () => {
+        if (!newMessage.trim() || isLoading || isEnded) return;
+        const userMessage: ChatMessage = { sender: 'user', text: newMessage };
+        setChatMessages(prev => [...prev, userMessage]);
+        setNewMessage('');
+        setIsLoading(true);
+
         setTimeout(() => {
-            setMessages(prev => [...prev, { sender: 'doctor', text: "Baik, saya mengerti. Bisa ceritakan lebih detail?" }]);
-        }, 1500);
+            setChatMessages(prev => [...prev, { sender: 'ai', text: 'Baik, saya mengerti. Bisa jelaskan lebih lanjut?' }]);
+            setIsLoading(false);
+        }, 1500 + Math.random() * 1000);
+    };
+
+    const handleEndConsultation = async () => {
+        if (!consultation || isLoading) return;
+        setIsLoading(true);
+        const chatSummary = chatMessages.map(m => `${m.sender}: ${m.text}`).join('\n');
+        await endConsultation(consultation.id, chatSummary);
+        setIsLoading(false);
+    };
+    
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     };
 
     if (!consultation) {
         return <div className="p-4 text-center">Konsultasi tidak ditemukan.</div>;
     }
-    
-    const isCompleted = consultation.status === 'Completed';
 
     return (
-        <div className="p-4">
-             <div className="mb-4">
-                <h1 className="text-xl font-bold">Dr. {consultation.doctorName}</h1>
-                <p className="text-sm text-text-secondary">{consultation.doctorSpecialty}</p>
-            </div>
+        <div className="h-full flex flex-col bg-surface">
+             <header className="p-4 flex items-center justify-between border-b border-border-color flex-shrink-0">
+                <div className="flex items-center">
+                    <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-surface-light mr-2">
+                        <ArrowLeftIcon className="h-6 w-6"/>
+                    </button>
+                    <div>
+                        <h1 className="text-lg font-bold">{consultation.doctorName}</h1>
+                        <p className="text-xs text-text-secondary">{consultation.doctorSpecialty}</p>
+                    </div>
+                </div>
+                {!isEnded && <div className="font-mono text-lg font-bold text-secondary">{formatTime(timer)}</div>}
+            </header>
             
-            <div className="flex flex-col md:flex-row gap-4">
-                {/* Video Call Section */}
-                <div className="md:w-2/3 flex flex-col">
-                    <div className="relative w-full aspect-video bg-black rounded-lg flex items-center justify-center">
-                        <p className="text-white">Simulasi Panggilan Video...</p>
-                        <div className="absolute bottom-4 right-4 w-32 h-24 bg-surface rounded-md border-2 border-border-color">
-                             <p className="text-xs text-center p-2">Anda</p>
+            <main className="flex-grow p-4 overflow-y-auto space-y-4">
+                 {isEnded && (
+                    <div className="bg-green-500/10 p-4 rounded-lg text-center border border-green-500/50">
+                        <h2 className="font-bold text-green-400">Konsultasi Selesai</h2>
+                        <p className="text-sm text-text-secondary mt-1">Terima kasih telah menggunakan layanan kami. Resep (jika ada) dapat dilihat di halaman resep digital.</p>
+                        {consultation.eprescriptionId && (
+                            <button onClick={() => navigate('/prescriptions')} className="mt-2 text-sm font-bold text-primary underline">Lihat Resep</button>
+                        )}
+                    </div>
+                )}
+                
+                {chatMessages.map((msg, i) => (
+                    <div key={i} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-xs p-3 rounded-lg ${msg.sender === 'user' ? 'bg-primary text-black' : 'bg-surface-light'}`}>
+                            <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
                         </div>
                     </div>
-                    {!isCompleted && (
-                        <div className="flex justify-center space-x-4 mt-4">
-                            <button className="p-3 bg-red-500 text-white rounded-full">
-                                <PhoneIcon className="h-6 w-6" />
-                            </button>
-                        </div>
-                    )}
-                </div>
+                ))}
+                 {isLoading && !isEnded && (
+                     <div className="flex justify-start">
+                         <div className="max-w-xs p-3 rounded-lg bg-surface-light">
+                             <div className="flex items-center space-x-2">
+                                 <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce"></div>
+                                 <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce delay-150"></div>
+                                 <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce delay-300"></div>
+                             </div>
+                         </div>
+                     </div>
+                )}
+                 <div ref={messagesEndRef} />
+            </main>
 
-                {/* Chat & Notes Section */}
-                <div className="md:w-1/3 border border-border-color rounded-lg flex flex-col h-96">
-                     <div className="flex-grow p-4 overflow-y-auto space-y-3">
-                        {messages.map((msg, index) => (
-                            <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-xs p-2 rounded-lg ${msg.sender === 'user' ? 'bg-primary text-black' : 'bg-surface-light'}`}>
-                                    <p className="text-sm">{msg.text}</p>
-                                </div>
-                            </div>
-                        ))}
-                        <div ref={messagesEndRef} />
-                    </div>
-                    {!isCompleted && (
-                        <div className="p-4 border-t border-border-color flex items-center space-x-2">
-                             <input
-                                type="text"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                                placeholder="Ketik pesan..."
-                                className="w-full bg-surface-light border border-border-color rounded-full py-2 px-4"
-                            />
-                            <button onClick={handleSend} className="p-2 btn-secondary rounded-full">
-                                <PaperAirplaneIcon className="h-5 w-5" />
-                            </button>
-                        </div>
-                    )}
+            <footer className="p-4 border-t border-border-color flex-shrink-0 space-y-3">
+                 <div className="flex items-center space-x-2">
+                    <input
+                        type="text"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                        placeholder={isEnded ? "Konsultasi telah berakhir" : "Ketik pesan..."}
+                        className="w-full bg-surface-light border border-border-color rounded-full py-2 px-4 focus:outline-none focus:ring-1 focus:ring-primary"
+                        disabled={isLoading || isEnded}
+                    />
+                    <button onClick={handleSendMessage} disabled={!newMessage.trim() || isLoading || isEnded} className="p-2 btn-secondary rounded-full disabled:opacity-50">
+                        <PaperAirplaneIcon className="h-5 w-5" />
+                    </button>
                 </div>
-            </div>
+                 <div className="flex justify-center">
+                    <button onClick={handleEndConsultation} disabled={isLoading || isEnded} className="px-6 py-2 bg-red-500 text-white rounded-full font-bold flex items-center space-x-2 disabled:bg-gray-600">
+                        <PhoneIcon className="h-5 w-5" />
+                        <span>{isLoading ? 'Processing...' : isEnded ? "Panggilan Berakhir" : "Akhiri Konsultasi"}</span>
+                    </button>
+                 </div>
+            </footer>
         </div>
     );
 };

@@ -39,7 +39,6 @@ const LoyaltyScreen: React.FC = () => {
 
             <div className="bg-surface p-6 rounded-lg shadow-lg border border-secondary/50 text-center">
                 <p className="text-text-secondary text-sm">Total Poin Anda</p>
-                {/* FIX: Completed the JSX for displaying loyalty points which was cut off in the original file. */}
                 <div className="flex items-center justify-center space-x-2 my-2">
                     <StarIcon className="h-8 w-8 text-secondary" />
                     <p className="text-4xl font-bold text-secondary">{user.loyaltyPoints.toLocaleString('id-ID')}</p>
