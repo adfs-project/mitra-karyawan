@@ -184,8 +184,6 @@ const App: React.FC = () => {
 
                     {/* All authenticated routes are nested here */}
                     <Route element={<ProtectedRoutes />}>
-                        {/* The root path always redirects to the canonical home page */}
-                        <Route path="/" element={<Navigate to="/home" replace />} />
                         
                         {/* User Routes */}
                         <Route path="/home" element={<UserLayout><HomeScreen /></UserLayout>} />
