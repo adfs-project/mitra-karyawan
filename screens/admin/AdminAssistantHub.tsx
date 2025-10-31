@@ -1,3 +1,5 @@
+
+
 import React, { useMemo } from 'react';
 // FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
 import { useApp } from '../../contexts/AppContext';

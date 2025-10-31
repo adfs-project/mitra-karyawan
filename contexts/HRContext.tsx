@@ -18,7 +18,6 @@ export interface HRContextType {
     rejectOpexByHr: (id: string, reason: string) => Promise<void>;
 }
 
-// FIX: Export the context so it can be imported by hooks.
 export const HRContext = createContext<HRContextType | undefined>(undefined);
 
 export const HRProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

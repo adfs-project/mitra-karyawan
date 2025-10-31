@@ -1,3 +1,5 @@
+
+
 import React, { createContext, useContext, ReactNode, useCallback } from 'react';
 import { Doctor, Consultation, MoodHistory, HealthChallenge, HealthDocument, Eprescription, InsuranceClaim, EprescriptionItem, Role } from '../types';
 import { useApp } from './AppContext';
@@ -39,6 +41,29 @@ export const HealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         healthChallenges, insuranceClaims, users,
         updateState, addTransaction, addNotification, showToast 
     } = useApp();
+
+     const addDoctor = useCallback((data: Omit<Doctor, 'id' | 'availableSlots'>) => {
+        const newDoctor: Doctor = {
+            ...data,
+            id: `doc-${Date.now()}`,
+            availableSlots: [
+                { time: '09:00', isBooked: false }, { time: '10:00', isBooked: false },
+                { time: '11:00', isBooked: false }, { time: '13:00', isBooked: false },
+                { time: '14:00', isBooked: false }, { time: '15:00', isBooked: false },
+            ]
+        };
+        updateState('doctors', [...doctors, newDoctor]);
+        showToast('Doctor added successfully.', 'success');
+    }, [doctors, updateState, showToast]);
+
+    const updateDoctor = useCallback((data: Doctor) => {
+        updateState('doctors', doctors.map(d => d.id === data.id ? data : d));
+        showToast('Doctor updated successfully.', 'success');
+    }, [doctors, updateState, showToast]);
+
+    const deleteDoctor = useCallback((doctorId: string) => {
+        showToast("Core data deletion is permanently disabled.", 'warning');
+    }, [showToast]);
 
     const bookConsultation = useCallback(async (doctorId: string, slotTime: string): Promise<{ success: boolean; message: string; consultationId?: string }> => {
         if (!user) return { success: false, message: 'User not logged in.' };
@@ -105,19 +130,16 @@ export const HealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 updateState('eprescriptions', [...eprescriptions, newEprescription]);
                 eprescriptionId = newEprescription.id;
 
-                // FIX: Added 'as const' or explicit type assertion to prevent type widening for 'status'.
-                updateState('consultations', consultations.map(c => c.id === consultationId ? { ...c, status: 'Completed' as 'Completed', notes, eprescriptionId } : c));
+                updateState('consultations', consultations.map(c => c.id === consultationId ? { ...c, status: 'Completed' as const, notes, eprescriptionId } : c));
                 addNotification(user.id, `Konsultasi dengan ${consultation.doctorName} selesai. Resep baru telah diterbitkan.`, 'success');
             
             } catch (error) {
                 console.error("AI Prescription Generation Failed:", error);
-                // FIX: Added 'as const' or explicit type assertion to prevent type widening for 'status'.
-                updateState('consultations', consultations.map(c => c.id === consultationId ? { ...c, status: 'Completed' as 'Completed', notes: chatSummary } : c));
+                updateState('consultations', consultations.map(c => c.id === consultationId ? { ...c, status: 'Completed' as const, notes: chatSummary } : c));
                 addNotification(user.id, `Konsultasi dengan ${consultation.doctorName} telah selesai.`, 'info');
             }
         } else {
-            // FIX: Added 'as const' or explicit type assertion to prevent type widening for 'status'.
-            updateState('consultations', consultations.map(c => c.id === consultationId ? { ...c, status: 'Completed' as 'Completed', notes: chatSummary } : c));
+            updateState('consultations', consultations.map(c => c.id === consultationId ? { ...c, status: 'Completed' as const, notes: chatSummary } : c));
             addNotification(user.id, `Konsultasi dengan ${consultation.doctorName} telah selesai.`, 'info');
         }
     }, [user, consultations, eprescriptions, updateState, addNotification]);
@@ -148,6 +170,18 @@ export const HealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         showToast(`Anda berhasil bergabung dengan tantangan "${challenge.title}"!`, 'success');
     }, [user, healthChallenges, updateState, updateCurrentUser, showToast]);
 
+    const createHealthChallenge = useCallback(async (challengeData: { title: string; description: string; }) => {
+        if (!user || user.role !== Role.HR) return;
+        const newChallenge: HealthChallenge = {
+            ...challengeData,
+            id: `hc-${Date.now()}`,
+            creator: { hrId: user.id, branch: user.profile.branch || 'N/A' },
+            participants: []
+        };
+        updateState('healthChallenges', [newChallenge, ...healthChallenges]);
+        showToast("Health challenge created successfully.", "success");
+    }, [user, healthChallenges, updateState, showToast]);
+
     const addHealthDocument = useCallback(async (doc: { name: string; fileUrl: string }) => {
         if (!user) return;
         const newDoc: HealthDocument = { ...doc, id: `doc-${Date.now()}`, userId: user.id, uploadDate: new Date().toISOString() };
@@ -166,19 +200,54 @@ export const HealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         const hrUser = users.find(u => u.role === Role.HR && u.profile.branch === user.profile.branch);
         if (hrUser) addNotification(hrUser.id, `${user.profile.name} mengajukan klaim asuransi baru.`, 'info');
     }, [user, insuranceClaims, users, updateState, showToast, addNotification]);
+
+    const approveInsuranceClaim = useCallback(async (claimId: string) => {
+        const claim = insuranceClaims.find(c => c.id === claimId);
+        if (!claim) return;
+        
+        const txResult = await addTransaction({
+            userId: claim.userId,
+            type: 'Insurance Claim',
+            amount: claim.amount,
+            description: `Pencairan klaim asuransi ${claim.type}`,
+            status: 'Completed',
+            relatedId: claim.id
+        });
+
+        if (txResult.success) {
+            updateState('insuranceClaims', insuranceClaims.map(c => c.id === claimId ? { ...c, status: 'Approved' as const } : c));
+            addNotification(claim.userId, `Klaim asuransi Anda sebesar ${new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR'}).format(claim.amount)} telah disetujui dan dicairkan.`, 'success');
+            showToast('Claim approved and funds disbursed.', 'success');
+        } else {
+            showToast(`Failed to disburse funds: ${txResult.message}`, 'error');
+        }
+    }, [insuranceClaims, updateState, addTransaction, addNotification, showToast]);
+    
+    const rejectInsuranceClaim = useCallback(async (claimId: string) => {
+        const claim = insuranceClaims.find(c => c.id === claimId);
+        if (!claim) return;
+        updateState('insuranceClaims', insuranceClaims.map(c => c.id === claimId ? { ...c, status: 'Rejected' as const } : c));
+        addNotification(claim.userId, `Klaim asuransi Anda untuk ${claim.type} telah ditolak.`, 'error');
+        showToast('Claim rejected.', 'success');
+    }, [insuranceClaims, updateState, addNotification, showToast]);
     
     const subscribeToHealthPlus = useCallback(async () => {
         if (!user) return;
         const cost = 50000;
         const txResult = await addTransaction({
             userId: user.id,
-            type: 'Top-Up', // Placeholder, should be 'Subscription'
+            type: 'Subscription', 
             amount: -cost,
             description: 'Health+ Subscription (1 Month)',
             status: 'Completed',
         });
         if (txResult.success) {
-            updateCurrentUser({ ...user, isPremium: true });
+            const fullUser = vaultService.findUserByEmail(user.email);
+            if(fullUser){
+                const updatedUser = { ...fullUser, isPremium: true };
+                vaultService.updateUser(updatedUser);
+                updateCurrentUser({ ...user, isPremium: true });
+            }
         }
     }, [user, addTransaction, updateCurrentUser]);
     
@@ -203,27 +272,26 @@ export const HealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             return { success: false, message: txResult.message };
         }
         
-        // FIX: Added 'as const' or explicit type assertion to prevent type widening for 'status'.
-        updateState('eprescriptions', eprescriptions.map(e => e.id === eprescriptionId ? { ...e, status: 'Redeemed' as 'Redeemed' } : e));
+        updateState('eprescriptions', eprescriptions.map(e => e.id === eprescriptionId ? { ...e, status: 'Redeemed' as const } : e));
         return { success: true, message: 'Resep berhasil ditebus!' };
         
     }, [user, eprescriptions, updateState, addTransaction]);
 
     const value: HealthContextType = {
         doctors, consultations, eprescriptions, healthDocuments, healthChallenges, insuranceClaims,
-        addDoctor: () => {},
-        updateDoctor: () => {},
-        deleteDoctor: () => {},
+        addDoctor,
+        updateDoctor,
+        deleteDoctor,
         bookConsultation,
         endConsultation,
         addMoodEntry,
         joinHealthChallenge,
-        createHealthChallenge: async () => {},
+        createHealthChallenge,
         addHealthDocument,
         deleteHealthDocument,
         submitInsuranceClaim,
-        approveInsuranceClaim: async () => {},
-        rejectInsuranceClaim: async () => {},
+        approveInsuranceClaim,
+        rejectInsuranceClaim,
         subscribeToHealthPlus,
         redeemEprescription,
     };

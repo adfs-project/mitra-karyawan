@@ -1,4 +1,6 @@
-// --- Enums and String Literal Types ---
+// FIX: Removed circular import of ScalabilityServiceStatus.
+
+// This file contains all the core type definitions for the application.
 
 export enum Role {
     Admin = 'Admin',
@@ -7,84 +9,55 @@ export enum Role {
     User = 'User',
 }
 
-export enum IntegrationStatus {
-    Active = 'Active',
-    Inactive = 'Inactive',
-    Error = 'Error',
-}
-
-export enum ScalabilityServiceStatus {
-    Active = 'Active',
-    Inactive = 'Inactive',
-    Provisioning = 'Provisioning',
-    AwaitingConfig = 'Awaiting Config',
-    Scaling = 'Scaling',
-    Migrating = 'Migrating',
-    Error = 'Error',
-}
-
-export type Achievement = 'First Purchase' | 'Punctual Payer' | 'Top Spender';
-
-export type MoodHistory = {
-    date: string;
-    mood: 'Sangat Sedih' | 'Sedih' | 'Biasa' | 'Senang' | 'Sangat Senang';
-};
-
-export type ToastType = 'success' | 'error' | 'info' | 'warning';
-
-export type OpexRequestStatus = 'Pending HR Verification' | 'Pending Finance Approval' | 'Approved' | 'Rejected';
-
-export type OpexRequestType = 'Bensin' | 'Token Listrik' | 'Beli Barang' | 'Fotocopy' | 'Parkir' | 'Tiket Pesawat/Kereta' | 'Booking Hotel' | 'Biaya Makan Perjalanan Dinas';
-
-// --- Core Data Structures ---
-
 export interface UserProfile {
     name: string;
     phone: string;
     photoUrl: string;
     branch?: string;
-    joinDate?: string;
     salary?: number;
+    joinDate?: string;
+    isHeadOfBranch?: boolean;
     employmentStatus?: 'Private Employee' | 'Civil Servant' | 'State-Owned Enterprise' | 'Freelance';
     companyName?: string;
     employeeType?: 'Contract' | 'Permanent';
     placeOfBirth?: string;
     dateOfBirth?: string;
-    isHeadOfBranch?: boolean;
+}
+
+export type Achievement = 'First Purchase' | 'Punctual Payer' | 'Top Spender';
+
+export interface MoodHistory {
+    date: string;
+    mood: 'Sangat Sedih' | 'Sedih' | 'Biasa' | 'Senang' | 'Sangat Senang';
+}
+
+export interface PayLaterStatus {
+    status: 'not_applied' | 'pending' | 'approved' | 'rejected';
+    limit?: number;
+    remainingLimit?: number;
 }
 
 export interface User {
     id: string;
     email: string;
-    password: string; // This will be hashed and not exposed to UI
-    profile: UserProfile;
+    password: string; // This will be hashed and not sent to frontend
     role: Role;
+    profile: UserProfile;
     status: 'active' | 'inactive';
     wallet: {
         balance: number;
         isFrozen: boolean;
     };
+    isPremium?: boolean;
     achievements: Achievement[];
     loyaltyPoints: number;
-    wishlist: string[];
-    bookmarkedArticles: string[];
+    wishlist: string[]; // Array of product IDs
+    bookmarkedArticles: string[]; // Array of article IDs
     healthData: {
         moodHistory: MoodHistory[];
-        activeChallenges: string[];
+        activeChallenges: string[]; // Array of challenge IDs
     };
-    payLater?: {
-        status: 'not_applied' | 'pending' | 'approved' | 'rejected';
-        limit: number;
-    };
-    isPremium?: boolean;
-}
-
-export interface ProductReview {
-    userId: string;
-    userName: string;
-    rating: number;
-    comment: string;
-    timestamp: string;
+    payLater?: PayLaterStatus;
 }
 
 export interface Product {
@@ -99,23 +72,9 @@ export interface Product {
     sellerName: string;
     rating: number;
     reviewCount: number;
-    reviews: ProductReview[];
+    reviews: any[]; // Define review structure if needed
     status: 'Listed' | 'Unlisted' | 'Needs Review';
-    isFeatured?: boolean;
     createdAt: string;
-}
-
-export interface ArticleComment {
-    userId: string;
-    userName: string;
-    comment: string;
-    timestamp: string;
-    likes: string[];
-}
-
-export interface PollOption {
-    text: string;
-    votes: string[];
 }
 
 export interface Article {
@@ -126,38 +85,46 @@ export interface Article {
     author: string;
     timestamp: string;
     category: string;
-    status: 'Published' | 'Draft';
-    type: 'standard' | 'poll' | 'qa' | 'Banner';
     imageUrl?: string;
     youtubeId?: string;
-    likes: string[];
+    likes: string[]; // Array of user IDs
     comments: ArticleComment[];
-    pollOptions?: PollOption[];
+    status: 'Published' | 'Draft';
+    type: 'standard' | 'poll' | 'qa' | 'Banner';
+    pollOptions?: { text: string; votes: string[] }[];
     monetization?: {
         enabled: boolean;
         revenueGenerated: number;
     };
 }
 
+export interface ArticleComment {
+    userId: string;
+    userName: string;
+    comment: string;
+    timestamp: string;
+    likes: string[];
+}
+
 export interface Transaction {
     id: string;
     userId: string;
     userName: string;
-    type: 'Top-Up' | 'Transfer' | 'Marketplace' | 'PPOB' | 'Refund' | 'Reversal' | 'Commission' | 'Tax' | 'Teleconsultation' | 'Internal Transfer' | 'Operational Expense' | 'Insurance Claim' | 'Obat & Resep' | 'Dana Opex';
+    type: 'Top-Up' | 'Transfer' | 'Marketplace' | 'PPOB' | 'Refund' | 'Reversal' | 'Commission' | 'Tax' | 'Teleconsultation' | 'Internal Transfer' | 'Operational Expense' | 'Insurance Claim' | 'Subscription' | 'Obat & Resep' | 'Dana Opex';
     amount: number;
     description: string;
     status: 'Completed' | 'Pending' | 'Failed';
     timestamp: string;
-    relatedId?: string;
+    relatedId?: string; // e.g., orderId, consultationId
 }
 
 export interface Notification {
     id: string;
     userId: string;
     message: string;
-    type: 'info' | 'success' | 'warning' | 'error';
     read: boolean;
     timestamp: string;
+    type: 'info' | 'success' | 'warning' | 'error';
 }
 
 export interface Doctor {
@@ -165,9 +132,22 @@ export interface Doctor {
     name: string;
     specialty: string;
     bio: string;
-    imageUrl: string;
     consultationFee: number;
+    imageUrl: string;
     availableSlots: { time: string; isBooked: boolean }[];
+}
+
+export interface Consultation {
+    id: string;
+    userId: string;
+    userName: string;
+    doctorId: string;
+    doctorName: string;
+    doctorSpecialty: string;
+    scheduledTime: string;
+    status: 'Scheduled' | 'Completed' | 'Cancelled';
+    notes?: string;
+    eprescriptionId?: string;
 }
 
 export interface EprescriptionItem {
@@ -187,37 +167,37 @@ export interface Eprescription {
     status: 'New' | 'Redeemed';
 }
 
-export interface Consultation {
-    id: string;
-    userId: string;
-    userName: string;
-    doctorId: string;
-    doctorName: string;
-    doctorSpecialty: string;
-    scheduledTime: string;
-    status: 'Scheduled' | 'Completed' | 'Cancelled';
-    notes?: string;
-    prescription?: string;
-    eprescriptionId?: string;
+export interface CartItem {
+    productId: string;
+    quantity: number;
 }
 
 export interface Dispute {
     id: string;
     orderId: string;
-    buyerId: string;
-    buyerName: string;
-    sellerId: string;
-    sellerName: string;
+    userId: string;
     reason: string;
-    status: 'Open' | 'Resolved';
-    resolution?: 'Refund Buyer' | 'Pay Seller';
+    status: 'Open' | 'Resolved' | 'Closed';
     timestamp: string;
+    resolutionMethod?: 'Admin' | 'Guardian';
+}
+
+export enum IntegrationType {
+    Bank = 'Bank',
+    EWallet = 'E-Wallet',
+    Retail = 'Retail',
+}
+
+export enum IntegrationStatus {
+    Active = 'Active',
+    Inactive = 'Inactive',
+    Error = 'Error',
 }
 
 export interface ApiIntegration {
     id: string;
     name: string;
-    type: 'Bank' | 'E-Wallet' | 'Retail';
+    type: IntegrationType;
     status: IntegrationStatus;
     credentials?: {
         apiKey: string;
@@ -226,15 +206,23 @@ export interface ApiIntegration {
     };
 }
 
+export enum ScalabilityServiceStatus {
+    Active = 'Active',
+    Inactive = 'Inactive',
+    Provisioning = 'Provisioning',
+    AwaitingConfig = 'AwaitingConfig',
+    Migrating = 'Migrating',
+    Error = 'Error',
+}
+
 export interface ScalabilityService {
-  id: string;
-  name: string;
-  type: 'load_balancer' | 'cdn' | 'redis' | 'rabbitmq' | 'read_replicas' | 'db_sharding';
-  description: string;
-  status: ScalabilityServiceStatus;
-  logs: string[];
-  cost: number;
-  metadata: Record<string, any>;
+    id: string;
+    name: string;
+    type: 'redis' | 'rabbitmq' | 'read_replicas' | 'load_balancer' | 'cdn' | 'db_sharding';
+    status: ScalabilityServiceStatus;
+    cost: number;
+    logs: { timestamp: string; message: string }[];
+    metadata: Record<string, any>;
 }
 
 export interface LeaveRequest {
@@ -246,6 +234,23 @@ export interface LeaveRequest {
     endDate: string;
     reason: string;
     status: 'Pending' | 'Approved' | 'Rejected';
+}
+
+export interface Budget {
+    id: string;
+    userId: string;
+    category: 'Marketplace' | 'PPOB' | 'Umum';
+    limit: number;
+    spent: number;
+}
+
+export interface ScheduledPayment {
+    id: string;
+    userId: string;
+    description: string;
+    amount: number;
+    recurrence: 'monthly' | 'weekly';
+    nextDueDate: string;
 }
 
 export interface MonetizationConfig {
@@ -261,17 +266,46 @@ export interface TaxConfig {
 export interface HomePageConfig {
     pinnedItemId: string | null;
     featureFlags: {
-        aiInvestmentBot: boolean;
         aiAnomalyDetection: boolean;
         aiSymptomChecker: boolean;
         aiHealthCoach: boolean;
+        aiInvestmentBot: boolean;
     };
+    isIntegrityGuardianActive: boolean;
+}
+
+export type AssistantIntent = 'GREETING' | 'WALLET_INQUIRY' | 'MARKETPLACE_INQUIRY' | 'HEALTH_INQUIRY' | 'NEWS_INQUIRY' | 'GENERIC_QUERY' | 'UNSURE' | 'ERROR';
+
+export interface AssistantLog {
+    id: string;
+    userId: string;
+    query: string;
+    timestamp: string;
+    detectedIntent: AssistantIntent;
+}
+
+export interface EngagementAnalytics {
+    forYouClicks: Record<string, number>;
+    quickAccessClicks: Record<string, number>;
 }
 
 export interface AdminWallets {
     profit: number;
     tax: number;
     cash: number;
+}
+
+export interface Order {
+    id: string;
+    userId: string;
+    items: {
+        productId: string;
+        productName: string;
+        quantity: number;
+        price: number;
+    }[];
+    total: number;
+    timestamp: string;
 }
 
 export type ConditionField = 'profile.branch' | 'role' | 'transactionCount';
@@ -298,27 +332,26 @@ export interface PersonalizationRule {
     isActive: boolean;
 }
 
-export interface OrderItem {
-    productId: string;
-    quantity: number;
-    price: number;
-    productName: string;
-}
-
-export interface Order {
+export interface HealthDocument {
     id: string;
     userId: string;
-    items: OrderItem[];
-    total: number;
-    timestamp: string;
+    name: string;
+    uploadDate: string;
+    fileUrl: string; // Could be base64 data URL
 }
 
 export interface HealthChallenge {
     id: string;
     title: string;
     description: string;
-    creator: 'System' | { hrId: string; branch: string };
-    participants: { userId: string; progress: number }[];
+    creator: {
+        hrId: string;
+        branch: string;
+    };
+    participants: {
+        userId: string;
+        progress: number;
+    }[];
 }
 
 export interface InsuranceClaim {
@@ -330,7 +363,14 @@ export interface InsuranceClaim {
     amount: number;
     submissionDate: string;
     status: 'Pending' | 'Approved' | 'Rejected';
-    receiptUrl: string;
+    receiptUrl: string; // base64 data URL
+}
+
+export type ServiceLinkageMap = Record<string, string | null>;
+
+export interface ChatMessage {
+    sender: 'user' | 'ai';
+    text: string;
 }
 
 export interface Coordinates {
@@ -343,14 +383,23 @@ export interface AttendanceRecord {
     userId: string;
     userName: string;
     branch: string;
-    date: string;
-    clockInTime?: string;
-    clockOutTime?: string;
+    date: string; // YYYY-MM-DD
+    clockInTime?: string; // ISO String
+    clockOutTime?: string; // ISO String
     clockInLocation?: Coordinates;
     clockOutLocation?: Coordinates;
-    clockInPhotoUrl?: string;
-    clockOutPhotoUrl?: string;
+    clockInPhotoUrl?: string; // base64 data url
+    clockOutPhotoUrl?: string; // base64 data url
 }
+
+export type Toast = {
+    id: number;
+    message: string;
+    type: 'success' | 'error' | 'info' | 'warning';
+}
+
+export type OpexRequestType = 'Bensin' | 'Token Listrik' | 'Beli Barang' | 'Fotocopy' | 'Parkir' | 'Tiket Pesawat/Kereta' | 'Booking Hotel' | 'Biaya Makan Perjalanan Dinas';
+export type OpexRequestStatus = 'Pending HR Verification' | 'Pending Finance Approval' | 'Approved' | 'Rejected';
 
 export interface OpexRequest {
     id: string;
@@ -362,9 +411,9 @@ export interface OpexRequest {
     description: string;
     timestamp: string;
     status: OpexRequestStatus;
-    proofPhotoUrl1: string;
-    proofPhotoUrl2: string;
     proofLocation: Coordinates;
+    proofPhotoUrl1: string; // object photo
+    proofPhotoUrl2: string; // receipt photo
     hrApproverId?: string;
     hrApprovalTimestamp?: string;
     financeApproverId?: string;
@@ -372,61 +421,12 @@ export interface OpexRequest {
     rejectionReason?: string;
 }
 
+export type SystemIntegrityLogType = 'WALLET_SYNC' | 'CART_CLEANUP' | 'STOCK_RESET' | 'DISPUTE_ESCALATION' | 'AUTO_DISPUTE_RESOLUTION';
 
-// --- UI and Context specific types ---
-
-export interface CartItem {
-    productId: string;
-    quantity: number;
-}
-
-export interface Budget {
+export interface SystemIntegrityLog {
     id: string;
-    userId: string;
-    category: 'Marketplace' | 'PPOB' | 'Umum';
-    limit: number;
-    spent: number;
-}
-
-export interface ScheduledPayment {
-    id: string;
-    userId: string;
-    description: string;
-    amount: number;
-    recurrence: 'monthly' | 'weekly';
-    nextDueDate: string;
-}
-
-export interface AssistantLog {
-    id: string;
-    userId: string;
-    query: string;
-    detectedIntent: string;
     timestamp: string;
-}
-
-export interface EngagementAnalytics {
-    forYouClicks: Record<string, number>;
-    quickAccessClicks: Record<string, number>;
-}
-
-export interface Toast {
-    id: number;
+    type: SystemIntegrityLogType;
     message: string;
-    type: ToastType;
-}
-
-export interface HealthDocument {
-    id: string;
-    userId: string;
-    name: string;
-    uploadDate: string;
-    fileUrl: string; // Base64 or cloud URL
-}
-
-export type ServiceLinkageMap = Record<string, string | null>;
-
-export interface ChatMessage {
-    sender: 'user' | 'ai';
-    text: string;
+    details?: Record<string, any>;
 }

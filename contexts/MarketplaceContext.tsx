@@ -19,7 +19,6 @@ export interface MarketplaceContextType {
     addMultipleProductsByAdmin: (productsData: any[]) => Promise<{ success: number; failed: number; errors: string[] }>;
 }
 
-// FIX: Export the context so it can be imported by hooks.
 export const MarketplaceContext = createContext<MarketplaceContextType | undefined>(undefined);
 
 export const MarketplaceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

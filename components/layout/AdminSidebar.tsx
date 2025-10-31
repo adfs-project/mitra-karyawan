@@ -1,6 +1,8 @@
+
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { ChartBarIcon, CurrencyDollarIcon, BuildingStorefrontIcon, UsersIcon, HeartIcon, Cog6ToothIcon, WrenchScrewdriverIcon, ArchiveBoxIcon, SparklesIcon, ChatBubbleLeftRightIcon, PlayCircleIcon, LinkIcon, HomeIcon } from '@heroicons/react/24/solid';
+import { ChartBarIcon, CurrencyDollarIcon, BuildingStorefrontIcon, UsersIcon, HeartIcon, Cog6ToothIcon, WrenchScrewdriverIcon, ArchiveBoxIcon, SparklesIcon, ChatBubbleLeftRightIcon, PlayCircleIcon, LinkIcon, HomeIcon, ShieldCheckIcon } from '@heroicons/react/24/solid';
 
 const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: ChartBarIcon },
@@ -19,6 +21,7 @@ const navigation = [
         { name: 'Scalability', href: '/admin/system/scalability' },
         { name: 'Service Linkage', href: '/admin/system/service-linkage' },
         { name: 'System Controls', href: '/admin/system/controls' },
+        { name: 'System Integrity', href: '/admin/system/integrity' },
     ], icon: Cog6ToothIcon },
 ];
 
@@ -60,6 +63,7 @@ const AdminSidebar: React.FC = () => {
                                         }`
                                     }
                                 >
+                                     {child.name === 'System Integrity' && <ShieldCheckIcon className="h-4 w-4 mr-2" />}
                                     {child.name}
                                 </NavLink>
                             ))}

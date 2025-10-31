@@ -12,11 +12,10 @@ import {
     User, Product, Article, Transaction, Notification, Doctor, Consultation,
     CartItem, Dispute, ApiIntegration, ScalabilityService, LeaveRequest, Budget, ScheduledPayment,
     MonetizationConfig, TaxConfig, HomePageConfig, AssistantLog, EngagementAnalytics,
-    AdminWallets, PersonalizationRule, Order, Eprescription, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap,
-    IntegrationStatus,
+    AdminWallets, PersonalizationRule, Order, Eprescription, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap, Toast, OpexRequest, IntegrationStatus,
     ScalabilityServiceStatus,
     AttendanceRecord,
-    OpexRequest
+    SystemIntegrityLog
 } from '../types';
 
 import {
@@ -33,6 +32,7 @@ type AppData = {
     articles: Article[];
     transactions: Transaction[];
     notifications: Notification[];
+    toasts: Toast[];
     doctors: Doctor[];
     consultations: Consultation[];
     eprescriptions: Eprescription[];
@@ -58,6 +58,7 @@ type AppData = {
     serviceLinkage: ServiceLinkageMap;
     isAiGuardrailDisabled: boolean;
     opexRequests: OpexRequest[];
+    integrityLogs: SystemIntegrityLog[];
 };
 
 class VaultService {
@@ -108,6 +109,7 @@ class VaultService {
             articles: this._deobfuscate<Article[]>('app_articles', initialArticles),
             transactions: this._deobfuscate<Transaction[]>('app_transactions', initialTransactions),
             notifications: this._deobfuscate<Notification[]>('app_notifications', initialNotifications),
+            toasts: [], // In-memory only
             doctors: this._deobfuscate<Doctor[]>('app_doctors', initialDoctors),
             consultations: this._deobfuscate<Consultation[]>('app_consultations', initialConsultations),
             eprescriptions: this._deobfuscate<Eprescription[]>('app_eprescriptions', []),
@@ -133,10 +135,13 @@ class VaultService {
             serviceLinkage: this._deobfuscate<ServiceLinkageMap>('app_service_linkage', {}),
             isAiGuardrailDisabled: this._deobfuscate<boolean>('app_ai_guardrail_disabled', false),
             opexRequests: this._deobfuscate<OpexRequest[]>('app_opex_requests', initialOpexRequests),
+            integrityLogs: [], // In-memory only
         };
     }
     
     private _save<K extends keyof AppData>(key: K) {
+        // Do not save in-memory only data
+        if (key === 'toasts' || key === 'integrityLogs') return;
         localStorage.setItem(`app_${key}`, this._obfuscate(this._data[key]));
     }
 

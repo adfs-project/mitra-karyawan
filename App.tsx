@@ -1,264 +1,283 @@
-import React, { lazy, Suspense, useEffect, useState } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { Role } from './types';
-import ToastContainer from './components/common/ToastContainer';
 
+// Layouts
+import UserLayout from './components/layout/UserLayout';
+import AdminLayout from './components/layout/AdminLayout';
+import HrLayout from './components/layout/HrLayout';
+import FinanceLayout from './components/layout/FinanceLayout';
 
-// Lazy load components for code splitting
-const UserLayout = lazy(() => import('./components/layout/UserLayout'));
-const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
-const HrLayout = lazy(() => import('./components/layout/HrLayout'));
-const FinanceLayout = lazy(() => import('./components/layout/FinanceLayout'));
-const LoginScreen = lazy(() => import('./screens/auth/LoginScreen'));
-const RegisterScreen = lazy(() => import('./screens/auth/RegisterScreen'));
-const DeactivatedAccountScreen = lazy(() => import('./screens/auth/DeactivatedAccountScreen'));
-const UnderConstructionScreen = lazy(() => import('./screens/common/UnderConstructionScreen'));
-const FunctionalPlaceholderScreen = lazy(() => import('./screens/common/FunctionalPlaceholderScreen'));
-const OnboardingTour = lazy(() => import('./components/user/OnboardingTour'));
-const InstallBanner = lazy(() => import('./components/common/InstallBanner'));
-
+// Auth Screens
+import LoginScreen from './screens/auth/LoginScreen';
+import RegisterScreen from './screens/auth/RegisterScreen';
+import DeactivatedAccountScreen from './screens/auth/DeactivatedAccountScreen';
 
 // User Screens
-const HomeScreen = lazy(() => import('./screens/user/HomeScreen'));
-const WalletScreen = lazy(() => import('./screens/user/WalletScreen'));
-const MarketScreen = lazy(() => import('./screens/user/MarketScreen'));
-const InfoNewsScreen = lazy(() => import('./screens/user/InfoNewsScreen'));
-const MyAccountScreen = lazy(() => import('./screens/user/MyAccountScreen'));
-const CartScreen = lazy(() => import('./screens/user/CartScreen'));
-const WishlistScreen = lazy(() => import('./screens/user/WishlistScreen'));
-const MyProductsStoreScreen = lazy(() => import('./screens/user/MyProductsStoreScreen'));
-const BookmarkedArticlesScreen = lazy(() => import('./screens/user/BookmarkedArticlesScreen'));
-const LoyaltyScreen = lazy(() => import('./screens/user/LoyaltyScreen'));
-const AttendanceHistoryScreen = lazy(() => import('./screens/user/AttendanceHistoryScreen'));
-const OpexScreen = lazy(() => import('./screens/user/OpexScreen'));
-const NewOpexRequestScreen = lazy(() => import('./screens/user/opex/NewOpexRequestScreen'));
-const AllFeaturesScreen = lazy(() => import('./screens/user/AllFeaturesScreen'));
+import HomeScreen from './screens/user/HomeScreen';
+import WalletScreen from './screens/user/WalletScreen';
+import MarketScreen from './screens/user/MarketScreen';
+import InfoNewsScreen from './screens/user/InfoNewsScreen';
+import HealthScreen from './screens/user/HealthScreen';
+import MyAccountScreen from './screens/user/MyAccountScreen';
+import CartScreen from './screens/user/CartScreen';
+import WishlistScreen from './screens/user/WishlistScreen';
+import MyProductsStoreScreen from './screens/user/MyProductsStoreScreen';
+import BookmarkedArticlesScreen from './screens/user/BookmarkedArticlesScreen';
+import LoyaltyScreen from './screens/user/LoyaltyScreen';
+import AttendanceHistoryScreen from './screens/user/AttendanceHistoryScreen';
+import OpexScreen from './screens/user/OpexScreen';
+import NewOpexRequestScreen from './screens/user/opex/NewOpexRequestScreen';
+import AllFeaturesScreen from './screens/user/AllFeaturesScreen';
 
-// Health Screens
-const HealthScreen = lazy(() => import('./screens/user/HealthScreen'));
-const DoctorDetailScreen = lazy(() => import('./screens/user/health/DoctorDetailScreen'));
-const MyConsultationsScreen = lazy(() => import('./screens/user/health/MyConsultationsScreen'));
-const ConsultationRoomScreen = lazy(() => import('./screens/user/health/ConsultationRoomScreen'));
-const EprescriptionScreen = lazy(() => import('./screens/user/health/EprescriptionScreen'));
-const PharmacyCheckoutScreen = lazy(() => import('./screens/user/health/PharmacyCheckoutScreen'));
-const HealthRecordScreen = lazy(() => import('./screens/user/health/HealthRecordScreen'));
-const InsuranceClaimScreen = lazy(() => import('./screens/user/health/InsuranceClaimScreen'));
-const HealthPlusScreen = lazy(() => import('./screens/user/health/HealthPlusScreen'));
-const SubscriptionUpsellScreen = lazy(() => import('./screens/user/health/SubscriptionUpsellScreen'));
+// Health Sub-screens
+import DoctorDetailScreen from './screens/user/health/DoctorDetailScreen';
+import MyConsultationsScreen from './screens/user/health/MyConsultationsScreen';
+import ConsultationRoomScreen from './screens/user/health/ConsultationRoomScreen';
+import HealthRecordScreen from './screens/user/health/HealthRecordScreen';
+import EprescriptionScreen from './screens/user/health/EprescriptionScreen';
+import InsuranceClaimScreen from './screens/user/health/InsuranceClaimScreen';
+import PharmacyCheckoutScreen from './screens/user/health/PharmacyCheckoutScreen';
+import HealthPlusScreen from './screens/user/health/HealthPlusScreen';
+import SubscriptionUpsellScreen from './screens/user/health/SubscriptionUpsellScreen';
 
 // Admin Screens
-const AdminDashboard = lazy(() => import('./screens/admin/AdminDashboard'));
-const AdminUserIntelligence = lazy(() => import('./screens/admin/AdminUserIntelligence'));
-const AdminApiIntegration = lazy(() => import('./screens/admin/AdminApiIntegration'));
-const AdminScalability = lazy(() => import('./screens/admin/AdminScalability'));
-const AdminFinancialHub = lazy(() => import('./screens/admin/AdminFinancialHub'));
-const AdminInfoNewsManagement = lazy(() => import('./screens/admin/AdminInfoNewsManagement'));
-const AdminMarketplaceOversight = lazy(() => import('./screens/admin/AdminMarketplaceOversight'));
-const AdminHealthProviderManagement = lazy(() => import('./screens/admin/AdminHealthProviderManagement'));
-const AdminMonetizationEngine = lazy(() => import('./screens/admin/AdminMonetizationEngine'));
-const AdminTaxManagement = lazy(() => import('./screens/admin/AdminTaxManagement'));
-const AdminHomePageOrchestrator = lazy(() => import('./screens/admin/AdminHomePageOrchestrator'));
-const AdminAssistantHub = lazy(() => import('./screens/admin/AdminAssistantHub'));
-const AdminPersonalizationEngine = lazy(() => import('./screens/admin/AdminPersonalizationEngine'));
-const AdminServiceLinkageScreen = lazy(() => import('./screens/admin/AdminServiceLinkageScreen'));
-const AdminSystemControlsScreen = lazy(() => import('./screens/admin/AdminSystemControlsScreen'));
-
+import AdminDashboard from './screens/admin/AdminDashboard';
+import AdminUserIntelligence from './screens/admin/AdminUserIntelligence';
+import AdminFinancialHub from './screens/admin/AdminFinancialHub';
+import AdminApiIntegration from './screens/admin/AdminApiIntegration';
+import AdminScalability from './screens/admin/AdminScalability';
+import AdminInfoNewsManagement from './screens/admin/AdminInfoNewsManagement';
+import AdminMarketplaceOversight from './screens/admin/AdminMarketplaceOversight';
+import AdminHealthProviderManagement from './screens/admin/AdminHealthProviderManagement';
+import AdminMonetizationEngine from './screens/admin/AdminMonetizationEngine';
+import AdminTaxManagement from './screens/admin/AdminTaxManagement';
+import AdminPersonalizationEngine from './screens/admin/AdminPersonalizationEngine';
+import AdminHomePageOrchestrator from './screens/admin/AdminHomePageOrchestrator';
+import AdminAssistantHub from './screens/admin/AdminAssistantHub';
+import AdminSystemControlsScreen from './screens/admin/AdminSystemControlsScreen';
+import AdminServiceLinkageScreen from './screens/admin/AdminServiceLinkageScreen';
+import AdminSystemIntegrityScreen from './screens/admin/AdminSystemIntegrityScreen';
 
 // HR Screens
-const HrPortalScreen = lazy(() => import('./screens/hr/HrPortalScreen'));
-const HrDashboard = lazy(() => import('./screens/hr/HrDashboard'));
-const HrOnboarding = lazy(() => import('./screens/hr/HrOnboarding'));
-const HrLeaveManagement = lazy(() => import('./screens/hr/HrLeaveManagement'));
-const HrPayroll = lazy(() => import('./screens/hr/HrPayroll'));
-const HrAiCopilotScreen = lazy(() => import('./screens/hr/HrAiCopilotScreen'));
-const HrAttendanceManagement = lazy(() => import('./screens/hr/HrAttendanceManagement'));
-const HrOpexManagementScreen = lazy(() => import('./screens/hr/HrOpexManagementScreen'));
-const HrBenefitManagement = lazy(() => import('./screens/hr/HrBenefitManagement'));
-const HrWellnessManagement = lazy(() => import('./screens/hr/HrWellnessManagement'));
+import HrDashboard from './screens/hr/HrDashboard';
+import HrPortalScreen from './screens/hr/HrPortalScreen';
+import HrOnboarding from './screens/hr/HrOnboarding';
+import HrLeaveManagement from './screens/hr/HrLeaveManagement';
+import HrPayroll from './screens/hr/HrPayroll';
+import HrBenefitManagement from './screens/hr/HrBenefitManagement';
+import HrWellnessManagement from './screens/hr/HrWellnessManagement';
+import HrAttendanceManagement from './screens/hr/HrAttendanceManagement';
+import HrOpexManagementScreen from './screens/hr/HrOpexManagementScreen';
+import HrAiCopilotScreen from './screens/hr/HrAiCopilotScreen';
 
 // Finance Screens
-const FinanceDashboard = lazy(() => import('./screens/finance/FinanceDashboard'));
-const FinanceCommandCenter = lazy(() => import('./screens/finance/FinanceCommandCenter'));
-const FinancePayrollReport = lazy(() => import('./screens/finance/FinancePayrollReport'));
+import FinanceDashboard from './screens/finance/FinanceDashboard';
+import FinanceCommandCenter from './screens/finance/FinanceCommandCenter';
+import FinancePayrollReport from './screens/finance/FinancePayrollReport';
 
-// Placeholder Screens for Demo
-const PPOBScreen = lazy(() => import('./screens/user/placeholders/PPOBScreen'));
-const GovernmentServicesScreen = lazy(() => import('./screens/user/placeholders/GovernmentServicesScreen'));
-const LifestyleScreen = lazy(() => import('./screens/user/placeholders/LifestyleScreen'));
-const MobileTopUpScreen = lazy(() => import('./screens/user/placeholders/MobileTopUpScreen'));
-const CashOutScreen = lazy(() => import('./screens/user/placeholders/CashOutScreen'));
-const DailyNeedsScreen = lazy(() => import('./screens/user/placeholders/DailyNeedsScreen'));
-const PbbTaxScreen = lazy(() => import('./screens/user/placeholders/government/PbbTaxScreen'));
-const ESamsatScreen = lazy(() => import('./screens/user/placeholders/government/ESamsatScreen'));
-const MpnG3Screen = lazy(() => import('./screens/user/placeholders/government/MpnG3Screen'));
-const CinemaTicketScreen = lazy(() => import('./screens/user/placeholders/lifestyle/CinemaTicketScreen'));
-const GameVoucherScreen = lazy(() => import('./screens/user/placeholders/lifestyle/GameVoucherScreen'));
-const DonationScreen = lazy(() => import('./screens/user/placeholders/lifestyle/DonationScreen'));
+// Common & Placeholders
+import UnderConstructionScreen from './screens/common/UnderConstructionScreen';
+import FunctionalPlaceholderScreen from './screens/common/FunctionalPlaceholderScreen';
+import ToastContainer from './components/common/ToastContainer';
+import InstallBanner from './components/common/InstallBanner';
+import OnboardingTour from './components/user/OnboardingTour';
 
+// Placeholder Screens
+import PPOBScreen from './screens/user/placeholders/PPOBScreen';
+import GovernmentServicesScreen from './screens/user/placeholders/GovernmentServicesScreen';
+import LifestyleScreen from './screens/user/placeholders/LifestyleScreen';
+import MobileTopUpScreen from './screens/user/placeholders/MobileTopUpScreen';
+import CashOutScreen from './screens/user/placeholders/CashOutScreen';
+import DailyNeedsScreen from './screens/user/placeholders/DailyNeedsScreen';
+import PbbTaxScreen from './screens/user/placeholders/government/PbbTaxScreen';
+import ESamsatScreen from './screens/user/placeholders/government/ESamsatScreen';
+import MpnG3Screen from './screens/user/placeholders/government/MpnG3Screen';
+import CinemaTicketScreen from './screens/user/placeholders/lifestyle/CinemaTicketScreen';
+import GameVoucherScreen from './screens/user/placeholders/lifestyle/GameVoucherScreen';
+import DonationScreen from './screens/user/placeholders/lifestyle/DonationScreen';
+
+
+// FIX: Changed children type from JSX.Element to React.ReactNode to fix JSX namespace error and improve type flexibility.
+const ProtectedRoute: React.FC<{ role: Role, children: React.ReactNode }> = ({ role, children }) => {
+    const { user } = useAuth();
+    if (!user) return <Navigate to="/login" />;
+    if (user.role !== role) return <Navigate to="/" />; // Or a dedicated "Unauthorized" page
+    return <>{children}</>;
+};
+
+// FIX: Changed children type from JSX.Element to React.ReactNode to fix JSX namespace error and improve type flexibility.
+const UserRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { user } = useAuth();
+    if (!user) return <Navigate to="/login" />;
+    return <UserLayout>{children}</UserLayout>;
+}
 
 const App: React.FC = () => {
     const { user } = useAuth();
-    const [showOnboarding, setShowOnboarding] = useState(localStorage.getItem('onboarding_complete') !== 'true');
-    const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+    const [installPrompt, setInstallPrompt] = useState<any>(null);
+    const [showInstallBanner, setShowInstallBanner] = useState(false);
+    const [showTour, setShowTour] = useState(false);
 
     useEffect(() => {
-        const handleBeforeInstallPrompt = (e: Event) => {
+        const handler = (e: Event) => {
             e.preventDefault();
-            setDeferredInstallPrompt(e);
+            setInstallPrompt(e);
+            if (!localStorage.getItem('install_banner_dismissed')) {
+                setShowInstallBanner(true);
+            }
         };
-        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        return () => {
-            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        };
-    }, []);
+        window.addEventListener('beforeinstallprompt', handler);
+
+        // First time user tour logic
+        if (user && !localStorage.getItem(`tour_completed_${user.id}`)) {
+            setShowTour(true);
+        }
+
+        return () => window.removeEventListener('beforeinstallprompt', handler);
+    }, [user]);
 
     const handleInstall = () => {
-        if (deferredInstallPrompt) {
-            deferredInstallPrompt.prompt();
-            deferredInstallPrompt.userChoice.then(() => {
-                setDeferredInstallPrompt(null);
+        if (installPrompt) {
+            installPrompt.prompt();
+            installPrompt.userChoice.then(() => {
+                setInstallPrompt(null);
+                setShowInstallBanner(false);
             });
         }
     };
     
-    const handleOnboardingComplete = () => {
-        setShowOnboarding(false);
-        localStorage.setItem('onboarding_complete', 'true');
-    };
-
-    if (!user) {
-        return (
-            <HashRouter>
-                <Suspense fallback={<div>Loading...</div>}>
-                    <Routes>
-                        <Route path="/login" element={<LoginScreen />} />
-                        <Route path="/register" element={<RegisterScreen />} />
-                        <Route path="/deactivated" element={<DeactivatedAccountScreen />} />
-                        <Route path="*" element={<Navigate to="/login" replace />} />
-                    </Routes>
-                </Suspense>
-            </HashRouter>
-        );
+    const handleDismissInstall = () => {
+        localStorage.setItem('install_banner_dismissed', 'true');
+        setShowInstallBanner(false);
     }
     
-    if (user.status === 'inactive') {
-        return <Navigate to="/deactivated" replace />;
+    const handleTourComplete = () => {
+        if (user) {
+            localStorage.setItem(`tour_completed_${user.id}`, 'true');
+        }
+        setShowTour(false);
     }
 
-    const MainContent = () => {
-        const roleRoutes = {
-            [Role.Admin]: <Navigate to="/admin/dashboard" replace />,
-            [Role.HR]: <Navigate to="/hr-portal" replace />,
-            [Role.Finance]: <Navigate to="/finance/dashboard" replace />,
-            [Role.User]: <Navigate to="/home" replace />,
-        };
-
-        return (
-            <>
-                {showOnboarding && user.role === Role.User && <OnboardingTour onComplete={handleOnboardingComplete} />}
-                {deferredInstallPrompt && <InstallBanner onInstall={handleInstall} onDismiss={() => setDeferredInstallPrompt(null)} />}
-                <ToastContainer />
-
-                <Suspense fallback={
-                     <div className="flex items-center justify-center h-screen w-screen">
-                        <div>
-                          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                      </div>
-                }>
-                    <Routes>
-                        {/* User Routes */}
-                        <Route path="/" element={roleRoutes[user.role]} />
-                        <Route path="/home" element={<UserLayout><HomeScreen /></UserLayout>} />
-                        <Route path="/wallet" element={<UserLayout><WalletScreen /></UserLayout>} />
-                        <Route path="/market" element={<UserLayout><MarketScreen /></UserLayout>} />
-                        <Route path="/news" element={<UserLayout><InfoNewsScreen /></UserLayout>} />
-                        <Route path="/health" element={<UserLayout><HealthScreen /></UserLayout>} />
-                        <Route path="/account" element={<UserLayout><MyAccountScreen /></UserLayout>} />
-                        <Route path="/cart" element={<UserLayout><CartScreen /></UserLayout>} />
-                        <Route path="/wishlist" element={<UserLayout><WishlistScreen /></UserLayout>} />
-                        <Route path="/my-products" element={<UserLayout><MyProductsStoreScreen /></UserLayout>} />
-                        <Route path="/bookmarked-articles" element={<UserLayout><BookmarkedArticlesScreen /></UserLayout>} />
-                        <Route path="/loyalty" element={<UserLayout><LoyaltyScreen /></UserLayout>} />
-                        <Route path="/attendance-history" element={<UserLayout><AttendanceHistoryScreen /></UserLayout>} />
-                        <Route path="/opex" element={<UserLayout><OpexScreen /></UserLayout>} />
-                        <Route path="/opex/new" element={<UserLayout><NewOpexRequestScreen /></UserLayout>} />
-                        <Route path="/features" element={<UserLayout><AllFeaturesScreen/></UserLayout>} />
-                        
-                        {/* Health Sub-Routes */}
-                        <Route path="/health-plus" element={<UserLayout><HealthPlusScreen /></UserLayout>} />
-                        <Route path="/subscribe-health-plus" element={<UserLayout><SubscriptionUpsellScreen /></UserLayout>} />
-                        <Route path="/doctor/:id" element={<UserLayout><DoctorDetailScreen /></UserLayout>} />
-                        <Route path="/my-consultations" element={<UserLayout><MyConsultationsScreen /></UserLayout>} />
-                        <Route path="/consultation/:id" element={<ConsultationRoomScreen />} />
-                        <Route path="/prescriptions" element={<UserLayout><EprescriptionScreen /></UserLayout>} />
-                        <Route path="/pharmacy-checkout/:eprescriptionId" element={<UserLayout><PharmacyCheckoutScreen /></UserLayout>} />
-                        <Route path="/health-records" element={<UserLayout><HealthRecordScreen /></UserLayout>} />
-                        <Route path="/insurance-claims" element={<UserLayout><InsuranceClaimScreen /></UserLayout>} />
-
-                        {/* Admin Routes */}
-                        <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
-                        <Route path="/admin/users" element={<AdminLayout><AdminUserIntelligence /></AdminLayout>} />
-                        <Route path="/admin/system/api" element={<AdminLayout><AdminApiIntegration /></AdminLayout>} />
-                        <Route path="/admin/system/scalability" element={<AdminLayout><AdminScalability /></AdminLayout>} />
-                        <Route path="/admin/financials" element={<AdminLayout><AdminFinancialHub /></AdminLayout>} />
-                        <Route path="/admin/news" element={<AdminLayout><AdminInfoNewsManagement /></AdminLayout>} />
-                        <Route path="/admin/marketplace" element={<AdminLayout><AdminMarketplaceOversight /></AdminLayout>} />
-                        <Route path="/admin/health" element={<AdminLayout><AdminHealthProviderManagement /></AdminLayout>} />
-                        <Route path="/admin/monetization" element={<AdminLayout><AdminMonetizationEngine /></AdminLayout>} />
-                        <Route path="/admin/tax" element={<AdminLayout><AdminTaxManagement /></AdminLayout>} />
-                        <Route path="/admin/home-orchestrator" element={<AdminLayout><AdminHomePageOrchestrator /></AdminLayout>} />
-                        <Route path="/admin/assistant-hub" element={<AdminLayout><AdminAssistantHub /></AdminLayout>} />
-                        <Route path="/admin/personalization" element={<AdminLayout><AdminPersonalizationEngine /></AdminLayout>} />
-                        <Route path="/admin/system/service-linkage" element={<AdminLayout><AdminServiceLinkageScreen /></AdminLayout>} />
-                        <Route path="/admin/system/controls" element={<AdminLayout><AdminSystemControlsScreen /></AdminLayout>} />
-                        
-                        {/* HR Routes */}
-                        <Route path="/hr-portal" element={<UserLayout><HrPortalScreen /></UserLayout>} />
-                        <Route path="/hr/dashboard" element={<HrLayout><HrDashboard /></HrLayout>} />
-                        <Route path="/hr/onboarding" element={<HrLayout><HrOnboarding /></HrLayout>} />
-                        <Route path="/hr/leave" element={<HrLayout><HrLeaveManagement /></HrLayout>} />
-                        <Route path="/hr/payroll" element={<HrLayout><HrPayroll /></HrLayout>} />
-                        <Route path="/hr/copilot" element={<HrLayout><HrAiCopilotScreen /></HrLayout>} />
-                        <Route path="/hr/attendance" element={<HrLayout><HrAttendanceManagement /></HrLayout>} />
-                        <Route path="/hr/opex" element={<HrLayout><HrOpexManagementScreen /></HrLayout>} />
-                        <Route path="/hr/benefits" element={<HrLayout><HrBenefitManagement /></HrLayout>} />
-                        <Route path="/hr/wellness" element={<HrLayout><HrWellnessManagement /></HrLayout>} />
-                        
-                        {/* Finance Routes */}
-                        <Route path="/finance/dashboard" element={<FinanceLayout><FinanceDashboard/></FinanceLayout>} />
-                        <Route path="/finance/command-center" element={<FinanceLayout><FinanceCommandCenter/></FinanceLayout>} />
-                        <Route path="/finance/payroll-report" element={<FinanceLayout><FinancePayrollReport/></FinanceLayout>} />
-
-                        {/* Placeholder Routes */}
-                        <Route path="/construction" element={<UserLayout><UnderConstructionScreen /></UserLayout>} />
-                        <Route path="/placeholder/:featureName" element={<UserLayout><FunctionalPlaceholderScreen/></UserLayout>} />
-                        <Route path="/placeholder/PPOB & Tagihan" element={<UserLayout><PPOBScreen /></UserLayout>} />
-                        <Route path="/placeholder/Layanan Pemerintah" element={<UserLayout><GovernmentServicesScreen /></UserLayout>} />
-                        <Route path="/placeholder/Gaya Hidup" element={<UserLayout><LifestyleScreen /></UserLayout>} />
-                        <Route path="/placeholder/Pulsa & Data" element={<UserLayout><MobileTopUpScreen /></UserLayout>} />
-                        <Route path="/placeholder/Tarik Tunai" element={<UserLayout><CashOutScreen /></UserLayout>} />
-                        <Route path="/placeholder/Belanja Harian" element={<UserLayout><DailyNeedsScreen /></UserLayout>} />
-                        <Route path="/government/pbb" element={<UserLayout><PbbTaxScreen /></UserLayout>} />
-                        <Route path="/government/samsat" element={<UserLayout><ESamsatScreen /></UserLayout>} />
-                        <Route path="/government/mpn" element={<UserLayout><MpnG3Screen /></UserLayout>} />
-                        <Route path="/lifestyle/cinema" element={<UserLayout><CinemaTicketScreen /></UserLayout>} />
-                        <Route path="/lifestyle/game-voucher" element={<UserLayout><GameVoucherScreen /></UserLayout>} />
-                        <Route path="/lifestyle/donation" element={<UserLayout><DonationScreen /></UserLayout>} />
-
-
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </Suspense>
-            </>
-        );
-    };
-
     return (
-        <HashRouter>
-            <MainContent />
-        </HashRouter>
+        <Router>
+            <ToastContainer />
+            {showInstallBanner && <InstallBanner onInstall={handleInstall} onDismiss={handleDismissInstall} />}
+            {showTour && <OnboardingTour onComplete={handleTourComplete} />}
+            <Routes>
+                {/* Auth Routes */}
+                <Route path="/login" element={user ? <Navigate to="/" /> : <LoginScreen />} />
+                <Route path="/register" element={user ? <Navigate to="/" /> : <RegisterScreen />} />
+                <Route path="/deactivated" element={<DeactivatedAccountScreen />} />
+
+                {/* User Routes */}
+                <Route path="/" element={<UserRoute><HomeScreen /></UserRoute>} />
+                <Route path="/home" element={<UserRoute><HomeScreen /></UserRoute>} />
+                <Route path="/wallet" element={<UserRoute><WalletScreen /></UserRoute>} />
+                <Route path="/market" element={<UserRoute><MarketScreen /></UserRoute>} />
+                <Route path="/news" element={<UserRoute><InfoNewsScreen /></UserRoute>} />
+                <Route path="/health" element={<UserRoute><HealthScreen /></UserRoute>} />
+                <Route path="/account" element={<UserRoute><MyAccountScreen /></UserRoute>} />
+                <Route path="/cart" element={<UserRoute><CartScreen /></UserRoute>} />
+                <Route path="/wishlist" element={<UserRoute><WishlistScreen /></UserRoute>} />
+                <Route path="/my-products" element={<UserRoute><MyProductsStoreScreen /></UserRoute>} />
+                <Route path="/bookmarked-articles" element={<UserRoute><BookmarkedArticlesScreen /></UserRoute>} />
+                <Route path="/loyalty" element={<UserRoute><LoyaltyScreen /></UserRoute>} />
+                <Route path="/attendance-history" element={<UserRoute><AttendanceHistoryScreen /></UserRoute>} />
+                <Route path="/opex" element={<UserRoute><OpexScreen /></UserRoute>} />
+                <Route path="/opex/new" element={<UserRoute><NewOpexRequestScreen /></UserRoute>} />
+                <Route path="/features" element={<UserRoute><AllFeaturesScreen /></UserRoute>} />
+                <Route path="/doctor/:id" element={<UserRoute><DoctorDetailScreen /></UserRoute>} />
+                <Route path="/my-consultations" element={<UserRoute><MyConsultationsScreen /></UserRoute>} />
+                <Route path="/consultation/:id" element={<UserRoute><ConsultationRoomScreen /></UserRoute>} />
+                <Route path="/health-records" element={<UserRoute><HealthRecordScreen /></UserRoute>} />
+                <Route path="/prescriptions" element={<UserRoute><EprescriptionScreen /></UserRoute>} />
+                <Route path="/insurance-claims" element={<UserRoute><InsuranceClaimScreen /></UserRoute>} />
+                <Route path="/pharmacy-checkout/:eprescriptionId" element={<UserRoute><PharmacyCheckoutScreen /></UserRoute>} />
+                <Route path="/health-plus" element={<UserRoute><HealthPlusScreen /></UserRoute>} />
+                <Route path="/subscribe-health-plus" element={<UserRoute><SubscriptionUpsellScreen /></UserRoute>} />
+
+                {/* Placeholders */}
+                <Route path="/placeholder/PPOB & Tagihan" element={<UserRoute><PPOBScreen /></UserRoute>} />
+                <Route path="/placeholder/Layanan Pemerintah" element={<UserRoute><GovernmentServicesScreen /></UserRoute>} />
+                <Route path="/placeholder/Gaya Hidup" element={<UserRoute><LifestyleScreen /></UserRoute>} />
+                <Route path="/placeholder/Pulsa & Data" element={<UserRoute><MobileTopUpScreen /></UserRoute>} />
+                <Route path="/placeholder/Tarik Tunai" element={<UserRoute><CashOutScreen /></UserRoute>} />
+                <Route path="/placeholder/Belanja Harian" element={<UserRoute><DailyNeedsScreen /></UserRoute>} />
+                <Route path="/government/pbb" element={<UserRoute><PbbTaxScreen /></UserRoute>} />
+                <Route path="/government/samsat" element={<UserRoute><ESamsatScreen /></UserRoute>} />
+                <Route path="/government/mpn" element={<UserRoute><MpnG3Screen /></UserRoute>} />
+                <Route path="/lifestyle/cinema" element={<UserRoute><CinemaTicketScreen /></UserRoute>} />
+                <Route path="/lifestyle/game-voucher" element={<UserRoute><GameVoucherScreen /></UserRoute>} />
+                <Route path="/lifestyle/donation" element={<UserRoute><DonationScreen /></UserRoute>} />
+                <Route path="/placeholder/:featureName" element={<UserRoute><FunctionalPlaceholderScreen /></UserRoute>} />
+
+                {/* Admin Routes */}
+                <Route path="/admin/*" element={
+                    <ProtectedRoute role={Role.Admin}>
+                        <AdminLayout>
+                            <Routes>
+                                <Route path="dashboard" element={<AdminDashboard />} />
+                                <Route path="users" element={<AdminUserIntelligence />} />
+                                <Route path="financials" element={<AdminFinancialHub />} />
+                                <Route path="news" element={<AdminInfoNewsManagement />} />
+                                <Route path="marketplace" element={<AdminMarketplaceOversight />} />
+                                <Route path="health" element={<AdminHealthProviderManagement />} />
+                                <Route path="monetization" element={<AdminMonetizationEngine />} />
+                                <Route path="tax" element={<AdminTaxManagement />} />
+                                <Route path="personalization" element={<AdminPersonalizationEngine />} />
+                                <Route path="home-orchestrator" element={<AdminHomePageOrchestrator />} />
+                                <Route path="assistant-hub" element={<AdminAssistantHub />} />
+                                <Route path="system/api" element={<AdminApiIntegration />} />
+                                <Route path="system/scalability" element={<AdminScalability />} />
+                                <Route path="system/controls" element={<AdminSystemControlsScreen />} />
+                                <Route path="system/service-linkage" element={<AdminServiceLinkageScreen />} />
+                                <Route path="system/integrity" element={<AdminSystemIntegrityScreen />} />
+                                <Route path="*" element={<Navigate to="dashboard" />} />
+                            </Routes>
+                        </AdminLayout>
+                    </ProtectedRoute>
+                }/>
+
+                {/* HR Routes */}
+                <Route path="/hr-portal" element={<UserLayout><HrPortalScreen /></UserLayout>} />
+                <Route path="/hr/*" element={
+                    <ProtectedRoute role={Role.HR}>
+                        <HrLayout>
+                             <Routes>
+                                <Route path="dashboard" element={<HrDashboard />} />
+                                <Route path="onboarding" element={<HrOnboarding />} />
+                                <Route path="leave" element={<HrLeaveManagement />} />
+                                <Route path="payroll" element={<HrPayroll />} />
+                                <Route path="benefits" element={<HrBenefitManagement />} />
+                                <Route path="wellness" element={<HrWellnessManagement />} />
+                                <Route path="attendance" element={<HrAttendanceManagement />} />
+                                <Route path="opex" element={<HrOpexManagementScreen />} />
+                                <Route path="copilot" element={<HrAiCopilotScreen />} />
+                                <Route path="*" element={<Navigate to="dashboard" />} />
+                             </Routes>
+                        </HrLayout>
+                    </ProtectedRoute>
+                }/>
+
+                 {/* Finance Routes */}
+                <Route path="/finance/*" element={
+                    <ProtectedRoute role={Role.Finance}>
+                        <FinanceLayout>
+                             <Routes>
+                                <Route path="dashboard" element={<FinanceDashboard />} />
+                                <Route path="command-center" element={<FinanceCommandCenter />} />
+                                <Route path="payroll-report" element={<FinancePayrollReport />} />
+                                <Route path="*" element={<Navigate to="dashboard" />} />
+                             </Routes>
+                        </FinanceLayout>
+                    </ProtectedRoute>
+                }/>
+
+                <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+        </Router>
     );
 };
 
