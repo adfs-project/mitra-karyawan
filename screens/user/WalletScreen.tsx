@@ -21,6 +21,7 @@ const getTransactionIcon = (type: Transaction['type']) => {
         case 'Top-Up':
         case 'Refund':
         case 'Reversal':
+        case 'Dana Opex':
             return <ArrowUpCircleIcon className="h-8 w-8 text-green-400" />;
         default:
              return <ArrowDownCircleIcon className="h-8 w-8 text-red-400" />;
@@ -66,8 +67,8 @@ const WalletScreen: React.FC = () => {
                                     <p className="font-semibold text-text-primary">{tx.description}</p>
                                     <p className="text-xs text-text-secondary">{new Date(tx.timestamp).toLocaleString()}</p>
                                 </div>
-                                <div className={`font-bold text-right ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                    <p>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(tx.amount)}</p>
+                                <div className={`font-bold text-right`}>
+                                    <p className={`${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(tx.amount)}</p>
                                      <span className={`text-xs font-normal ${tx.status === 'Completed' ? 'text-green-500' : tx.status === 'Pending' ? 'text-yellow-500' : 'text-red-500'}`}>
                                         {tx.status}
                                      </span>

@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-// FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
 import { useApp } from '../../contexts/AppContext';
 import { PersonalizationRule, PersonalizationCondition, ConditionField, ConditionOperator, ActionType, Role } from '../../types';
 import { PlusIcon, PencilIcon, TrashIcon, SparklesIcon, XMarkIcon, LockClosedIcon } from '@heroicons/react/24/solid';
-// FIX: Import useMarketplace from hooks directory.
 import { useMarketplace } from '../../hooks/useMarketplace';
 
 const emptyRule: Omit<PersonalizationRule, 'id'> = {
@@ -19,7 +17,6 @@ const RuleModal: React.FC<{
     onSave: (rule: Omit<PersonalizationRule, 'id'> | PersonalizationRule) => void;
     initialRule: Omit<PersonalizationRule, 'id'> | PersonalizationRule | null;
 }> = ({ isOpen, onClose, onSave, initialRule }) => {
-    // FIX: Get products data from useMarketplace hook.
     const { articles, users } = useApp();
     const { products } = useMarketplace();
     const [rule, setRule] = useState(initialRule || emptyRule);

@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-// FIX: Replaced useData with useApp as useData is not an exported member.
 import { useApp } from '../../../contexts/AppContext';
 import { XMarkIcon, DocumentArrowDownIcon, ArrowUpTrayIcon, CheckCircleIcon, ExclamationCircleIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 import * as XLSX from 'xlsx';
-// FIX: Changed import path to hooks directory
 import { useMarketplace } from '../../../hooks/useMarketplace';
 
 type PreviewRow = {
@@ -13,10 +11,9 @@ type PreviewRow = {
 };
 
 const BulkUploadProductsModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
-    const { addMultipleProductsByAdmin } = useMarketplace();
-    // FIX: showToast comes from useApp, not useData.
     const { showToast } = useApp();
-    const [step, setStep] = useState(1); // 1: Upload, 2: Preview, 3: Result
+    const { addMultipleProductsByAdmin } = useMarketplace();
+    const [step, setStep] = useState(1);
     const [previewData, setPreviewData] = useState<PreviewRow[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const [fileName, setFileName] = useState('');
@@ -40,7 +37,7 @@ const BulkUploadProductsModal: React.FC<{ isOpen: boolean; onClose: () => void }
         const ws = XLSX.utils.json_to_sheet([{}], { header: headers });
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Template Produk");
-        XLSX.writeFile(wb, "template_produk.xlsx");
+        XLSX.writeFile(wb, "template_produk_koperasi.xlsx");
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,7 +57,7 @@ const BulkUploadProductsModal: React.FC<{ isOpen: boolean; onClose: () => void }
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false });
                 validateData(jsonData);
             } catch (error) {
-                showToast("Gagal memproses file. Pastikan formatnya benar.", "error");
+                showToast("Failed to process file. Ensure it's a valid Excel format.", "error");
                 resetState();
             }
         };
@@ -69,13 +66,14 @@ const BulkUploadProductsModal: React.FC<{ isOpen: boolean; onClose: () => void }
 
     const validateData = (data: any[]) => {
         const validatedRows: PreviewRow[] = [];
+
         for (const row of data) {
-            if (!row.name || !row.price || !row.stock || !row.category || !row.imageUrl) {
-                validatedRows.push({ data: row, status: 'invalid', error: 'Kolom wajib (name, price, stock, category, imageUrl) harus diisi.' });
+            if (!row.name || !row.price || !row.stock || !row.category) {
+                validatedRows.push({ data: row, status: 'invalid', error: 'Required fields (name, price, stock, category) are missing.' });
                 continue;
             }
             if (isNaN(Number(row.price)) || isNaN(Number(row.stock))) {
-                validatedRows.push({ data: row, status: 'invalid', error: 'Kolom price dan stock harus berupa angka.' });
+                 validatedRows.push({ data: row, status: 'invalid', error: 'Price and stock must be numbers.' });
                 continue;
             }
             validatedRows.push({ data: row, status: 'valid' });
@@ -88,45 +86,37 @@ const BulkUploadProductsModal: React.FC<{ isOpen: boolean; onClose: () => void }
     const handleImport = async () => {
         const validRows = previewData.filter(row => row.status === 'valid').map(row => row.data);
         if (validRows.length === 0) {
-            showToast("Tidak ada data valid untuk diimpor.", "warning");
+            showToast("No valid data to import.", "warning");
             return;
         }
 
         setIsProcessing(true);
-        const productsToCreate = validRows.map(row => ({
-            name: row.name,
-            description: row.description || '',
-            price: Number(row.price),
-            stock: Number(row.stock),
-            category: row.category,
-            imageUrl: row.imageUrl,
-        }));
-
-        const result = await addMultipleProductsByAdmin(productsToCreate);
+        const result = await addMultipleProductsByAdmin(validRows);
         setImportResult(result);
         setStep(3);
         setIsProcessing(false);
     };
 
     const renderStepContent = () => {
-        switch (step) {
+        switch(step) {
             case 2:
                 const validCount = previewData.filter(r => r.status === 'valid').length;
                 const invalidCount = previewData.length - validCount;
                 return (
-                    <>
-                        <h2 className="text-2xl font-bold text-primary mb-4">Pratinjau Data</h2>
+                     <>
+                        <h2 className="text-2xl font-bold text-primary mb-4">Preview Product Data</h2>
                         <div className="bg-surface-light p-3 rounded-lg mb-4 text-center">
                             <p>File: <span className="font-semibold">{fileName}</span></p>
-                            <p><span className="font-bold text-green-400">{validCount}</span> baris valid, <span className="font-bold text-red-400">{invalidCount}</span> baris tidak valid.</p>
+                            <p><span className="font-bold text-green-400">{validCount}</span> valid rows, <span className="font-bold text-red-400">{invalidCount}</span> invalid rows.</p>
                         </div>
                         <div className="max-h-60 overflow-y-auto border border-border-color rounded-lg">
                             <table className="w-full text-xs text-left">
-                                <thead className="bg-surface-light sticky top-0"><tr><th className="p-2">Nama</th><th className="p-2">Harga</th><th className="p-2">Status</th></tr></thead>
+                                <thead className="bg-surface-light sticky top-0"><tr><th className="p-2">Name</th><th className="p-2">Category</th><th className="p-2">Price</th><th className="p-2">Status</th></tr></thead>
                                 <tbody>
                                     {previewData.map((row, i) => (
                                         <tr key={i} className={row.status === 'invalid' ? 'bg-red-500/10' : ''}>
                                             <td className="p-2 border-t border-border-color">{row.data.name}</td>
+                                            <td className="p-2 border-t border-border-color">{row.data.category}</td>
                                             <td className="p-2 border-t border-border-color">{row.data.price}</td>
                                             <td className="p-2 border-t border-border-color">
                                                 {row.status === 'valid' ? <CheckCircleIcon className="h-4 w-4 text-green-500" /> : <ExclamationCircleIcon className="h-4 w-4 text-red-500" title={row.error} />}
@@ -141,25 +131,25 @@ const BulkUploadProductsModal: React.FC<{ isOpen: boolean; onClose: () => void }
             case 3:
                 return (
                     <div className="text-center">
-                        <h2 className="text-2xl font-bold text-primary mb-4">Hasil Impor</h2>
-                        <p className="text-xl"><span className="font-bold text-green-400">{importResult?.success || 0}</span> produk berhasil dibuat.</p>
-                        <p className="text-xl"><span className="font-bold text-red-400">{importResult?.failed || 0}</span> data gagal diimpor.</p>
+                        <h2 className="text-2xl font-bold text-primary mb-4">Import Result</h2>
+                        <p className="text-xl"><span className="font-bold text-green-400">{importResult?.success || 0}</span> products created successfully.</p>
+                        <p className="text-xl"><span className="font-bold text-red-400">{importResult?.failed || 0}</span> rows failed to import.</p>
                     </div>
                 );
             default:
-                return (
+                 return (
                     <>
-                        <h2 className="text-2xl font-bold text-primary mb-4">Unggah Produk Massal</h2>
+                        <h2 className="text-2xl font-bold text-primary mb-4">Bulk Upload Products</h2>
                         <div className="space-y-4">
-                            <p className="text-text-secondary">1. Unduh templat Excel untuk memastikan format data yang benar.</p>
+                            <p className="text-text-secondary">1. Download the Excel template to ensure correct data format.</p>
                             <button onClick={handleDownloadTemplate} className="w-full flex items-center justify-center p-3 bg-surface-light rounded-lg border border-border-color font-semibold hover:bg-border-color">
-                                <DocumentArrowDownIcon className="h-5 w-5 mr-2" /> Unduh Templat
+                                <DocumentArrowDownIcon className="h-5 w-5 mr-2" /> Download Template
                             </button>
-                            <p className="text-text-secondary">2. Isi data produk pada templat (termasuk URL gambar), lalu unggah file di sini.</p>
+                            <p className="text-text-secondary">2. Fill in the product data, then upload the file here.</p>
                             <div className="relative">
                                 <input type="file" id="bulk-product-upload-input" className="absolute w-0 h-0 opacity-0" onChange={handleFileChange} accept=".xlsx, .xls" />
                                 <label htmlFor="bulk-product-upload-input" className="w-full flex items-center justify-center p-3 btn-secondary rounded-lg font-bold cursor-pointer">
-                                    <ArrowUpTrayIcon className="h-5 w-5 mr-2" /> {isProcessing ? "Memproses..." : "Pilih File Excel"}
+                                    <ArrowUpTrayIcon className="h-5 w-5 mr-2" /> {isProcessing ? "Processing..." : "Choose Excel File"}
                                 </label>
                             </div>
                         </div>
@@ -171,7 +161,7 @@ const BulkUploadProductsModal: React.FC<{ isOpen: boolean; onClose: () => void }
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
             <div className="bg-surface p-6 rounded-lg w-full max-w-2xl border border-border-color">
                 <button onClick={handleClose} className="absolute top-3 right-3 p-1 rounded-full hover:bg-surface-light"><XMarkIcon className="h-6 w-6" /></button>
                 
@@ -180,13 +170,13 @@ const BulkUploadProductsModal: React.FC<{ isOpen: boolean; onClose: () => void }
                 <div className="flex justify-end space-x-4 pt-4 mt-6 border-t border-border-color">
                     {step === 2 && (
                         <>
-                            <button onClick={resetState} className="px-6 py-2 rounded bg-surface-light">Batal</button>
-                            <button onClick={handleImport} disabled={isProcessing} className="btn-primary px-6 py-2 rounded font-bold w-36 flex justify-center">
-                                {isProcessing ? <ArrowPathIcon className="h-5 w-5 animate-spin" /> : 'Impor Data Valid'}
+                            <button onClick={resetState} className="px-6 py-2 rounded bg-surface-light">Cancel</button>
+                            <button onClick={handleImport} disabled={isProcessing} className="btn-primary px-6 py-2 rounded font-bold w-40 flex justify-center">
+                                {isProcessing ? <ArrowPathIcon className="h-5 w-5 animate-spin" /> : 'Import Valid Data'}
                             </button>
                         </>
                     )}
-                    {step === 3 && <button onClick={handleClose} className="btn-primary px-6 py-2 rounded font-bold">Selesai</button>}
+                    {step === 3 && <button onClick={handleClose} className="btn-primary px-6 py-2 rounded font-bold">Done</button>}
                 </div>
             </div>
         </div>

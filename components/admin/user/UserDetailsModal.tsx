@@ -1,9 +1,7 @@
 import React from 'react';
 import { User, Transaction, Order } from '../../../types';
-// FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
 import { useApp } from '../../../contexts/AppContext';
 import { XMarkIcon, UserCircleIcon, WalletIcon, ShoppingCartIcon, TrophyIcon, ArrowUpCircleIcon, ArrowDownCircleIcon } from '@heroicons/react/24/solid';
-// FIX: Import useMarketplace from hooks directory.
 import { useMarketplace } from '../../../hooks/useMarketplace';
 
 const Stat: React.FC<{ label: string; value: string | number; color?: string }> = ({ label, value, color = 'text-primary' }) => (
@@ -25,7 +23,6 @@ const UserDetailsModal: React.FC<{
     onClose: () => void;
     user: User | null;
 }> = ({ isOpen, onClose, user }) => {
-    // FIX: Get orders and products from useMarketplace hook.
     const { transactions } = useApp();
     const { orders, products } = useMarketplace();
 
@@ -41,7 +38,6 @@ const UserDetailsModal: React.FC<{
         approved: { text: "Approved", color: "text-green-400" },
         rejected: { text: "Rejected", color: "text-red-400" },
     };
-    // FIX: This variable declaration was complete; removing the incorrect "fix" comment.
     const payLaterInfo = user.payLater ? payLaterStatusMap[user.payLater.status] : payLaterStatusMap['not_applied'];
     
     return (

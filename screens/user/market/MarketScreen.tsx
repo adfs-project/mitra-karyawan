@@ -6,7 +6,6 @@ import { MagnifyingGlassIcon, FunnelIcon, SparklesIcon } from '@heroicons/react/
 import AiRecommendations from '../../components/user/market/AiRecommendations';
 import { usePersonalization } from '../../contexts/PersonalizationContext';
 import { useAuth } from '../../contexts/AuthContext';
-// FIX: Import the useMarketplace hook to get marketplace data.
 import { useMarketplace } from '../../hooks/useMarketplace';
 
 const AiPoweredRecommendations: React.FC = () => {
