@@ -96,7 +96,7 @@ const LoginScreen: React.FC = () => {
                 ) : (
                      <form onSubmit={handle2FA} className="space-y-6">
                         <h2 className="text-xl font-bold text-center text-text-primary">Verifikasi Login</h2>
-                        <p className="text-center text-text-secondary">Kami telah mengirimkan notifikasi berisi kode 6 digit. Masukkan kode tersebut untuk melanjutkan.</p>
+                        <p className="text-center text-text-secondary">Kami telah mengirimkan notifikasi berisi kode 4 digit. Masukkan kode tersebut untuk melanjutkan.</p>
                          <div>
                             <label className="text-sm font-bold text-text-secondary block mb-2">Kode Verifikasi</label>
                             <input
@@ -104,7 +104,7 @@ const LoginScreen: React.FC = () => {
                                 value={otp}
                                 onChange={(e) => setOtp(e.target.value)}
                                 required
-                                maxLength={6}
+                                maxLength={4}
                                 className="w-full p-3 bg-surface-light rounded border border-border-color focus:outline-none focus:ring-2 focus:ring-primary text-center text-2xl tracking-[.5em]"
                             />
                         </div>
