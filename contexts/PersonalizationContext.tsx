@@ -2,7 +2,6 @@ import React, { createContext, useState, useContext, useEffect, ReactNode, useCa
 import { useAuth } from './AuthContext';
 import { useApp } from './AppContext';
 import { GoogleGenAI, Type } from '@google/genai';
-import { useMarketplace } from '../hooks/useMarketplace';
 
 interface PersonalizationContextType {
     interestProfiles: Record<string, string[]>;
@@ -13,8 +12,8 @@ const PersonalizationContext = createContext<PersonalizationContextType | undefi
 
 export const PersonalizationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { user } = useAuth();
-    const { articles, users } = useApp(); 
-    const { products } = useMarketplace();
+    // FIX: Get products from the single source of truth (AppContext) instead of a sibling context.
+    const { articles, users, products } = useApp(); 
     const [interestProfiles, setInterestProfiles] = useState<Record<string, string[]>>({});
     const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({});
     const isInitialMount = useRef(true);
