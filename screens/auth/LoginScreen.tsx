@@ -19,7 +19,7 @@ const LoginScreen: React.FC = () => {
 
         switch (result.result) {
             case 'success':
-                navigate('/');
+                navigate('/home');
                 break;
             case 'inactive':
                 navigate('/deactivated');
