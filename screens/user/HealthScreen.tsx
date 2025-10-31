@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useApp } from '../../contexts/AppContext';
-import SymptomCheckerModal from '../../components/user/health/SymptomCheckerModal';
 import WellnessHub from '../../components/user/health/WellnessHub';
 
 import {
@@ -35,10 +33,6 @@ const FeatureCard: React.FC<{ title: string, description: string, icon: React.El
 const HealthScreen: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { homePageConfig } = useApp();
-    const [isSymptomModalOpen, setSymptomModalOpen] = useState(false);
-
-    const isSymptomCheckerEnabled = homePageConfig.featureFlags.aiSymptomChecker;
 
     return (
         <div className="p-4 space-y-6">
@@ -52,7 +46,7 @@ const HealthScreen: React.FC = () => {
                     title="Telekonsultasi"
                     description="Jadwalkan sesi konsultasi video dengan dokter kami."
                     icon={UsersIcon}
-                    onClick={() => navigate('/health')} // Placeholder, should go to doctor list
+                    onClick={() => navigate('/placeholder/Telekonsultasi')}
                 />
                 <FeatureCard
                     title="Riwayat Konsultasi"
@@ -82,12 +76,11 @@ const HealthScreen: React.FC = () => {
                     title="Info Kesehatan AI"
                     description="Dapatkan informasi umum tentang gejala (bukan diagnosis)."
                     icon={BeakerIcon}
-                    onClick={() => setSymptomModalOpen(true)}
-                    disabled={!isSymptomCheckerEnabled}
+                    onClick={() => navigate('/placeholder/Info Kesehatan AI')}
                 />
                  {!user?.isPremium && (
                     <div className="md:col-span-2">
-                        <button onClick={() => navigate('/subscribe-health-plus')} className="w-full bg-gradient-to-r from-primary/20 to-secondary/20 p-4 rounded-lg border border-primary/50 hover:border-primary transition-all flex items-center text-left space-x-4">
+                        <button onClick={() => navigate('/placeholder/Health+ Subscription')} className="w-full bg-gradient-to-r from-primary/20 to-secondary/20 p-4 rounded-lg border border-primary/50 hover:border-primary transition-all flex items-center text-left space-x-4">
                              <SparklesIcon className="h-8 w-8 text-primary" />
                              <div>
                                 <h2 className="text-lg font-bold text-text-primary">Tingkatkan ke Health+</h2>
@@ -100,7 +93,6 @@ const HealthScreen: React.FC = () => {
             
             <WellnessHub />
 
-            <SymptomCheckerModal isOpen={isSymptomModalOpen} onClose={() => setSymptomModalOpen(false)} />
         </div>
     );
 };
