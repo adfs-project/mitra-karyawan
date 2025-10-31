@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 // FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
 import { useApp } from '../../contexts/AppContext';
-import { ShieldCheckIcon, ShieldExclamationIcon, PuzzlePieceIcon, LockClosedIcon } from '@heroicons/react/24/solid';
+import { ShieldCheckIcon, ShieldExclamationIcon, PuzzlePieceIcon, LockClosedIcon, BeakerIcon, HeartIcon } from '@heroicons/react/24/solid';
 import loggingService, { LogEntry } from '../../services/loggingService';
 
 const ToggleSwitch: React.FC<{
@@ -117,28 +117,43 @@ const AdminSystemControlsScreen: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold mb-2">AI Privacy</h2>
-                        <div className="bg-surface-light p-4 rounded-lg border border-border-color flex items-center">
-                            <div className="p-2 rounded-full mr-4 bg-primary/20">
-                                <ShieldCheckIcon className="h-6 w-6 text-primary" />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-text-primary">'Zero Data Access' AI Guardrail</h3>
-                                <p className="text-sm text-text-secondary max-w-xl">
-                                    Protokol privasi AI diaktifkan secara permanen. AI tidak dapat mengakses data pengguna apa pun, memastikan privasi dan keamanan maksimum.
-                                </p>
-                            </div>
+                        <h2 className="text-xl font-bold mb-2">AI Feature Controls</h2>
+                        <div className="space-y-3">
+                            <ToggleSwitch
+                                label="Enable 'AI Anomaly Detection' Feature"
+                                description="Aktifkan pemindaian transaksi oleh AI di Financial Hub untuk mendeteksi aktivitas mencurigakan secara otomatis."
+                                enabled={homePageConfig.featureFlags.aiAnomalyDetection}
+                                onToggle={(enabled) => handleFeatureFlagToggle('aiAnomalyDetection', enabled)}
+                                Icon={ShieldExclamationIcon}
+                                iconColor="text-yellow-400"
+                            />
+                            <ToggleSwitch
+                                label="Enable 'AI Symptom Checker' Feature"
+                                description="Izinkan pengguna untuk menggunakan asisten AI untuk mendapatkan informasi umum tentang gejala kesehatan (bukan diagnosis medis)."
+                                enabled={homePageConfig.featureFlags.aiSymptomChecker}
+                                onToggle={(enabled) => handleFeatureFlagToggle('aiSymptomChecker', enabled)}
+                                Icon={BeakerIcon}
+                                iconColor="text-blue-400"
+                            />
+                             <ToggleSwitch
+                                label="Enable 'Health+ AI Coach' Feature"
+                                description="Aktifkan AI coach untuk pelanggan Health+ agar dapat membuat rencana makan dan latihan yang dipersonalisasi."
+                                enabled={homePageConfig.featureFlags.aiHealthCoach}
+                                onToggle={(enabled) => handleFeatureFlagToggle('aiHealthCoach', enabled)}
+                                Icon={HeartIcon}
+                                iconColor="text-red-400"
+                            />
                         </div>
                     </div>
                      <div>
-                        <h2 className="text-xl font-bold mb-2">Feature Flags</h2>
+                        <h2 className="text-xl font-bold mb-2">Experimental Features</h2>
                          <ToggleSwitch
                             label="Enable 'AI Investment Bot' Feature"
                             description="Aktifkan fitur eksperimental 'AI Investment Bot' di menu Akses Cepat pada halaman utama pengguna. Gunakan ini untuk mensimulasikan peluncuran fitur baru yang berisiko."
                             enabled={homePageConfig.featureFlags.aiInvestmentBot}
                             onToggle={(enabled) => handleFeatureFlagToggle('aiInvestmentBot', enabled)}
                             Icon={PuzzlePieceIcon}
-                            iconColor="text-blue-400"
+                            iconColor="text-purple-400"
                         />
                     </div>
                 </div>

@@ -21,11 +21,13 @@ const AIResultDisplay: React.FC<{ content: string }> = ({ content }) => (
 const HealthPlusScreen: React.FC = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const { showToast } = useApp();
+    const { showToast, homePageConfig } = useApp();
     const [activeTab, setActiveTab] = useState<Tab>('Makan');
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState('');
     const [input, setInput] = useState('');
+
+    const isCoachEnabled = homePageConfig.featureFlags.aiHealthCoach;
 
     useEffect(() => {
         if (!user?.isPremium) {
@@ -35,8 +37,34 @@ const HealthPlusScreen: React.FC = () => {
 
 
     const handleGenerate = async () => {
-        // AI feature is disabled
-        return;
+        if (!input.trim() || !isCoachEnabled) return;
+
+        setIsLoading(true);
+        setResult('');
+        let prompt = '';
+
+        switch (activeTab) {
+            case 'Makan':
+                prompt = `Buatkan contoh rencana makan sederhana untuk satu hari (pagi, siang, malam) dalam Bahasa Indonesia untuk tujuan: "${input}". Fokus pada makanan umum yang mudah ditemukan. Berikan dalam format poin-poin.`;
+                break;
+            case 'Latihan':
+                prompt = `Buatkan contoh program latihan sederhana untuk satu sesi dalam Bahasa Indonesia dengan tujuan: "${input}". Sertakan 3-4 gerakan dengan jumlah set/repetisi. Fokus pada latihan tanpa alat. Berikan dalam format poin-poin.`;
+                break;
+            case 'Mood':
+                prompt = `Berikan 3 tips umum dan actionable dalam Bahasa Indonesia untuk membantu meningkatkan suasana hati atau mengelola stres terkait: "${input}". Berikan dalam format poin-poin.`;
+                break;
+        }
+
+        try {
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
+            setResult(response.text);
+        } catch (error) {
+            console.error("Health Coach AI Error:", error);
+            showToast("Gagal menghubungi AI Coach.", "error");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -51,35 +79,37 @@ const HealthPlusScreen: React.FC = () => {
                 </h1>
             </div>
 
-            <div className="bg-surface p-4 rounded-lg border border-yellow-500/50 text-center">
-                <h2 className="text-xl font-bold text-yellow-400">Fitur Dinonaktifkan</h2>
-                <p className="text-text-secondary mt-2 text-sm">
-                    Untuk meningkatkan privasi dan keamanan data, fitur Health+ AI Coach dinonaktifkan sementara. Kami sedang meninjau protokol keamanan kami untuk memberikan layanan terbaik.
-                </p>
-            </div>
+            {!isCoachEnabled && (
+                <div className="bg-surface p-4 rounded-lg border border-yellow-500/50 text-center">
+                    <h2 className="text-xl font-bold text-yellow-400">Fitur Dinonaktifkan</h2>
+                    <p className="text-text-secondary mt-2 text-sm">
+                        Fitur Health+ AI Coach saat ini tidak tersedia. Silakan hubungi admin untuk informasi lebih lanjut.
+                    </p>
+                </div>
+            )}
 
-            <div className="flex border-b border-border-color">
+            <div className={`flex border-b border-border-color ${!isCoachEnabled ? 'opacity-50' : ''}`}>
                 {(['Makan', 'Latihan', 'Mood'] as Tab[]).map(tab => (
-                    <button key={tab} onClick={() => { setActiveTab(tab); setResult(''); setInput(''); }} className={`px-4 py-2 font-semibold ${activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-text-secondary'}`}>
+                    <button key={tab} disabled={!isCoachEnabled} onClick={() => { setActiveTab(tab); setResult(''); setInput(''); }} className={`px-4 py-2 font-semibold ${activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-text-secondary'}`}>
                         {tab === 'Makan' ? 'Rencana Makan' : tab === 'Latihan' ? 'Program Latihan' : 'Analisis Mood'}
                     </button>
                 ))}
             </div>
 
-            <div className="bg-surface p-4 rounded-lg border border-border-color">
+            <div className={`bg-surface p-4 rounded-lg border border-border-color ${!isCoachEnabled ? 'opacity-50' : ''}`}>
                 <label className="text-sm font-bold text-text-secondary">
-                    {activeTab === 'Makan' ? 'Apa tujuan diet Anda?' : activeTab === 'Latihan' ? 'Apa tujuan kebugaran Anda?' : 'Analisis Kesejahteraan Mental'}
+                    {activeTab === 'Makan' ? 'Apa tujuan diet Anda? (e.g., menurunkan berat badan, menambah massa otot)' : activeTab === 'Latihan' ? 'Apa tujuan kebugaran Anda? (e.g., membakar lemak, latihan di rumah)' : 'Apa yang sedang Anda rasakan atau pikirkan?'}
                 </label>
                 <div className="flex items-center space-x-2 mt-2">
                     <input
                         type="text"
                         value={input}
                         onChange={e => setInput(e.target.value)}
-                        placeholder="Fitur AI dinonaktifkan"
-                        disabled={true}
+                        placeholder={isCoachEnabled ? "Ketik tujuan Anda..." : "Fitur AI dinonaktifkan"}
+                        disabled={isLoading || !isCoachEnabled}
                         className="w-full p-3 bg-surface-light rounded border border-border-color disabled:opacity-50"
                     />
-                    <button onClick={handleGenerate} disabled={true} className="btn-primary px-4 py-3 rounded font-bold w-40 flex justify-center items-center disabled:bg-gray-600 disabled:cursor-not-allowed">
+                    <button onClick={handleGenerate} disabled={isLoading || !input.trim() || !isCoachEnabled} className="btn-primary px-4 py-3 rounded font-bold w-40 flex justify-center items-center disabled:bg-gray-600 disabled:cursor-not-allowed">
                         {isLoading ? <AILoadingSpinner /> : (activeTab === 'Mood' ? 'Analisis' : 'Generate')}
                     </button>
                 </div>

@@ -63,27 +63,20 @@ const EngagementAnalyticsDashboard: React.FC = () => {
 
 const AdminDashboard: React.FC = () => {
     const { users, transactions, adminWallets } = useApp();
-    const { orders } = useMarketplace();
 
     const totalUsers = users.length;
     const totalTransactions = transactions.length;
-    const totalGMV = orders.reduce((acc, order) => acc + order.total, 0);
 
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-primary">Dashboard Overview</h1>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard title="Total Users" value={totalUsers} icon={UsersIcon} />
                 <StatCard 
                     title="Platform Profit" 
                     value={new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(adminWallets.profit)} 
                     icon={BanknotesIcon} 
-                />
-                <StatCard 
-                    title="Marketplace GMV" 
-                    value={new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalGMV)} 
-                    icon={ShoppingCartIcon} 
                 />
                 <StatCard title="Total Transactions" value={totalTransactions} icon={ArrowTrendingUpIcon} />
             </div>

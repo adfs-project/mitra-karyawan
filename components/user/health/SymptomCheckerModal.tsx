@@ -4,6 +4,7 @@ import { XMarkIcon, PaperAirplaneIcon, BeakerIcon } from '@heroicons/react/24/so
 import { GoogleGenAI } from "@google/genai";
 import { buildSecurePrompt } from '../../../services/aiGuardrailService';
 import { useApp } from '../../../contexts/AppContext';
+import loggingService from '../../../services/loggingService';
 
 interface Message {
     sender: 'user' | 'ai';
@@ -22,7 +23,7 @@ const SymptomCheckerModal: React.FC<{
 
     const initialGreeting = {
         sender: 'ai' as 'ai',
-        text: 'Fitur Asisten Kesehatan AI telah dinonaktifkan untuk mematuhi kebijakan privasi data yang lebih ketat. Kami tidak lagi memproses data kesehatan melalui AI untuk menjamin kerahasiaan Anda. Silakan berkonsultasi langsung dengan dokter untuk saran medis.',
+        text: 'Halo! Saya asisten kesehatan AI. Anda bisa bertanya tentang gejala atau kondisi kesehatan secara umum (contoh: "Apa saja gejala umum demam?").\n\n**Penting:** Saya BUKAN dokter dan tidak dapat memberikan diagnosis atau saran medis. Selalu konsultasikan dengan dokter untuk masalah kesehatan.',
     };
 
     useEffect(() => {
@@ -36,8 +37,35 @@ const SymptomCheckerModal: React.FC<{
     }, [messages]);
 
     const handleSend = async () => {
-        // Functionality is disabled
-        return;
+         if (!query.trim() || isLoading) return;
+
+        const userMessage: Message = { sender: 'user', text: query };
+        setMessages(prev => [...prev, userMessage]);
+        setQuery('');
+        setIsLoading(true);
+
+        const prompt = buildSecurePrompt(
+            userMessage.text,
+            "You are an AI health assistant. Your ONLY function is to provide GENERAL, EDUCATIONAL information about health topics and symptoms. You are NOT a doctor. You MUST NEVER provide a diagnosis, medical advice, or treatment plans. Every response MUST include a clear disclaimer in bold at the end: '**Ini bukan saran medis. Silakan konsultasikan dengan dokter untuk masalah kesehatan apa pun.**' Refuse any query asking for a diagnosis or personal medical advice."
+        );
+
+        try {
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt,
+            });
+
+            const aiMessage: Message = { sender: 'ai', text: response.text };
+            setMessages(prev => [...prev, aiMessage]);
+        } catch (error) {
+            loggingService.logError(error as Error, { component: 'SymptomCheckerModal' });
+            showToast("Gagal menghubungi asisten AI.", "error");
+            const errorMessage: Message = { sender: 'ai', text: "Maaf, terjadi kesalahan. Silakan coba lagi nanti." };
+            setMessages(prev => [...prev, errorMessage]);
+        } finally {
+            setIsLoading(false);
+        }
     };
     
     if (!isOpen) return null;
@@ -84,11 +112,11 @@ const SymptomCheckerModal: React.FC<{
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="Fitur AI dinonaktifkan"
-                            className="w-full bg-surface-light border border-border-color rounded-full py-2 px-4 focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
-                            disabled={true}
+                            placeholder="Tanya tentang gejala umum..."
+                            className="w-full bg-surface-light border border-border-color rounded-full py-2 px-4 focus:outline-none focus:ring-1 focus:ring-primary"
+                            disabled={isLoading}
                         />
-                        <button onClick={handleSend} disabled={true} className="p-2 btn-secondary rounded-full disabled:opacity-50 disabled:cursor-not-allowed">
+                        <button onClick={handleSend} disabled={isLoading || !query.trim()} className="p-2 btn-secondary rounded-full disabled:opacity-50 disabled:cursor-not-allowed">
                             <PaperAirplaneIcon className="h-5 w-5" />
                         </button>
                     </div>

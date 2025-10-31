@@ -180,7 +180,15 @@ export const initialOpexRequests: OpexRequest[] = [
 ];
 export const initialMonetizationConfig: MonetizationConfig = { marketplaceCommission: 0.05, marketingCPA: 25000 };
 export const initialTaxConfig: TaxConfig = { ppnRate: 0.11, pph21Rate: 0.025 };
-export const initialHomePageConfig: HomePageConfig = { pinnedItemId: null, featureFlags: { aiInvestmentBot: false } };
+export const initialHomePageConfig: HomePageConfig = { 
+    pinnedItemId: null, 
+    featureFlags: { 
+        aiInvestmentBot: false,
+        aiAnomalyDetection: false,
+        aiSymptomChecker: false,
+        aiHealthCoach: false,
+    } 
+};
 export const initialAdminWallets: AdminWallets = { profit: 0, tax: 0, cash: 100000000 };
 export const initialPersonalizationRules: PersonalizationRule[] = [];
 export const initialOrders: Order[] = [

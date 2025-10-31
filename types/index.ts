@@ -262,6 +262,9 @@ export interface HomePageConfig {
     pinnedItemId: string | null;
     featureFlags: {
         aiInvestmentBot: boolean;
+        aiAnomalyDetection: boolean;
+        aiSymptomChecker: boolean;
+        aiHealthCoach: boolean;
     };
 }
 
