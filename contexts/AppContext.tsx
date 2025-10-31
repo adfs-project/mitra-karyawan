@@ -9,13 +9,13 @@ import {
 import { testApiConnection } from '../services/apiService';
 import { useAuth } from './AuthContext';
 import vaultService from '../services/vaultService';
-import { HealthProvider } from './HealthContext';
 
 type AppData = ReturnType<typeof vaultService.getSanitizedData>;
 
 export type UpdateStateFunc = <K extends keyof AppData>(key: K, value: AppData[K]) => void;
 
-// Gabungan dari semua tipe data dan fungsi yang dibutuhkan secara global
+// This context now only holds CORE data and functions, not domain-specific ones.
+// FIX: Removed Omit to allow domain-specific contexts to pull their state from the central AppContext.
 export interface AppContextType extends AppData {
     toasts: Toast[];
     showToast: (message: string, type: ToastType) => void;
@@ -84,8 +84,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, []);
 
     const updateState: UpdateStateFunc = useCallback((key, value) => {
+        // Persist the single change to vault's in-memory store and localStorage
         vaultService.setData(key, value as any);
-        setAppData(vaultService.getSanitizedData());
+        // Update React state efficiently by creating a new top-level object
+        // but reusing references for unchanged state slices. This prevents
+        // a full re-render of the entire application.
+        setAppData(prevData => ({
+            ...prevData,
+            [key]: vaultService.getSanitizedData()[key], // Get the sanitized version of the updated slice
+        }));
     }, []);
     
     const addNotification = useCallback((userId: string, message: string, type: Notification['type']) => {
@@ -108,16 +115,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const newTransaction: Transaction = {
             ...txData, id: `tx-${Date.now()}`, timestamp: new Date().toISOString(), userName: userSource?.profile.name || 'System',
         };
-        updateState('transactions', [...currentData.transactions, newTransaction]);
+        
+        // This direct update is more efficient than calling updateState, which would trigger a re-render
+        const newTransactions = [...currentData.transactions, newTransaction];
+        vaultService.setData('transactions', newTransactions);
         
         if(userSource) {
             const fullUserToUpdate = vaultService.findUserByEmail(userSource.email)!;
             fullUserToUpdate.wallet.balance += txData.amount;
             vaultService.updateUser(fullUserToUpdate);
+            
+            // Now trigger a single state update with all changes
             setAppData(vaultService.getSanitizedData());
+
             if (user && user.id === txData.userId) {
                 updateCurrentUser({ ...user, wallet: { ...user.wallet, balance: fullUserToUpdate.wallet.balance } });
             }
+        } else {
+             setAppData(vaultService.getSanitizedData());
         }
         return { success: true, message: "Transaction successful." };
     }, [user, updateCurrentUser, addNotification, updateState]);
@@ -185,6 +200,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const generatePayslipData = useCallback((userId: string) => { const salary = vaultService.getRawSalaryForUser(userId); if (!salary) return null; const grossSalary = salary; const gajiPokok = grossSalary; const insentifKinerja = 0; const bpjsTkNatura = grossSalary * 0.0054; const totalPendapatan = gajiPokok + insentifKinerja + bpjsTkNatura; const pajakPph21 = grossSalary * 0.025; const bpjsTkKaryawan2 = grossSalary * 0.02; const bpjsTkKaryawan054 = grossSalary * 0.0054; const bpjsPensiunKaryawan = grossSalary * 0.01; const totalPotongan = pajakPph21 + bpjsTkKaryawan2 + bpjsTkKaryawan054 + bpjsPensiunKaryawan; const bpjsPensiunPerusahaan = grossSalary * 0.02; const bpjsTkPerusahaan = grossSalary * 0.037; const takeHomePay = (gajiPokok + insentifKinerja) - totalPotongan; return { gajiPokok, insentifKinerja, totalPendapatan, pajakPph21, bpjsTkKaryawan2, bpjsTkKaryawan054, bpjsPensiunKaryawan, totalPotongan, bpjsPensiunPerusahaan, bpjsTkPerusahaan, takeHomePay, saldoPinjaman: 0, bpjsTkNatura }; }, []);
 
     const value: AppContextType = {
+        // FIX: Remove the cast and spread the full appData object.
         ...appData,
         toasts,
         showToast,
@@ -206,9 +222,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     return (
         <AppContext.Provider value={value}>
-            <HealthProvider>
-                {children}
-            </HealthProvider>
+            {children}
         </AppContext.Provider>
     );
 };

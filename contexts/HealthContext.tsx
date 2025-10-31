@@ -105,16 +105,19 @@ export const HealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 updateState('eprescriptions', [...eprescriptions, newEprescription]);
                 eprescriptionId = newEprescription.id;
 
-                updateState('consultations', consultations.map(c => c.id === consultationId ? { ...c, status: 'Completed', notes, eprescriptionId } : c));
+                // FIX: Added 'as const' or explicit type assertion to prevent type widening for 'status'.
+                updateState('consultations', consultations.map(c => c.id === consultationId ? { ...c, status: 'Completed' as 'Completed', notes, eprescriptionId } : c));
                 addNotification(user.id, `Konsultasi dengan ${consultation.doctorName} selesai. Resep baru telah diterbitkan.`, 'success');
             
             } catch (error) {
                 console.error("AI Prescription Generation Failed:", error);
-                updateState('consultations', consultations.map(c => c.id === consultationId ? { ...c, status: 'Completed', notes: chatSummary } : c));
+                // FIX: Added 'as const' or explicit type assertion to prevent type widening for 'status'.
+                updateState('consultations', consultations.map(c => c.id === consultationId ? { ...c, status: 'Completed' as 'Completed', notes: chatSummary } : c));
                 addNotification(user.id, `Konsultasi dengan ${consultation.doctorName} telah selesai.`, 'info');
             }
         } else {
-            updateState('consultations', consultations.map(c => c.id === consultationId ? { ...c, status: 'Completed', notes: chatSummary } : c));
+            // FIX: Added 'as const' or explicit type assertion to prevent type widening for 'status'.
+            updateState('consultations', consultations.map(c => c.id === consultationId ? { ...c, status: 'Completed' as 'Completed', notes: chatSummary } : c));
             addNotification(user.id, `Konsultasi dengan ${consultation.doctorName} telah selesai.`, 'info');
         }
     }, [user, consultations, eprescriptions, updateState, addNotification]);
@@ -200,7 +203,8 @@ export const HealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             return { success: false, message: txResult.message };
         }
         
-        updateState('eprescriptions', eprescriptions.map(e => e.id === eprescriptionId ? { ...e, status: 'Redeemed' } : e));
+        // FIX: Added 'as const' or explicit type assertion to prevent type widening for 'status'.
+        updateState('eprescriptions', eprescriptions.map(e => e.id === eprescriptionId ? { ...e, status: 'Redeemed' as 'Redeemed' } : e));
         return { success: true, message: 'Resep berhasil ditebus!' };
         
     }, [user, eprescriptions, updateState, addTransaction]);

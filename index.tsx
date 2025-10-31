@@ -6,6 +6,10 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import RecoveryUI from './components/common/RecoveryUI';
 import { AppProvider } from './contexts/AppContext';
+import { PersonalizationProvider } from './contexts/PersonalizationContext';
+import { MarketplaceProvider } from './contexts/MarketplaceContext';
+import { HRProvider } from './contexts/HRContext';
+import { HealthProvider } from './contexts/HealthContext';
 
 // Application version, reads from build environment or falls back to a hardcoded value.
 const APP_VERSION = (import.meta as any)?.env?.VITE_APP_VERSION || '1.5.4';
@@ -27,7 +31,15 @@ root.render(
             <ThemeProvider>
                 <AuthProvider>
                     <AppProvider>
-                        <App />
+                        <MarketplaceProvider>
+                            <HRProvider>
+                                <HealthProvider>
+                                    <PersonalizationProvider>
+                                        <App />
+                                    </PersonalizationProvider>
+                                </HealthProvider>
+                            </HRProvider>
+                        </MarketplaceProvider>
                     </AppProvider>
                 </AuthProvider>
             </ThemeProvider>
