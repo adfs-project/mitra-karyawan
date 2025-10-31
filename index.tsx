@@ -12,7 +12,7 @@ import { HRProvider } from './contexts/HRContext';
 import { HealthProvider } from './contexts/HealthContext';
 
 // Application version, reads from build environment or falls back to a hardcoded value.
-const APP_VERSION = (import.meta as any)?.env?.VITE_APP_VERSION || '1.5.7';
+const APP_VERSION = (import.meta as any)?.env?.VITE_APP_VERSION || '1.5.8';
 console.log(`Mitra Karyawan App Version: ${APP_VERSION}`);
 
 // Crash loop detection logic - Temporarily disabled

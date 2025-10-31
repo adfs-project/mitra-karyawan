@@ -235,9 +235,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return () => clearInterval(guardianInterval);
     }, [state.homePageConfig.isIntegrityGuardianActive, state.disputes, state.orders, updateState, addNotification, resolveDispute]);
 
+    const logAssistantQuery = useCallback((query: string, detectedIntent: AssistantLog['detectedIntent']) => {
+        if (!user) return;
+        const newLog: AssistantLog = { id: `asl-${Date.now()}`, userId: user.id, query, detectedIntent, timestamp: new Date().toISOString() };
+        updateState('assistantLogs', [newLog, ...state.assistantLogs]);
+    }, [user, state.assistantLogs, updateState]);
 
-    const placeholderFunc = async (...args: any[]) => { console.warn("Function not implemented", ...args); };
-    const placeholderFuncSync = (...args: any[]) => { console.warn("Function not implemented", ...args); };
+    const logEngagementEvent = useCallback((type: keyof EngagementAnalytics, itemId: string) => {
+        const newAnalytics = { ...state.engagementAnalytics };
+        newAnalytics[type][itemId] = (newAnalytics[type][itemId] || 0) + 1;
+        updateState('engagementAnalytics', newAnalytics);
+    }, [state.engagementAnalytics, updateState]);
+
+    const toggleArticleLike = useCallback((articleId: string) => {
+        if (!user) return;
+        const article = state.articles.find(a => a.id === articleId);
+        if (!article) return;
+        const isLiked = article.likes.includes(user.id);
+        const newLikes = isLiked ? article.likes.filter(id => id !== user.id) : [...article.likes, user.id];
+        updateState('articles', state.articles.map(a => a.id === articleId ? { ...a, likes: newLikes } : a));
+    }, [user, state.articles, updateState]);
+
+    const toggleArticleBookmark = useCallback((articleId: string) => {
+        if (!user) return;
+        const isBookmarked = user.bookmarkedArticles.includes(articleId);
+        const newBookmarks = isBookmarked ? user.bookmarkedArticles.filter(id => id !== articleId) : [...user.bookmarkedArticles, articleId];
+        updateCurrentUser({ ...user, bookmarkedArticles: newBookmarks });
+    }, [user, updateCurrentUser]);
 
     return (
         <AppContext.Provider value={{
@@ -248,12 +272,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             showToast,
             removeToast,
             resolveDispute,
+            logAssistantQuery,
+            logEngagementEvent,
+            toggleArticleLike,
+            toggleArticleBookmark,
             markNotificationsAsRead: (userId: string) => {
                 const newNotifications = state.notifications.map(n => n.userId === userId ? { ...n, read: true } : n);
                 updateState('notifications', newNotifications);
             },
-            logAssistantQuery: placeholderFunc,
-            logEngagementEvent: placeholderFunc,
             updateUserStatus: async (userId, status) => {
                 const userToUpdate = vaultService.findUserByEmail(state.users.find(u=>u.id === userId)!.email);
                 if (userToUpdate) {
@@ -286,45 +312,88 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 }
                 return result;
             },
-            provisionScalabilityService: placeholderFunc,
+            provisionScalabilityService: async () => {},
             addArticle: (data) => {
-                const newArticle: Article = {
-                    ...data,
-                    id: `art-${Date.now()}`,
-                    author: 'Admin',
-                    timestamp: new Date().toISOString(),
-                    likes: [],
-                    comments: [],
-                };
+                const newArticle: Article = { ...data, id: `art-${Date.now()}`, author: 'Admin', timestamp: new Date().toISOString(), likes: [], comments: [] };
                 updateState('articles', [newArticle, ...state.articles]);
             },
-            updateArticle: (data) => {
-                updateState('articles', state.articles.map(a => a.id === data.id ? data : a));
-            },
+            updateArticle: (data) => updateState('articles', state.articles.map(a => a.id === data.id ? data : a)),
             deleteArticle: (id) => showToast("Deletion is disabled.", 'warning'),
-            voteOnPoll: placeholderFuncSync,
-            addArticleComment: placeholderFuncSync,
-            toggleCommentLike: placeholderFuncSync,
-            toggleArticleLike: placeholderFuncSync,
-            toggleArticleBookmark: placeholderFuncSync,
+            voteOnPoll: (articleId, optionIndex) => {
+                 if (!user) return;
+                 updateState('articles', state.articles.map(a => {
+                    if (a.id === articleId && a.pollOptions) {
+                        return {
+                            ...a,
+                            pollOptions: a.pollOptions.map((opt, i) => {
+                                const newVotes = opt.votes.filter(v => v !== user.id);
+                                if (i === optionIndex) newVotes.push(user.id);
+                                return { ...opt, votes: newVotes };
+                            })
+                        };
+                    }
+                    return a;
+                }));
+            },
+            addArticleComment: (articleId, comment) => {
+                if (!user) return;
+                const newComment = { userId: user.id, userName: user.profile.name, comment, timestamp: new Date().toISOString(), likes: [] };
+                updateState('articles', state.articles.map(a => a.id === articleId ? { ...a, comments: [...a.comments, newComment] } : a));
+            },
+            toggleCommentLike: (articleId, commentTimestamp) => {
+                 if (!user) return;
+                 updateState('articles', state.articles.map(a => {
+                    if (a.id === articleId) {
+                        return { ...a, comments: a.comments.map(c => {
+                            if (c.timestamp === commentTimestamp) {
+                                const isLiked = c.likes.includes(user.id);
+                                const newLikes = isLiked ? c.likes.filter(id => id !== user.id) : [...c.likes, user.id];
+                                return { ...c, likes: newLikes };
+                            }
+                            return c;
+                        })};
+                    }
+                    return a;
+                }));
+            },
             updateMonetizationConfig: (config) => updateState('monetizationConfig', config),
             updateTaxConfig: (config) => updateState('taxConfig', config),
             updateHomePageConfig: (config) => updateState('homePageConfig', config),
-            addPersonalizationRule: placeholderFunc,
-            updatePersonalizationRule: placeholderFunc,
+            addPersonalizationRule: (rule) => updateState('personalizationRules', [{ ...rule, id: `pr-${Date.now()}` }, ...state.personalizationRules]),
+            updatePersonalizationRule: (rule) => updateState('personalizationRules', state.personalizationRules.map(r => r.id === rule.id ? rule : r)),
             deletePersonalizationRule: () => showToast("Deletion is disabled.", 'warning'),
-            transferProfitToCash: placeholderFunc,
-            recordTaxPayment: placeholderFunc,
-            recordOperationalExpense: placeholderFunc,
-            updateServiceLinkage: (featureId, apiId) => {
-                const newLinkage = { ...state.serviceLinkage, [featureId]: apiId };
-                updateState('serviceLinkage', newLinkage);
+            transferProfitToCash: async () => {
+                const amount = state.adminWallets.profit;
+                if (amount <= 0) return;
+                await addTransaction({ userId: 'admin-001', amount, description: 'Profit transfer to cash', type: 'Internal Transfer', status: 'Completed' });
+                updateState('adminWallets', { ...state.adminWallets, profit: 0, cash: state.adminWallets.cash + amount });
+                showToast('Profit transferred to cash wallet.', 'success');
             },
-            addBudget: placeholderFunc,
-            updateBudget: placeholderFunc,
+            recordTaxPayment: async () => {
+                const amount = state.adminWallets.tax;
+                if (amount <= 0) return;
+                await addTransaction({ userId: 'admin-001', amount: -amount, description: 'Tax payment to government', type: 'Operational Expense', status: 'Completed' });
+                updateState('adminWallets', { ...state.adminWallets, tax: 0, cash: state.adminWallets.cash - amount });
+                showToast('Tax payment recorded.', 'success');
+            },
+            recordOperationalExpense: async (description, amount) => {
+                await addTransaction({ userId: 'admin-001', amount: -amount, description, type: 'Operational Expense', status: 'Completed' });
+                updateState('adminWallets', { ...state.adminWallets, cash: state.adminWallets.cash - amount });
+            },
+            updateServiceLinkage: (featureId, apiId) => updateState('serviceLinkage', { ...state.serviceLinkage, [featureId]: apiId }),
+            addBudget: async (budget) => {
+                if (!user) return;
+                const newBudget: Budget = { ...budget, id: `b-${Date.now()}`, userId: user.id, spent: 0 };
+                updateState('budgets', [...state.budgets, newBudget]);
+            },
+            updateBudget: async (budget) => updateState('budgets', state.budgets.map(b => b.id === budget.id ? budget : b)),
             deleteBudget: () => showToast("Deletion is disabled.", 'warning'),
-            addScheduledPayment: placeholderFunc,
-            updateScheduledPayment: placeholderFunc,
+            addScheduledPayment: async (payment) => {
+                if (!user) return;
+                const newPayment: ScheduledPayment = { ...payment, id: `sp-${Date.now()}`, userId: user.id };
+                updateState('scheduledPayments', [...state.scheduledPayments, newPayment]);
+            },
+            updateScheduledPayment: async (payment) => updateState('scheduledPayments', state.scheduledPayments.map(p => p.id === payment.id ? payment : p)),
             deleteScheduledPayment: () => showToast("Deletion is disabled.", 'warning'),
             applyForPayLater: () => {
                 if (!user) return;
