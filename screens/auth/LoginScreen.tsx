@@ -1,17 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { useApp } from '../../contexts/AppContext';
 
 const LoginScreen: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [otp, setOtp] = useState('');
     const [error, setError] = useState('');
-    const [show2FA, setShow2FA] = useState(false);
     const [loading, setLoading] = useState(false);
-    const { login, verify2FA } = useAuth();
-    const { showToast } = useApp();
+    const { login } = useAuth();
     const navigate = useNavigate();
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -24,10 +20,6 @@ const LoginScreen: React.FC = () => {
         switch (result.result) {
             case 'success':
                 navigate('/');
-                break;
-            case '2fa_required':
-                setShow2FA(true);
-                showToast(`[SIMULASI] Kode OTP Anda adalah: ${result.otp}`, 'info');
                 break;
             case 'inactive':
                 navigate('/deactivated');
@@ -42,19 +34,6 @@ const LoginScreen: React.FC = () => {
                 setError('An unexpected error occurred.');
         }
     };
-    
-    const handle2FA = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
-        const result = await verify2FA(otp);
-        setLoading(false);
-        if (result === 'success') {
-            navigate('/');
-        } else {
-            setError('Invalid OTP. Please try again.');
-        }
-    };
 
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -64,57 +43,35 @@ const LoginScreen: React.FC = () => {
                     <p className="text-sm text-text-secondary tracking-widest uppercase">Super App</p>
                 </div>
 
-                {!show2FA ? (
-                    <form onSubmit={handleLogin} className="space-y-6" autoComplete="off">
-                        <div>
-                            <label className="text-sm font-bold text-text-secondary block mb-2">Email</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                className="w-full p-3 bg-surface-light rounded border border-border-color focus:outline-none focus:ring-2 focus:ring-primary"
-                                autoComplete="off"
-                            />
-                        </div>
-                        <div>
-                            <label className="text-sm font-bold text-text-secondary block mb-2">Password</label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                className="w-full p-3 bg-surface-light rounded border border-border-color focus:outline-none focus:ring-2 focus:ring-primary"
-                                autoComplete="off"
-                            />
-                        </div>
-                        {error && <p className="text-red-500 text-sm">{error}</p>}
-                        <button type="submit" disabled={loading} className="w-full btn-primary p-3 rounded font-bold">
-                            {loading ? 'Logging in...' : 'Login'}
-                        </button>
-                    </form>
-                ) : (
-                     <form onSubmit={handle2FA} className="space-y-6">
-                        <h2 className="text-xl font-bold text-center text-text-primary">Verifikasi Login</h2>
-                        <p className="text-center text-text-secondary">Kami telah mengirimkan notifikasi berisi kode 4 digit. Masukkan kode tersebut untuk melanjutkan.</p>
-                         <div>
-                            <label className="text-sm font-bold text-text-secondary block mb-2">Kode Verifikasi</label>
-                            <input
-                                type="text"
-                                value={otp}
-                                onChange={(e) => setOtp(e.target.value)}
-                                required
-                                maxLength={4}
-                                className="w-full p-3 bg-surface-light rounded border border-border-color focus:outline-none focus:ring-2 focus:ring-primary text-center text-2xl tracking-[.5em]"
-                            />
-                        </div>
-                        {error && <p className="text-red-500 text-sm">{error}</p>}
-                        <button type="submit" disabled={loading} className="w-full btn-primary p-3 rounded font-bold">
-                            {loading ? 'Verifying...' : 'Verify'}
-                        </button>
-                    </form>
-                )}
-
+                <form onSubmit={handleLogin} className="space-y-6" autoComplete="off">
+                    <div>
+                        <label className="text-sm font-bold text-text-secondary block mb-2">Email</label>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="w-full p-3 bg-surface-light rounded border border-border-color focus:outline-none focus:ring-2 focus:ring-primary"
+                            autoComplete="off"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold text-text-secondary block mb-2">Password</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            className="w-full p-3 bg-surface-light rounded border border-border-color focus:outline-none focus:ring-2 focus:ring-primary"
+                            autoComplete="off"
+                        />
+                    </div>
+                    {error && <p className="text-red-500 text-sm">{error}</p>}
+                    <button type="submit" disabled={loading} className="w-full btn-primary p-3 rounded font-bold">
+                        {loading ? 'Logging in...' : 'Login'}
+                    </button>
+                </form>
+                
                  <div className="text-center mt-6">
                     <p className="text-text-secondary">
                         Don't have an account?{' '}

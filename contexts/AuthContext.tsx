@@ -2,15 +2,12 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import { User, Role, UserProfile } from '../types';
 import vaultService from '../services/vaultService';
 
-type LoginResult = 
-    | { result: '2fa_required'; otp: string }
-    | { result: 'success' | 'not_found' | 'inactive' | 'incorrect_password' };
+type LoginResult = { result: 'success' | 'not_found' | 'inactive' | 'incorrect_password' };
 
 
 interface AuthContextType {
     user: User | null;
     login: (email: string, password: string) => Promise<LoginResult>;
-    verify2FA: (otp: string) => Promise<'success' | 'failed'>;
     logout: () => void;
     register: (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData'>) => Promise<'success' | 'exists'>;
     updateCurrentUser: (updatedUser: User) => void;
@@ -41,8 +38,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
-    const [pendingLogin, setPendingLogin] = useState<User | null>(null);
-    const [pendingOTP, setPendingOTP] = useState<string | null>(null);
 
     useEffect(() => {
         // Temporarily disabled session persistence
@@ -70,32 +65,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return { result: 'inactive' };
         }
 
-        const otp = Math.floor(1000 + Math.random() * 9000).toString();
-        setPendingLogin(foundUser);
-        setPendingOTP(otp);
-
-        console.log(`[SIMULASI EMAIL] Kode OTP untuk ${foundUser.email} adalah: ${otp}`);
+        // OTP is removed. Directly log in the user.
+        const sanitizedUser = vaultService.getSanitizedData().users.find(u => u.id === foundUser.id)!;
+        setUser(sanitizedUser);
         
-        return { result: '2fa_required', otp };
-    };
-    
-    const verify2FA = async (otp: string): Promise<'success' | 'failed'> => {
-        if (pendingLogin && pendingOTP && (otp === pendingOTP || otp === '0000')) {
-            const sanitizedUser = vaultService.getSanitizedData().users.find(u => u.id === pendingLogin.id)!;
-            setUser(sanitizedUser);
-            // sessionStorage.setItem('loggedInUser', JSON.stringify(sanitizedUser)); // Temporarily disabled
-            setPendingLogin(null);
-            setPendingOTP(null);
-            return 'success';
-        }
-        return 'failed';
+        return { result: 'success' };
     };
 
     const logout = () => {
         setUser(null);
         // sessionStorage.removeItem('loggedInUser'); // Temporarily disabled
-        setPendingLogin(null);
-        setPendingOTP(null);
     };
 
     const register = async (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData'>): Promise<'success' | 'exists'> => {
@@ -318,7 +297,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, verify2FA, logout, register, updateCurrentUser, createEmployee, createMultipleEmployeesByHr, createHrAccountByAdmin, createFinanceAccountByAdmin, changePassword }}>
+        <AuthContext.Provider value={{ user, login, logout, register, updateCurrentUser, createEmployee, createMultipleEmployeesByHr, createHrAccountByAdmin, createFinanceAccountByAdmin, changePassword }}>
             {children}
         </AuthContext.Provider>
     );
