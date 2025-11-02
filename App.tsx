@@ -34,7 +34,7 @@ const getHomeRoute = (user: any) => {
     }
 };
 
-// FIX: New component to handle access denied logic safely without violating Rules of Hooks.
+// FIX: Dedicated component for access denied logic, ensuring hooks are always called correctly.
 const AccessDeniedRedirect: React.FC<{ redirectTo: string }> = ({ redirectTo }) => {
     const { showToast } = useApp();
     useEffect(() => {
@@ -43,52 +43,45 @@ const AccessDeniedRedirect: React.FC<{ redirectTo: string }> = ({ redirectTo }) 
     return <Navigate to={redirectTo} replace />;
 };
 
+// FIX: Centralized layout rendering logic into a helper function.
+const renderWithLayout = (component: React.ReactNode, layout: RouteConfig['layout']) => {
+    switch (layout) {
+        case 'user': return <UserLayout>{component}</UserLayout>;
+        case 'admin': return <AdminLayout>{component}</AdminLayout>;
+        case 'hr': return <HrLayout>{component}</HrLayout>;
+        case 'finance': return <FinanceLayout>{component}</FinanceLayout>;
+        default: return component;
+    }
+};
 
-const RouteRenderer: React.FC<{ route: RouteConfig }> = ({ route }) => {
-    // FIX: All hook calls are moved to the top level to conform to the Rules of Hooks.
+// FIX: New PrivateRoute guard component for clarity and robustness.
+const PrivateRoute: React.FC<{ children: React.ReactNode; route: RouteConfig }> = ({ children, route }) => {
     const { user } = useAuth();
     const location = useLocation();
 
-    const PageComponent = <Suspense fallback={<CenteredLoading />}><route.component /></Suspense>;
-
-    const renderWithLayout = (component: React.ReactNode) => {
-        switch (route.layout) {
-            case 'user': return <UserLayout>{component}</UserLayout>;
-            case 'admin': return <AdminLayout>{component}</AdminLayout>;
-            case 'hr': return <HrLayout>{component}</HrLayout>;
-            case 'finance': return <FinanceLayout>{component}</FinanceLayout>;
-            default: return component;
-        }
-    };
-    
-    // --- New Explicit Routing Logic ---
-
-    // 1. Handle users who are NOT logged in
     if (!user) {
-        // If they try to access a private page, redirect them to login.
-        if (route.isPrivate) {
-            return <Navigate to="/login" state={{ from: location }} replace />;
-        }
-        // Otherwise, they are on a public page (like /login), which is allowed.
-        return renderWithLayout(PageComponent);
+        return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    // 2. Handle users who ARE logged in
-    // If they try to access a public page, redirect them to their home.
-    if (!route.isPrivate) {
-        return <Navigate to={getHomeRoute(user)} replace />;
-    }
-
-    // If they are on a private page, check their role permissions.
     const allowedRoutes = rolePermissions[user.role];
     if (!allowedRoutes || !allowedRoutes.includes(route.name)) {
-        // FIX: Use the dedicated component for redirection to avoid conditional hook calls.
         return <AccessDeniedRedirect redirectTo={getHomeRoute(user)} />;
     }
 
-    // If all checks pass, render the private page.
-    return renderWithLayout(PageComponent);
+    return renderWithLayout(children, route.layout);
 };
+
+// FIX: New PublicRoute guard component to handle logged-in users on public pages.
+const PublicRoute: React.FC<{ children: React.ReactNode; route: RouteConfig }> = ({ children, route }) => {
+    const { user } = useAuth();
+
+    if (user) {
+        return <Navigate to={getHomeRoute(user)} replace />;
+    }
+
+    return renderWithLayout(children, route.layout);
+};
+
 
 const AppRoutes: React.FC = () => {
     const { user } = useAuth();
@@ -98,16 +91,24 @@ const AppRoutes: React.FC = () => {
             {/* Redirect root to the appropriate home page */}
             <Route path="/" element={<Navigate to={getHomeRoute(user)} replace />} />
 
-            {/* Render all configured routes */}
-            {routes.map((route) => (
-                <Route
-                    key={route.name}
-                    path={route.path}
-                    element={<RouteRenderer route={route} />}
-                />
-            ))}
-            
-            {/* Fallback for any other path is handled by the '*' in routes config */}
+            {/* Render all configured routes using the new guard components */}
+            {routes.map((route) => {
+                const PageComponent = <Suspense fallback={<CenteredLoading />}><route.component /></Suspense>;
+                
+                return (
+                    <Route
+                        key={route.name}
+                        path={route.path}
+                        element={
+                            route.isPrivate ? (
+                                <PrivateRoute route={route}>{PageComponent}</PrivateRoute>
+                            ) : (
+                                <PublicRoute route={route}>{PageComponent}</PublicRoute>
+                            )
+                        }
+                    />
+                );
+            })}
         </Routes>
     );
 };
