@@ -19,10 +19,15 @@ import HrLayout from './components/layout/HrLayout';
 import FinanceLayout from './components/layout/FinanceLayout';
 
 const CenteredLoading: React.FC = () => (
-    <div className="flex h-screen w-screen items-center justify-center bg-background text-text-primary">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+    <div className="flex h-screen w-screen items-center justify-center bg-background text-text-primary text-center">
+        <div>
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-lg font-semibold animate-pulse">Menyiapkan dasbor Anda...</p>
+            <p className="text-sm text-text-secondary mt-1">Hampir selesai!</p>
+        </div>
     </div>
 );
+
 
 // This component catches unhandled errors (async, event handlers) and passes them to the Error Boundary
 const GlobalErrorCatcher: React.FC = () => {
