@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-// FIX: Replaced useData with useCore and useApp as useData is not an exported member.
-import { useApp } from '../../../contexts/AppContext';
+// FIX: Replaced useApp with useData to use the new unified data context.
+import { useData } from '../../../contexts/DataContext';
 import { XMarkIcon, DocumentArrowDownIcon, ArrowUpTrayIcon, CheckCircleIcon, ExclamationCircleIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 import * as XLSX from 'xlsx';
 
@@ -11,8 +11,7 @@ type PreviewRow = {
 };
 
 const BulkUploadArticlesModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
-    // FIX: Get functions from their correct context hooks.
-    const { addMultipleArticlesByAdmin, showToast } = useApp();
+    const { addMultipleArticlesByAdmin, showToast } = useData();
     const [step, setStep] = useState(1); // 1: Upload, 2: Preview, 3: Result
     const [previewData, setPreviewData] = useState<PreviewRow[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);

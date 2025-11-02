@@ -1,5 +1,5 @@
 import React from 'react';
-import { useHealth } from '../../../contexts/HealthContext';
+import { useData } from '../../../contexts/DataContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, ClipboardDocumentCheckIcon, ArchiveBoxIcon, ShoppingCartIcon } from '@heroicons/react/24/solid';
@@ -33,7 +33,7 @@ const EprescriptionCard: React.FC<{ pres: Eprescription }> = ({ pres }) => {
 
 const EprescriptionScreen: React.FC = () => {
     const { user } = useAuth();
-    const { eprescriptions } = useHealth();
+    const { eprescriptions } = useData();
     const navigate = useNavigate();
 
     const userPrescriptions = eprescriptions

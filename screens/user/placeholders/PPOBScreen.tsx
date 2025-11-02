@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, BoltIcon, BuildingLibraryIcon, WifiIcon, ShieldCheckIcon } from '@heroicons/react/24/solid';
-// FIX: Replaced useCore with useApp and consolidated hooks.
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 
 const billers = [
     { id: 'ppob-listrik', name: 'Listrik PLN', icon: BoltIcon },
@@ -13,7 +12,7 @@ const billers = [
 
 const PPOBScreen = () => {
     const navigate = useNavigate();
-    const { serviceLinkage, apiIntegrations, showToast } = useApp();
+    const { serviceLinkage, apiIntegrations, showToast } = useData();
 
     const handlePay = (featureId: string) => {
         const providerId = serviceLinkage[featureId];

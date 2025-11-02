@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { SparklesIcon } from '@heroicons/react/24/solid';
 import { buildSecurePrompt } from '../../../services/aiGuardrailService';
-import { useMarketplace } from '../../../hooks/useMarketplace';
+import { useData } from '../../../contexts/DataContext';
 import { Product } from '../../../types';
 import ProductCard from './ProductCard';
 
 const FallbackRecommendations: React.FC = () => {
-    const { products, addToCart } = useMarketplace();
+    const { products, addToCart } = useData();
 
     const topRatedProducts = [...products]
         .sort((a, b) => b.rating - a.rating)

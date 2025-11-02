@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 // FIX: Replaced useCore with useApp as DataContext is deprecated.
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 import { Budget, ScheduledPayment } from '../../../types';
 import { PlusIcon, BanknotesIcon, CalendarDaysIcon, PencilIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 import BudgetModal from './BudgetModal';
@@ -78,7 +78,7 @@ const ScheduledPaymentCard: React.FC<{ payment: ScheduledPayment; onEdit: () => 
 
 const FinancialPlanning: React.FC = () => {
     const { user } = useAuth();
-    const { budgets, scheduledPayments, deleteBudget, deleteScheduledPayment } = useApp();
+    const { budgets, scheduledPayments, deleteBudget, deleteScheduledPayment } = useData();
 
     const [isBudgetModalOpen, setBudgetModalOpen] = useState(false);
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);

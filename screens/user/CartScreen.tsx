@@ -2,12 +2,10 @@ import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCartIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
-import { useMarketplace } from '../../hooks/useMarketplace';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 
 const CartScreen: React.FC = () => {
-    const { cart, products, removeFromCart, updateCartQuantity, checkoutCart } = useMarketplace();
-    const { showToast } = useApp(); // Still need this for global notifications
+    const { cart, products, removeFromCart, updateCartQuantity, checkoutCart, showToast } = useData();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [isCheckingOut, setIsCheckingOut] = useState(false);

@@ -3,7 +3,7 @@ import { Product } from '../../../types';
 import { SparklesIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
 import { buildSecurePrompt } from '../../../services/aiGuardrailService';
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 
 const AILoadingSpinner: React.FC = () => (
     <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
@@ -15,7 +15,7 @@ const ProductFormModal: React.FC<{
     product: Product | null;
     onSave: (product: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount'> | Product) => Promise<any>;
 }> = ({ isOpen, onClose, product, onSave }) => {
-    const { showToast } = useApp();
+    const { showToast } = useData();
     const [formData, setFormData] = useState({
         name: '',
         description: '',

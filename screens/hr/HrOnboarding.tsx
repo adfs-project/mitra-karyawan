@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { User } from '../../types';
 import { PlusIcon, ArrowUpTrayIcon } from '@heroicons/react/24/solid';
 import AddEmployeeModal from '../../components/hr/AddEmployeeModal';
@@ -8,7 +8,7 @@ import BulkUploadModal from '../../components/hr/BulkUploadModal';
 
 const HrOnboarding: React.FC = () => {
     const { user: hrUser } = useAuth();
-    const { users, updateUserStatus } = useApp();
+    const { users, updateUserStatus } = useData();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
 

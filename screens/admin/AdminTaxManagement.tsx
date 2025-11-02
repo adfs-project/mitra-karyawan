@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 // FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { BanknotesIcon, Cog6ToothIcon } from '@heroicons/react/24/solid';
 
 const AdminTaxManagement: React.FC = () => {
-    const { taxConfig, updateTaxConfig, adminWallets } = useApp();
+    const { taxConfig, updateTaxConfig, adminWallets } = useData();
     const [config, setConfig] = useState(taxConfig);
     const [isSaving, setIsSaving] = useState(false);
     const [saved, setSaved] = useState(false);

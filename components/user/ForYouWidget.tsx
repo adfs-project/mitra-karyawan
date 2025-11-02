@@ -1,10 +1,9 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { Link } from 'react-router-dom';
 import { Article, Product, Achievement } from '../../types';
 import { TrophyIcon, NewspaperIcon } from '@heroicons/react/24/solid';
-import { useMarketplace } from '../../hooks/useMarketplace';
 
 const totalAchievements: Achievement[] = ['First Purchase', 'Punctual Payer', 'Top Spender'];
 
@@ -76,8 +75,7 @@ const ProductCard: React.FC<{ product: Product; onClick: () => void }> = ({ prod
 
 
 const ForYouWidget: React.FC = () => {
-    const { articles, transactions, homePageConfig, logEngagementEvent } = useApp();
-    const { products } = useMarketplace();
+    const { articles, transactions, homePageConfig, logEngagementEvent, products } = useData();
     const { user } = useAuth();
     
     // Logic to build the dynamic card list

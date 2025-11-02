@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useHealth } from '../../../contexts/HealthContext';
+import { useData } from '../../../contexts/DataContext';
 import { ArrowLeftIcon, CalendarDaysIcon, ClockIcon } from '@heroicons/react/24/outline';
 import BookingModal from '../../../components/user/health/BookingModal';
 
 const DoctorDetailScreen: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { doctors } = useHealth();
+    const { doctors } = useData();
     const doctor = doctors.find(d => d.id === id);
 
     const [selectedSlot, setSelectedSlot] = useState<string | null>(null);

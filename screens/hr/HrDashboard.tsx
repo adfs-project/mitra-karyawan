@@ -1,9 +1,8 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { Link } from 'react-router-dom';
 import { UsersIcon, CalendarDaysIcon, UserPlusIcon, SparklesIcon } from '@heroicons/react/24/solid';
-import { useHR } from '../../hooks/useHR';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType; to: string; }> = ({ title, value, icon: Icon, to }) => (
     <Link to={to} className="bg-surface p-6 rounded-lg border border-border-color hover:border-primary transition-all">
@@ -21,8 +20,7 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.El
 
 const HrDashboard: React.FC = () => {
     const { user } = useAuth();
-    const { users } = useApp();
-    const { leaveRequests } = useHR();
+    const { users, leaveRequests } = useData();
 
     if (!user || user.role !== 'HR') return null;
 

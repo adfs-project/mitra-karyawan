@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as ErrorBoundaryModule from 'react-error-boundary';
 import { ExclamationTriangleIcon, ArrowLeftOnRectangleIcon, SparklesIcon, PencilSquareIcon } from '@heroicons/react/24/solid';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { GoogleGenAI, Type } from "@google/genai";
 
 type AnalysisStep = 'idle' | 'analyzing' | 'complete' | 'fixing' | 'failed';
@@ -11,7 +11,7 @@ const AILoadingSpinner: React.FC = () => (
 );
 
 const RecoveryUI: React.FC<ErrorBoundaryModule.FallbackProps> = ({ error, resetErrorBoundary }) => {
-    const { showToast } = useApp();
+    const { showToast } = useData();
     const [analysisStep, setAnalysisStep] = useState<AnalysisStep>('idle');
     const [analysisLog, setAnalysisLog] = useState<string[]>([]);
     const [aiDiagnosis, setAiDiagnosis] = useState('');

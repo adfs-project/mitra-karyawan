@@ -1,9 +1,9 @@
 import React from 'react';
 import { ShieldExclamationIcon, LockClosedIcon, ShieldCheckIcon } from '@heroicons/react/24/solid';
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 
 const AnomalyDetectionWidget: React.FC = () => {
-    const { homePageConfig } = useApp();
+    const { homePageConfig } = useData();
     const isEnabled = homePageConfig.featureFlags.aiAnomalyDetection;
 
     return (

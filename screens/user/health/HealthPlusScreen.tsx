@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 import { ArrowLeftIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI, Type } from "@google/genai";
-import { useHealth } from '../../../contexts/HealthContext';
 
 type Tab = 'Makan' | 'Latihan' | 'Mood';
 
@@ -21,7 +20,7 @@ const AIResultDisplay: React.FC<{ content: string }> = ({ content }) => (
 const HealthPlusScreen: React.FC = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const { showToast, homePageConfig } = useApp();
+    const { showToast, homePageConfig } = useData();
     const [activeTab, setActiveTab] = useState<Tab>('Makan');
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState('');

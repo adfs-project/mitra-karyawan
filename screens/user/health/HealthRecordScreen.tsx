@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import { useHealth } from '../../../contexts/HealthContext';
+import { useData } from '../../../contexts/DataContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, DocumentPlusIcon, DocumentTextIcon, LockClosedIcon, XMarkIcon, SparklesIcon } from '@heroicons/react/24/solid';
-import { useApp } from '../../../contexts/AppContext';
 
 const UploadModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
-    const { addHealthDocument } = useHealth();
-    const { showToast } = useApp();
+    const { addHealthDocument, showToast } = useData();
     const [documentName, setDocumentName] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -67,7 +65,7 @@ const DOCUMENT_LIMIT = 3;
 
 const HealthRecordScreen: React.FC = () => {
     const { user } = useAuth();
-    const { healthDocuments, deleteHealthDocument } = useHealth();
+    const { healthDocuments, deleteHealthDocument } = useData();
     const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
 

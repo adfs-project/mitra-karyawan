@@ -1,11 +1,11 @@
 import React from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 import { CreditCardIcon } from '@heroicons/react/24/solid';
 
 const PayLaterStatusCard: React.FC = () => {
     const { user } = useAuth();
-    const { applyForPayLater } = useApp();
+    const { applyForPayLater } = useData();
     const [isLoading, setIsLoading] = React.useState(false);
 
     const handleApply = async () => {

@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../../../contexts/AppContext';
-import { useHealth } from '../../../contexts/HealthContext';
+import { useData } from '../../../contexts/DataContext';
 import { ArrowLeftIcon, SparklesIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
 
 const SubscriptionUpsellScreen: React.FC = () => {
     const navigate = useNavigate();
-    const { showToast } = useApp();
-    const { subscribeToHealthPlus } = useHealth();
+    const { showToast, subscribeToHealthPlus } = useData();
     const [isSubscribing, setIsSubscribing] = useState(false);
 
     const handleSubscribe = async () => {

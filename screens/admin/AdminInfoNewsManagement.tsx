@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 // FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { Article } from '../../types';
 import { PlusIcon, PencilIcon, TrashIcon, ArchiveBoxIcon, LockClosedIcon, SparklesIcon, LinkIcon, ArrowUpTrayIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI, Type } from "@google/genai";
@@ -250,7 +250,7 @@ Here is the YouTube URL: ${youtubeUrl}`;
 
 
 const AdminInfoNewsManagement: React.FC = () => {
-    const { articles, addArticle, updateArticle, deleteArticle } = useApp();
+    const { articles, addArticle, updateArticle, deleteArticle } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
     const [editingArticle, setEditingArticle] = useState<Article | null>(null);

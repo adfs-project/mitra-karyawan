@@ -1,9 +1,10 @@
 
 
+
 import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 // FIX: Replaced useCore with useApp as DataContext is deprecated.
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const amountSuggestions = [50000, 100000, 250000, 500000];
@@ -11,7 +12,7 @@ const paymentMethods = ['BCA Virtual Account', 'GoPay', 'OVO', 'Alfamart'];
 
 const TopUpModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
     const { user } = useAuth();
-    const { addTransaction, addNotification } = useApp();
+    const { addTransaction, addNotification } = useData();
     const [amount, setAmount] = useState(0);
     const [selectedMethod, setSelectedMethod] = useState(paymentMethods[0]);
     const [isLoading, setIsLoading] = useState(false);

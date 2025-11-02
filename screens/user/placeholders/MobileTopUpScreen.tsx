@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
-// FIX: Replaced useCore with useApp and consolidated hooks.
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 
 const nominals = [25000, 50000, 100000, 200000];
 
@@ -24,7 +23,7 @@ const ProviderLogo = ({ providerName }: { providerName: string }) => {
 
 const MobileTopUpScreen = () => {
     const navigate = useNavigate();
-    const { serviceLinkage, apiIntegrations, showToast } = useApp();
+    const { serviceLinkage, apiIntegrations, showToast } = useData();
 
     const provider = apiIntegrations.find(api => api.id === serviceLinkage['pulsa']);
     const isConnected = !!provider;

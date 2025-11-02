@@ -3,7 +3,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, CreditCardIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { OpexRequest, OpexRequestStatus } from '../../types';
-import { useHR } from '../../hooks/useHR';
+// FIX: Replaced deprecated `useHR` hook with the consolidated `useData` hook.
+import { useData } from '../../contexts/DataContext';
 
 const getStatusChip = (status: OpexRequestStatus) => {
     switch (status) {
@@ -19,7 +20,7 @@ const getStatusChip = (status: OpexRequestStatus) => {
 
 const OpexScreen: React.FC = () => {
     const { user } = useAuth();
-    const { opexRequests } = useHR();
+    const { opexRequests } = useData();
     const navigate = useNavigate();
 
     const userRequests = opexRequests

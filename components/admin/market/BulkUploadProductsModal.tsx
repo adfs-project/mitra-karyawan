@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 import { XMarkIcon, DocumentArrowDownIcon, ArrowUpTrayIcon, CheckCircleIcon, ExclamationCircleIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 import * as XLSX from 'xlsx';
-import { useMarketplace } from '../../../hooks/useMarketplace';
 
 type PreviewRow = {
     data: any;
@@ -11,8 +10,7 @@ type PreviewRow = {
 };
 
 const BulkUploadProductsModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
-    const { showToast } = useApp();
-    const { addMultipleProductsByAdmin } = useMarketplace();
+    const { showToast, addMultipleProductsByAdmin } = useData();
     const [step, setStep] = useState(1);
     const [previewData, setPreviewData] = useState<PreviewRow[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);

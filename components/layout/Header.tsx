@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingCartIcon, BellIcon, LanguageIcon, XMarkIcon, StarIcon } from '@heroicons/react/24/outline';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { Notification } from '../../types';
-import { useMarketplace } from '../../hooks/useMarketplace';
 
 const NotificationPanel: React.FC<{
     isOpen: boolean;
@@ -40,8 +39,7 @@ const NotificationPanel: React.FC<{
 
 const Header: React.FC = () => {
     const { user } = useAuth();
-    const { notifications, markNotificationsAsRead } = useApp();
-    const { cart } = useMarketplace();
+    const { notifications, markNotificationsAsRead, cart } = useData();
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
     const [language, setLanguage] = useState<'ID' | 'EN'>('ID');
@@ -76,7 +74,7 @@ const Header: React.FC = () => {
         <header className="bg-surface sticky top-0 z-10 p-4 flex justify-between items-center border-b border-border-color">
             <div className="flex items-center space-x-3">
                 <span className="text-xl font-bold text-primary">
-                    {language === 'ID' ? 'Mitra Karyawan' : 'Employee Partner'}
+                    {language === 'ID' ? 'MK App' : 'MK App'}
                 </span>
                 {user?.profile.branch && (
                     <>

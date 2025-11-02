@@ -4,8 +4,8 @@ import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, 
 import { Link } from 'react-router-dom';
 import { Role, User } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useApp } from '../../contexts/AppContext';
-import { useHR } from '../../hooks/useHR';
+// FIX: Replaced 'useApp' and 'useHR' with the consolidated 'useData' hook.
+import { useData } from '../../contexts/DataContext';
 
 
 const EditProfileModal: React.FC<{
@@ -52,7 +52,7 @@ const LeaveRequestModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
 }> = ({ isOpen, onClose }) => {
-    const { submitLeaveRequest } = useHR();
+    const { submitLeaveRequest } = useData();
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [reason, setReason] = useState('');
@@ -108,7 +108,7 @@ const ChangePasswordModal: React.FC<{
     onClose: () => void;
 }> = ({ isOpen, onClose }) => {
     const { changePassword } = useAuth();
-    const { showToast } = useApp();
+    const { showToast } = useData();
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -184,7 +184,7 @@ const PayslipModal: React.FC<{
     onClose: () => void;
     user: User;
 }> = ({ isOpen, onClose, user }) => {
-    const { generatePayslipData } = useApp();
+    const { generatePayslipData } = useData();
 
     const payroll = useMemo(() => {
         return generatePayslipData(user.id);
@@ -329,7 +329,7 @@ const ThemeToggle: React.FC = () => {
 
 const MyAccountScreen: React.FC = () => {
     const { user, logout } = useAuth();
-    const { applyForPayLater } = useApp();
+    const { applyForPayLater, submitLeaveRequest } = useData();
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [isLeaveModalOpen, setLeaveModalOpen] = useState(false);
     const [isChangePasswordModalOpen, setChangePasswordModalOpen] = useState(false);

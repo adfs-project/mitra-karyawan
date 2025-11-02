@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useHealth } from '../../../contexts/HealthContext';
+import { useData } from '../../../contexts/DataContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { ArrowLeftIcon, PhoneIcon, PaperAirplaneIcon } from '@heroicons/react/24/solid';
 import { ChatMessage } from '../../../types';
@@ -9,7 +9,7 @@ const ConsultationRoomScreen: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { consultations, endConsultation } = useHealth();
+    const { consultations, endConsultation } = useData();
     const consultation = useMemo(() => consultations.find(c => c.id === id), [consultations, id]);
 
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);

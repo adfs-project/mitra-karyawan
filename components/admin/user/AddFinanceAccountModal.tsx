@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useApp } from '../../../contexts/AppContext';
+// FIX: Replaced deprecated `useApp` hook with the consolidated `useData` hook.
+import { useData } from '../../../contexts/DataContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 interface AddFinanceAccountModalProps {
@@ -18,7 +19,7 @@ const initialFormState = {
 
 const AddFinanceAccountModal: React.FC<AddFinanceAccountModalProps> = ({ isOpen, onClose }) => {
     const { createFinanceAccountByAdmin } = useAuth();
-    const { showToast } = useApp();
+    const { showToast } = useData();
     const [formData, setFormData] = useState(initialFormState);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');

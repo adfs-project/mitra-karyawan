@@ -1,9 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useHealth } from '../../../contexts/HealthContext';
+import { useData } from '../../../contexts/DataContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { ArrowLeftIcon, ShoppingCartIcon } from '@heroicons/react/24/solid';
-import { useApp } from '../../../contexts/AppContext';
 
 const getSimulatedPrice = (drugName: string) => {
     // Simple hash function for pseudo-random but consistent pricing
@@ -20,8 +19,7 @@ const PharmacyCheckoutScreen: React.FC = () => {
     const { eprescriptionId } = useParams<{ eprescriptionId: string }>();
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { eprescriptions, redeemEprescription } = useHealth();
-    const { showToast } = useApp();
+    const { eprescriptions, redeemEprescription, showToast } = useData();
     const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     const prescription = useMemo(() => {

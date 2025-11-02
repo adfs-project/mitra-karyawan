@@ -1,7 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useHealth } from '../../../contexts/HealthContext';
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 import { TrophyIcon, BookOpenIcon, SparklesIcon, FireIcon, UserGroupIcon } from '@heroicons/react/24/solid';
 import { MoodHistory, HealthChallenge } from '../../../types';
 
@@ -10,7 +9,7 @@ const moodOptions: MoodHistory['mood'][] = ['Sangat Sedih', 'Sedih', 'Biasa', 'S
 const moodIcons = ['😔', '😕', '😐', '😊', '😄'];
 
 const ChallengeCard: React.FC<{ challenge: HealthChallenge }> = ({ challenge }) => {
-    const { joinHealthChallenge } = useHealth();
+    const { joinHealthChallenge } = useData();
     const { user } = useAuth();
 
     const handleJoin = () => {
@@ -41,8 +40,7 @@ const ChallengeCard: React.FC<{ challenge: HealthChallenge }> = ({ challenge }) 
 
 const WellnessHub: React.FC = () => {
     const { user } = useAuth();
-    const { addMoodEntry, healthChallenges } = useHealth();
-    const { addNotification } = useApp();
+    const { addMoodEntry, healthChallenges, addNotification } = useData();
 
     const handleMoodClick = (mood: MoodHistory['mood']) => {
         addMoodEntry(mood);

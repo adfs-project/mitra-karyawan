@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { SparklesIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
 // FIX: Replaced useCore with useApp as DataContext is deprecated.
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { buildSecurePrompt } from '../../services/aiGuardrailService';
 import circuitBreaker from '../../services/circuitBreakerService';
@@ -13,7 +13,7 @@ const SmartAssistant: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
-    const { logAssistantQuery, showToast } = useApp();
+    const { logAssistantQuery, showToast } = useData();
     const { user } = useAuth();
 
 

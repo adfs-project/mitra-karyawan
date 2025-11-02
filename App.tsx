@@ -3,12 +3,8 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import * as ErrorBoundaryModule from 'react-error-boundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { AppProvider, useApp } from './contexts/AppContext';
+import { DataProvider, useData } from './contexts/DataContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { HealthProvider } from './contexts/HealthContext';
-import { MarketplaceProvider } from './contexts/MarketplaceContext';
-import { HRProvider } from './contexts/HRContext';
-import { PersonalizationProvider } from './contexts/PersonalizationContext';
 import { routes, rolePermissions, RouteConfig } from './routing/routeConfig';
 import { Role } from './types';
 import ToastContainer from './components/common/ToastContainer';
@@ -75,7 +71,7 @@ const getHomeRoute = (user: any) => {
 
 // FIX: Dedicated component for access denied logic, ensuring hooks are always called correctly.
 const AccessDeniedRedirect: React.FC<{ redirectTo: string }> = ({ redirectTo }) => {
-    const { showToast } = useApp();
+    const { showToast } = useData();
     useEffect(() => {
         showToast("Akses ditolak: Anda tidak memiliki izin yang diperlukan.", "error");
     }, [showToast]);
@@ -159,10 +155,14 @@ const AppRoutes: React.FC = () => {
 
 const AppContent: React.FC = () => {
     const { user } = useAuth();
+    const { isLoading } = useData();
     
-    // FIX: Removed the global loading gate. The responsibility for showing a loading
-    // state is now delegated to individual screens (like HomeScreen), allowing the main
-    // layout to render immediately for a better user experience.
+    // "Gudang Tua" architecture: a single global loading gate.
+    // If the user is logged in but the main DataContext is still fetching
+    // all the data, show a loading screen. This blocks rendering of the main app.
+    if (user && isLoading) {
+        return <CenteredLoading />;
+    }
     
     return (
          <ErrorBoundaryModule.ErrorBoundary FallbackComponent={RecoveryUI} resetKeys={[user]}>
@@ -179,17 +179,9 @@ const App: React.FC = () => {
     return (
         <ThemeProvider>
             <AuthProvider>
-                <AppProvider>
-                    <MarketplaceProvider>
-                        <PersonalizationProvider>
-                            <HRProvider>
-                                <HealthProvider>
-                                    <AppContent />
-                                </HealthProvider>
-                            </HRProvider>
-                        </PersonalizationProvider>
-                    </MarketplaceProvider>
-                </AppProvider>
+                <DataProvider>
+                    <AppContent />
+                </DataProvider>
             </AuthProvider>
         </ThemeProvider>
     );

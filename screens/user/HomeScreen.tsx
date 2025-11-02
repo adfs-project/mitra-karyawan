@@ -3,68 +3,11 @@ import PersonalizedGreeting from '../../components/user/PersonalizedGreeting';
 import SmartAssistant from '../../components/user/SmartAssistant';
 import ForYouWidget from '../../components/user/ForYouWidget';
 import CompactArticleCard from '../../components/user/news/CompactArticleCard';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { BuildingStorefrontIcon, CurrencyDollarIcon, NewspaperIcon, ClockIcon, Squares2X2Icon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import AttendanceCameraModal from '../../components/user/AttendanceCameraModal';
-import { useHR } from '../../hooks/useHR';
-
-// Skeleton Loader Component for HomeScreen
-const HomeScreenSkeleton: React.FC = () => (
-    <div className="p-4 space-y-8 animate-pulse">
-        {/* Greeting Skeleton */}
-        <div className="space-y-2">
-            <div className="h-8 w-3/4 bg-surface-light rounded-lg"></div>
-            <div className="h-4 w-1/2 bg-surface-light rounded-lg"></div>
-        </div>
-
-        {/* Smart Assistant Skeleton */}
-        <div className="h-14 bg-surface rounded-full border-2 border-surface-light"></div>
-        
-        {/* Attendance Card Skeleton */}
-        <div className="h-36 bg-surface rounded-lg p-4 space-y-3">
-             <div className="h-5 w-1/3 bg-surface-light rounded-lg"></div>
-             <div className="h-4 w-3/4 bg-surface-light rounded-lg"></div>
-             <div className="h-12 bg-surface-light rounded-lg mt-2"></div>
-        </div>
-
-        {/* Quick Access Skeleton */}
-        <div className="space-y-4">
-             <div className="h-6 w-1/4 bg-surface-light rounded-lg"></div>
-             <div className="grid grid-cols-3 gap-4">
-                <div className="h-24 bg-surface rounded-lg"></div>
-                <div className="h-24 bg-surface rounded-lg"></div>
-                <div className="h-24 bg-surface rounded-lg"></div>
-             </div>
-             <div className="h-12 bg-surface rounded-lg"></div>
-        </div>
-
-        {/* For You & News Skeleton */}
-        <div>
-            <div className="h-6 w-1/3 bg-surface-light rounded-lg mb-4"></div>
-            <div className="space-y-3">
-                <div className="h-24 bg-surface rounded-lg flex items-center p-3 space-x-4">
-                    <div className="w-16 h-16 bg-surface-light rounded-md flex-shrink-0"></div>
-                    <div className="flex-grow space-y-2">
-                         <div className="h-3 w-1/4 bg-surface-light rounded-full"></div>
-                         <div className="h-4 w-full bg-surface-light rounded-lg"></div>
-                         <div className="h-3 w-3/4 bg-surface-light rounded-lg"></div>
-                    </div>
-                </div>
-                 <div className="h-24 bg-surface rounded-lg flex items-center p-3 space-x-4">
-                    <div className="w-16 h-16 bg-surface-light rounded-md flex-shrink-0"></div>
-                    <div className="flex-grow space-y-2">
-                         <div className="h-3 w-1/4 bg-surface-light rounded-full"></div>
-                         <div className="h-4 w-full bg-surface-light rounded-lg"></div>
-                         <div className="h-3 w-3/4 bg-surface-light rounded-lg"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-);
-
 
 const QuickAccess: React.FC = () => {
     const items = [
@@ -95,8 +38,7 @@ const QuickAccess: React.FC = () => {
 
 const AttendanceCard: React.FC = () => {
     const { user } = useAuth();
-    const { attendanceRecords, clockIn, clockOut } = useHR();
-    const { showToast } = useApp();
+    const { attendanceRecords, clockIn, clockOut, showToast } = useData();
     const [isLoading, setIsLoading] = useState(false);
     const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
     const [cameraMode, setCameraMode] = useState<'in' | 'out' | null>(null);
@@ -187,13 +129,10 @@ const AttendanceCard: React.FC = () => {
 
 
 const HomeScreen: React.FC = () => {
-    const { articles, users } = useApp();
+    const { articles } = useData();
 
-    // The loading check is now localized. We check if 'users' (a core data array)
-    // has been populated by AppContext. If not, we show the skeleton.
-    if (!users || users.length === 0) {
-        return <HomeScreenSkeleton />;
-    }
+    // The global loading gate in App.tsx now handles the initial loading.
+    // This component can assume data is ready when it renders.
 
     const latestNews = (articles || [])
         .filter(a => a.status === 'Published')

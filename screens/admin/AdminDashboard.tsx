@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { UsersIcon, BanknotesIcon, ShoppingCartIcon, ArrowTrendingUpIcon, CursorArrowRaysIcon, SparklesIcon } from '@heroicons/react/24/outline';
-import { useMarketplace } from '../../hooks/useMarketplace';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType }> = ({ title, value, icon: Icon }) => (
     <div className="bg-surface p-6 rounded-lg border border-border-color">
@@ -18,8 +17,7 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.El
 );
 
 const EngagementAnalyticsDashboard: React.FC = () => {
-    const { engagementAnalytics, articles, assistantLogs } = useApp();
-    const { products } = useMarketplace();
+    const { engagementAnalytics, articles, assistantLogs, products } = useData();
 
     const getMostClickedItem = (clicks: Record<string, number>) => {
         if (Object.keys(clicks).length === 0) return { name: 'N/A', clicks: 0 };
@@ -62,7 +60,7 @@ const EngagementAnalyticsDashboard: React.FC = () => {
 
 
 const AdminDashboard: React.FC = () => {
-    const { users, transactions, adminWallets } = useApp();
+    const { users, transactions, adminWallets } = useData();
 
     const totalUsers = users.length;
     const totalTransactions = transactions.length;

@@ -4,14 +4,13 @@ import ProductCard from '../../../components/user/market/ProductCard';
 import { Product } from '../../../types';
 import { MagnifyingGlassIcon, FunnelIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import AiRecommendations from '../../../components/user/market/AiRecommendations';
-import { usePersonalization } from '../../../contexts/PersonalizationContext';
+// FIX: Replaced deprecated hooks with the consolidated `useData` hook.
+import { useData } from '../../../contexts/DataContext';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useMarketplace } from '../../../hooks/useMarketplace';
 
 const AiPoweredRecommendations: React.FC = () => {
     const { user } = useAuth();
-    const { products, addToCart } = useMarketplace();
-    const { interestProfiles } = usePersonalization();
+    const { products, addToCart, interestProfiles } = useData();
 
     const recommendedProducts = useMemo(() => {
         if (!user) return [];
@@ -56,9 +55,8 @@ const AiPoweredRecommendations: React.FC = () => {
 
 
 const MarketScreen: React.FC = () => {
-    const { products, addToCart } = useMarketplace();
+    const { products, addToCart, interestProfiles } = useData();
     const { user } = useAuth();
-    const { interestProfiles } = usePersonalization();
     const location = useLocation();
     const [searchTerm, setSearchTerm] = useState(location.state?.searchQuery || '');
     const [categoryFilter, setCategoryFilter] = useState('All');

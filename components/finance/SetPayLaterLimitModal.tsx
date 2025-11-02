@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
 import { XMarkIcon } from '@heroicons/react/24/solid';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 
 interface SetPayLaterLimitModalProps {
     isOpen: boolean;
@@ -10,7 +10,7 @@ interface SetPayLaterLimitModalProps {
 }
 
 const SetPayLaterLimitModal: React.FC<SetPayLaterLimitModalProps> = ({ isOpen, onClose, user }) => {
-    const { approvePayLater } = useApp();
+    const { approvePayLater } = useData();
     const [limit, setLimit] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(false);
 

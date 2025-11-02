@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
-import { useHR } from '../../hooks/useHR';
+import { useData } from '../../contexts/DataContext';
 
 const HrLeaveManagement: React.FC = () => {
     const { user } = useAuth();
-    const { leaveRequests, updateLeaveRequestStatus } = useHR();
+    const { leaveRequests, updateLeaveRequestStatus } = useData();
     const [processingId, setProcessingId] = useState<string | null>(null);
 
     const branchLeaveRequests = useMemo(() => {

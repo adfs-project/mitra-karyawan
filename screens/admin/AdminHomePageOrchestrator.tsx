@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { HomePageConfig } from '../../types';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { SparklesIcon } from '@heroicons/react/24/outline';
-import { useMarketplace } from '../../hooks/useMarketplace';
 
 
 const AdminHomePageOrchestrator: React.FC = () => {
-    const { homePageConfig, updateHomePageConfig, articles, showToast } = useApp();
-    const { products } = useMarketplace();
+    const { homePageConfig, updateHomePageConfig, articles, showToast, products } = useData();
     const [config, setConfig] = useState<HomePageConfig>(homePageConfig);
     const [isSaving, setIsSaving] = useState(false);
 

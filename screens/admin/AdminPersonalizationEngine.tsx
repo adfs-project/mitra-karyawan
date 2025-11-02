@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { PersonalizationRule, PersonalizationCondition, ConditionField, ConditionOperator, ActionType, Role } from '../../types';
 import { PlusIcon, PencilIcon, TrashIcon, SparklesIcon, XMarkIcon, LockClosedIcon } from '@heroicons/react/24/solid';
-import { useMarketplace } from '../../hooks/useMarketplace';
 
 const emptyRule: Omit<PersonalizationRule, 'id'> = {
     name: '',
@@ -17,8 +16,7 @@ const RuleModal: React.FC<{
     onSave: (rule: Omit<PersonalizationRule, 'id'> | PersonalizationRule) => void;
     initialRule: Omit<PersonalizationRule, 'id'> | PersonalizationRule | null;
 }> = ({ isOpen, onClose, onSave, initialRule }) => {
-    const { articles, users } = useApp();
-    const { products } = useMarketplace();
+    const { articles, users, products } = useData();
     const [rule, setRule] = useState(initialRule || emptyRule);
 
     React.useEffect(() => {
@@ -142,7 +140,7 @@ const RuleModal: React.FC<{
 };
 
 const AdminPersonalizationEngine: React.FC = () => {
-    const { personalizationRules, addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule } = useApp();
+    const { personalizationRules, addPersonalizationRule, updatePersonalizationRule, deletePersonalizationRule } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRule, setEditingRule] = useState<PersonalizationRule | null>(null);
 
@@ -187,39 +185,44 @@ const AdminPersonalizationEngine: React.FC = () => {
 
             <div className="bg-surface p-6 rounded-lg border border-border-color">
                 {personalizationRules.length > 0 ? (
-                    <div className="space-y-4">
-                        {personalizationRules.map(rule => (
-                            <div key={rule.id} className={`p-4 rounded-lg border ${rule.isActive ? 'border-border-color bg-surface-light' : 'border-dashed border-border-color bg-surface opacity-60'}`}>
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-bold text-lg text-primary">{rule.name}</h3>
-                                        <div className="text-xs text-text-secondary mt-2">
-                                            <p><span className="font-bold">IF:</span> {rule.conditions.map(formatCondition).join(' AND ')}</p>
-                                            <p><span className="font-bold">THEN:</span> {formatAction(rule.action)}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center space-x-3">
-                                        <label className="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" checked={rule.isActive} onChange={() => handleToggleActive(rule)} className="sr-only peer" />
-                                            <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                                        </label>
-                                        <button onClick={() => handleOpenModal(rule)} className="p-2 rounded hover:bg-border-color"><PencilIcon className="h-5 w-5 text-yellow-400"/></button>
-                                        <span onClick={() => handleDeleteRule(rule.id)} className="p-2 rounded cursor-pointer" title="Penghapusan dinonaktifkan secara permanen oleh sistem.">
-                                            <LockClosedIcon className="h-5 w-5 text-gray-500"/>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-text-secondary">
+                            <thead className="text-xs uppercase bg-surface-light">
+                                <tr>
+                                    <th className="px-6 py-3">Rule Name</th>
+                                    <th className="px-6 py-3">Conditions</th>
+                                    <th className="px-6 py-3">Action</th>
+                                    <th className="px-6 py-3">Status</th>
+                                    <th className="px-6 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {personalizationRules.map(rule => (
+                                    <tr key={rule.id} className="border-b border-border-color">
+                                        <td className="px-6 py-4 font-medium text-text-primary">{rule.name}</td>
+                                        <td className="px-6 py-4">{rule.conditions.map(formatCondition).join(' AND ')}</td>
+                                        <td className="px-6 py-4">{formatAction(rule.action)}</td>
+                                        <td className="px-6 py-4">
+                                            <button onClick={() => handleToggleActive(rule)} className={`px-2 py-1 text-xs font-bold rounded-full ${rule.isActive ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                                                {rule.isActive ? 'Active' : 'Inactive'}
+                                            </button>
+                                        </td>
+                                        <td className="px-6 py-4 space-x-2">
+                                            <button onClick={() => handleOpenModal(rule)} className="p-2 rounded hover:bg-surface-light"><PencilIcon className="h-4 w-4 text-yellow-400"/></button>
+                                            <span title="Deletion is disabled" className="cursor-not-allowed">
+                                                <button disabled className="p-2 rounded hover:bg-surface-light opacity-50"><LockClosedIcon className="h-4 w-4 text-red-500"/></button>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 ) : (
-                    <div className="text-center py-16">
-                        <h2 className="text-xl font-semibold text-text-primary">No Personalization Rules Yet</h2>
-                        <p className="text-text-secondary mt-2">Click "Create New Rule" to start personalizing the user experience.</p>
-                    </div>
+                    <p className="text-center text-text-secondary py-8">No personalization rules have been created yet.</p>
                 )}
             </div>
-
+            
             <RuleModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveRule} initialRule={editingRule} />
         </div>
     );

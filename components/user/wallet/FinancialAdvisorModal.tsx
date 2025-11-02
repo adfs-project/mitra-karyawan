@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { XMarkIcon, PaperAirplaneIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
 import { Transaction } from '../../../types';
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 import { buildSecurePrompt } from '../../../services/aiGuardrailService';
 import loggingService from '../../../services/loggingService';
 
@@ -16,7 +16,7 @@ const FinancialAdvisorModal: React.FC<{
     onClose: () => void;
     userTransactions: Transaction[];
 }> = ({ isOpen, onClose, userTransactions }) => {
-    const { showToast } = useApp();
+    const { showToast } = useData();
     const [messages, setMessages] = useState<Message[]>([]);
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);

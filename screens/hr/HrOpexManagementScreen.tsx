@@ -1,12 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { CheckCircleIcon, XCircleIcon, EyeIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { OpexRequest, OpexRequestType, User } from '../../types';
 import LocationName from '../../components/common/LocationName';
-import { useHR } from '../../hooks/useHR';
-
-type Tab = 'Opex Requests';
 
 const PhotoViewerModal: React.FC<{
     isOpen: boolean;
@@ -27,9 +24,8 @@ const PhotoViewerModal: React.FC<{
 
 const HrOpexManagementScreen: React.FC = () => {
     const { user: hrUser } = useAuth();
-    const { users } = useApp();
-    const { opexRequests, approveOpexByHr, rejectOpexByHr } = useHR();
-    const [activeTab, setActiveTab] = useState<Tab>('Opex Requests');
+    const { users, opexRequests, approveOpexByHr, rejectOpexByHr } = useData();
+    const [activeTab, setActiveTab] = useState<'Opex Requests'>('Opex Requests');
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
     const [mealAllowanceAmounts, setMealAllowanceAmounts] = useState<Record<string, number>>({});
@@ -162,7 +158,7 @@ const HrOpexManagementScreen: React.FC = () => {
             <p className="text-text-secondary">Verifikasi dan teruskan pengajuan dana operasional dari karyawan di cabang Anda ke departemen Keuangan.</p>
             
             <div className="flex border-b border-border-color">
-                {(['Opex Requests'] as Tab[]).map(tab => (
+                {(['Opex Requests'] as any[]).map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 font-semibold ${activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-text-secondary'}`}>
                         {tab}
                     </button>

@@ -6,12 +6,12 @@ import AnomalyDetectionWidget from '../../components/admin/financial/AnomalyDete
 import ReportGenerator from '../../components/admin/financial/ReportGenerator';
 import SankeyDiagram from '../../components/admin/financial/SankeyDiagram';
 import AIForecasting from '../../components/admin/financial/AIForecasting';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { ShieldExclamationIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { Dispute } from '../../types';
 
 const DisputeManagementWidget: React.FC = () => {
-    const { disputes, resolveDispute } = useApp();
+    const { disputes, resolveDispute } = useData();
     const [processingId, setProcessingId] = useState<string | null>(null);
 
     const openDisputes = useMemo(() => disputes.filter(d => d.status === 'Open'), [disputes]);

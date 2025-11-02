@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { useHealth } from '../../../contexts/HealthContext';
+import { useData } from '../../../contexts/DataContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, ShieldCheckIcon, PaperClipIcon, ClockIcon } from '@heroicons/react/24/solid';
 import { InsuranceClaim } from '../../../types';
-import { useApp } from '../../../contexts/AppContext';
 
 const getStatusChip = (status: InsuranceClaim['status']) => {
     switch (status) {
@@ -19,8 +18,7 @@ const getStatusChip = (status: InsuranceClaim['status']) => {
 
 const InsuranceClaimScreen: React.FC = () => {
     const { user } = useAuth();
-    const { insuranceClaims, submitInsuranceClaim } = useHealth();
-    const { showToast } = useApp();
+    const { insuranceClaims, submitInsuranceClaim, showToast } = useData();
     const navigate = useNavigate();
     
     const [claimType, setClaimType] = useState<'Rawat Jalan' | 'Rawat Inap' | 'Kacamata'>('Rawat Jalan');

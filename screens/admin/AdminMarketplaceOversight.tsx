@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { BuildingStorefrontIcon, CheckCircleIcon, XCircleIcon, EyeIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
-import { useMarketplace } from '../../hooks/useMarketplace';
+import { useData } from '../../contexts/DataContext';
 import { Product } from '../../types';
 
 const AdminMarketplaceOversight: React.FC = () => {
-    const { products, updateProductStatus } = useMarketplace();
+    const { products, updateProductStatus } = useData();
     const [filter, setFilter] = useState<'All' | 'Needs Review'>('Needs Review');
     const [searchTerm, setSearchTerm] = useState('');
     const [processingId, setProcessingId] = useState<string | null>(null);

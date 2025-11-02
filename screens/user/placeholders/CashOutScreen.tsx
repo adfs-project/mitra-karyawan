@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
-import { useApp } from '../../../contexts/AppContext';
+// FIX: Replaced deprecated `useApp` hook with the consolidated `useData` hook.
+import { useData } from '../../../contexts/DataContext';
 
 const CashOutScreen: React.FC = () => {
     const navigate = useNavigate();
-    const { showToast } = useApp();
+    const { showToast } = useData();
 
     useEffect(() => {
         const timer: number = window.setTimeout(() => {

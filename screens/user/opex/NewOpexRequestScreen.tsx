@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 import { ArrowLeftIcon, CameraIcon } from '@heroicons/react/24/solid';
 import { OpexRequestType, Coordinates } from '../../../types';
 import AttendanceCameraModal from '../../../components/user/AttendanceCameraModal';
-import { useHR } from '../../../hooks/useHR';
 
 const opexTypes: OpexRequestType[] = ['Bensin', 'Token Listrik', 'Beli Barang', 'Fotocopy', 'Parkir', 'Tiket Pesawat/Kereta', 'Booking Hotel', 'Biaya Makan Perjalanan Dinas'];
 
 const NewOpexRequestScreen: React.FC = () => {
     const navigate = useNavigate();
-    const { showToast } = useApp();
-    const { submitOpexRequest } = useHR();
+    const { showToast, submitOpexRequest } = useData();
 
     const [type, setType] = useState<OpexRequestType>('Bensin');
     const [amount, setAmount] = useState<number>(0);

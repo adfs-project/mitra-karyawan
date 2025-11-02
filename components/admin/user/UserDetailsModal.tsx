@@ -1,8 +1,7 @@
 import React from 'react';
 import { User, Transaction, Order } from '../../../types';
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 import { XMarkIcon, UserCircleIcon, WalletIcon, ShoppingCartIcon, TrophyIcon, ArrowUpCircleIcon, ArrowDownCircleIcon } from '@heroicons/react/24/solid';
-import { useMarketplace } from '../../../hooks/useMarketplace';
 
 const Stat: React.FC<{ label: string; value: string | number; color?: string }> = ({ label, value, color = 'text-primary' }) => (
     <div>
@@ -23,8 +22,7 @@ const UserDetailsModal: React.FC<{
     onClose: () => void;
     user: User | null;
 }> = ({ isOpen, onClose, user }) => {
-    const { transactions } = useApp();
-    const { orders, products } = useMarketplace();
+    const { transactions, orders, products } = useData();
 
     if (!isOpen || !user) return null;
 

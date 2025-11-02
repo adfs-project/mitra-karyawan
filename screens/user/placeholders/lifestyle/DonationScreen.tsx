@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
-import { useApp } from '../../../../contexts/AppContext';
+import { useData } from '../../../../contexts/DataContext';
 
 const ProviderLogo = ({ providerName }: { providerName: string }) => {
     const [logoError, setLogoError] = useState(false);
@@ -20,8 +20,7 @@ const ProviderLogo = ({ providerName }: { providerName: string }) => {
 
 const DonationScreen = () => {
     const navigate = useNavigate();
-    // FIX: Replaced useCore with useApp and consolidated hooks.
-    const { serviceLinkage, apiIntegrations, showToast } = useApp();
+    const { serviceLinkage, apiIntegrations, showToast } = useData();
 
     const provider = apiIntegrations.find(api => api.id === serviceLinkage['lifestyle-donation']);
     const isConnected = !!provider;

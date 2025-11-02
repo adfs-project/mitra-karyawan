@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { HeartIcon, PlusIcon, UserGroupIcon } from '@heroicons/react/24/solid';
-import { useHealth } from '../../contexts/HealthContext';
+import { useData } from '../../contexts/DataContext';
 import { HealthChallenge } from '../../types';
 
 const ChallengeFormModal: React.FC<{
@@ -42,7 +42,7 @@ const ChallengeFormModal: React.FC<{
 };
 
 const HrWellnessManagement: React.FC = () => {
-    const { healthChallenges, createHealthChallenge } = useHealth();
+    const { healthChallenges, createHealthChallenge } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (

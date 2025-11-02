@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { ShieldCheckIcon, ShieldExclamationIcon, PuzzlePieceIcon, LockClosedIcon, BeakerIcon, HeartIcon } from '@heroicons/react/24/solid';
 import loggingService, { LogEntry } from '../../services/loggingService';
 
@@ -71,7 +70,7 @@ const AdminSystemControlsScreen: React.FC = () => {
     const { 
         homePageConfig,
         updateHomePageConfig
-    } = useApp();
+    } = useData();
     const [activeTab, setActiveTab] = useState<'Settings' | 'Logs'>('Settings');
 
     const handleFeatureFlagToggle = (flagName: keyof typeof homePageConfig.featureFlags, enabled: boolean) => {

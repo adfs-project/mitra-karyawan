@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 // FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { ApiIntegration, IntegrationStatus } from '../../types';
 import { BanknotesIcon, WalletIcon, BuildingStorefrontIcon, XMarkIcon } from '@heroicons/react/24/solid';
 
@@ -44,7 +44,7 @@ const ManageApiModal: React.FC<{
     onClose: () => void;
     integration: ApiIntegration | null;
 }> = ({ isOpen, onClose, integration }) => {
-    const { updateApiIntegration } = useApp();
+    const { updateApiIntegration } = useData();
     // IMPORTANT: We do not load saved credentials into the UI for security.
     // The fields are for entering NEW credentials only.
     const [creds, setCreds] = useState({ apiKey: '', clientId: '', secretKey: '' });
@@ -125,7 +125,7 @@ const ManageApiModal: React.FC<{
 
 
 const AdminApiIntegration: React.FC = () => {
-    const { apiIntegrations } = useApp();
+    const { apiIntegrations } = useData();
     const [manageModalOpen, setManageModalOpen] = useState(false);
     const [selectedApi, setSelectedApi] = useState<ApiIntegration | null>(null);
 

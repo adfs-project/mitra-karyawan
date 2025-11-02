@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { HeartIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/solid';
-import { useHealth } from '../../contexts/HealthContext';
+import { useData } from '../../contexts/DataContext';
 import { Doctor } from '../../types';
 
 const DoctorFormModal: React.FC<{
@@ -71,7 +71,7 @@ const DoctorFormModal: React.FC<{
 };
 
 const AdminHealthProviderManagement: React.FC = () => {
-    const { doctors, addDoctor, updateDoctor, deleteDoctor } = useHealth();
+    const { doctors, addDoctor, updateDoctor, deleteDoctor } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
 

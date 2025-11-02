@@ -1,16 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { AttendanceRecord, Coordinates } from '../../types';
 import LocationName from '../../components/common/LocationName';
 import PhotoViewerModal from '../../components/common/PhotoViewerModal';
 import { CameraIcon } from '@heroicons/react/24/solid';
-import { useHR } from '../../hooks/useHR';
 
 const HrAttendanceManagement: React.FC = () => {
     const { user: hrUser } = useAuth();
-    const { users } = useApp();
-    const { attendanceRecords } = useHR();
+    const { users, attendanceRecords } = useData();
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
     const [viewingPhotoUrl, setViewingPhotoUrl] = useState<string | null>(null);

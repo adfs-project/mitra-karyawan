@@ -2,13 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Article } from '../../../types';
 import { useAuth } from '../../../contexts/AuthContext';
 // FIX: Replaced useCore with useApp as DataContext is deprecated.
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 import { XMarkIcon, PaperAirplaneIcon, HandThumbUpIcon } from '@heroicons/react/24/outline';
 import { HandThumbUpIcon as HandThumbUpSolidIcon } from '@heroicons/react/24/solid';
 
 const CommentModal: React.FC<{ isOpen: boolean; onClose: () => void; article: Article | null; }> = ({ isOpen, onClose, article }) => {
     const { user } = useAuth();
-    const { addArticleComment, toggleCommentLike } = useApp();
+    const { addArticleComment, toggleCommentLike } = useData();
     const [newComment, setNewComment] = useState('');
     const commentsEndRef = useRef<HTMLDivElement>(null);
 

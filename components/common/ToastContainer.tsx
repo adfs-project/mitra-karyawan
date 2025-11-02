@@ -1,5 +1,5 @@
 import React from 'react';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { CheckCircleIcon, XCircleIcon, InformationCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 import { Toast } from '../../types';
 
@@ -45,7 +45,7 @@ const ToastMessage: React.FC<{ toast: Toast, onRemove: (id: number) => void }> =
 };
 
 const ToastContainer: React.FC = () => {
-    const { toasts, removeToast } = useApp();
+    const { toasts, removeToast } = useData();
 
     return (
         <div aria-live="assertive" className="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-50">

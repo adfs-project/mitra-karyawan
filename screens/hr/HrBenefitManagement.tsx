@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { GiftIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../../contexts/AuthContext';
-import { useHealth } from '../../contexts/HealthContext';
+// FIX: Replaced deprecated `useHealth` hook with the consolidated `useData` hook.
+import { useData } from '../../contexts/DataContext';
 import { InsuranceClaim } from '../../types';
 
 const HrBenefitManagement: React.FC = () => {
     const { user: hrUser } = useAuth();
-    const { insuranceClaims, approveInsuranceClaim, rejectInsuranceClaim } = useHealth();
+    const { insuranceClaims, approveInsuranceClaim, rejectInsuranceClaim } = useData();
     const [processingId, setProcessingId] = useState<string | null>(null);
 
     const branchClaims = useMemo(() => {

@@ -3,7 +3,7 @@ import { Product } from '../../../types';
 import { useAuth } from '../../../contexts/AuthContext';
 import { ShoppingCartIcon, StarIcon as StarSolidIcon, HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { HeartIcon as HeartOutlineIcon } from '@heroicons/react/24/outline';
-import { useMarketplace } from '../../../hooks/useMarketplace';
+import { useData } from '../../../contexts/DataContext';
 
 const ImagePlaceholder: React.FC = () => (
     <div className="w-full h-32 bg-surface-light animate-pulse"></div>
@@ -14,7 +14,7 @@ const ProductCard: React.FC<{
     onBuyClick: (product: Product) => void;
 }> = ({ product, onBuyClick }) => {
     const { user } = useAuth();
-    const { toggleWishlist, addToCart } = useMarketplace();
+    const { toggleWishlist, addToCart } = useData();
     const [isVisible, setIsVisible] = useState(false);
     const cardRef = useRef<HTMLDivElement | null>(null);
 

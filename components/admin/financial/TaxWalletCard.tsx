@@ -1,10 +1,9 @@
 import React, { useMemo, useState } from 'react';
-// FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
-import { useApp } from '../../../contexts/AppContext';
+import { useData } from '../../../contexts/DataContext';
 import { DocumentTextIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
 
 const TaxWalletCard: React.FC = () => {
-    const { adminWallets, transactions, recordTaxPayment } = useApp();
+    const { adminWallets, transactions, recordTaxPayment } = useData();
     const [isLoading, setIsLoading] = useState(false);
 
     const taxSources = useMemo(() => {

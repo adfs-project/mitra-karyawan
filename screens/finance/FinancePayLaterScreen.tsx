@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { User } from '../../types';
 import { CreditCardIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import SetPayLaterLimitModal from '../../components/finance/SetPayLaterLimitModal';
 
 const FinancePayLaterScreen: React.FC = () => {
-    const { users, rejectPayLater } = useApp();
+    const { users, rejectPayLater } = useData();
     const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [processingId, setProcessingId] = useState<string | null>(null);

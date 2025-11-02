@@ -1,5 +1,5 @@
 import React from 'react';
-import { useApp } from '../../contexts/AppContext';
+import { useData } from '../../contexts/DataContext';
 import { ShieldCheckIcon, SparklesIcon, ExclamationTriangleIcon, Cog6ToothIcon, WrenchScrewdriverIcon, ShoppingCartIcon } from '@heroicons/react/24/solid';
 import { SystemIntegrityLog, SystemIntegrityLogType } from '../../types';
 
@@ -20,7 +20,7 @@ const logColors: Record<SystemIntegrityLogType, string> = {
 };
 
 const AdminSystemIntegrityScreen: React.FC = () => {
-    const { homePageConfig, updateHomePageConfig, integrityLogs } = useApp();
+    const { homePageConfig, updateHomePageConfig, integrityLogs } = useData();
 
     const isGuardianActive = homePageConfig.isIntegrityGuardianActive;
 
