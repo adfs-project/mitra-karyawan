@@ -10,6 +10,44 @@ import { useAuth } from '../../contexts/AuthContext';
 import AttendanceCameraModal from '../../components/user/AttendanceCameraModal';
 import { useHR } from '../../hooks/useHR';
 
+// Skeleton Loader Component for HomeScreen
+const HomeScreenSkeleton: React.FC = () => (
+    <div className="p-4 space-y-8 animate-pulse">
+        {/* Greeting Skeleton */}
+        <div className="space-y-2">
+            <div className="h-8 w-3/4 bg-surface-light rounded-lg"></div>
+            <div className="h-4 w-1/2 bg-surface-light rounded-lg"></div>
+        </div>
+        {/* Smart Assistant Skeleton */}
+        <div className="h-12 bg-surface-light rounded-full"></div>
+        {/* Attendance Card Skeleton */}
+        <div className="h-36 bg-surface rounded-lg p-4 space-y-3">
+             <div className="h-5 w-1/3 bg-surface-light rounded-lg"></div>
+             <div className="h-4 w-3/4 bg-surface-light rounded-lg"></div>
+             <div className="h-12 bg-surface-light rounded-lg"></div>
+        </div>
+        {/* Quick Access Skeleton */}
+        <div className="space-y-4">
+             <div className="h-6 w-1/4 bg-surface-light rounded-lg"></div>
+             <div className="grid grid-cols-3 gap-4">
+                <div className="h-24 bg-surface rounded-lg"></div>
+                <div className="h-24 bg-surface rounded-lg"></div>
+                <div className="h-24 bg-surface rounded-lg"></div>
+             </div>
+             <div className="h-12 bg-surface rounded-lg"></div>
+        </div>
+        {/* For You & News Skeleton */}
+        <div>
+            <div className="h-6 w-1/3 bg-surface-light rounded-lg mb-4"></div>
+            <div className="flex overflow-x-auto space-x-4 pb-4">
+                <div className="flex-shrink-0 w-80 h-48 bg-surface rounded-lg"></div>
+                <div className="flex-shrink-0 w-48 h-48 bg-surface rounded-lg"></div>
+                <div className="flex-shrink-0 w-48 h-48 bg-surface rounded-lg"></div>
+            </div>
+        </div>
+    </div>
+);
+
 
 const QuickAccess: React.FC = () => {
     const items = [
@@ -132,7 +170,13 @@ const AttendanceCard: React.FC = () => {
 
 
 const HomeScreen: React.FC = () => {
-    const { articles } = useApp();
+    const { articles, users } = useApp();
+
+    // The loading check is now localized. We check if 'users' (a core data array)
+    // has been populated by AppContext. If not, we show the skeleton.
+    if (!users || users.length === 0) {
+        return <HomeScreenSkeleton />;
+    }
 
     const latestNews = (articles || [])
         .filter(a => a.status === 'Published')

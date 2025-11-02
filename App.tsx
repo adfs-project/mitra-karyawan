@@ -159,14 +159,10 @@ const AppRoutes: React.FC = () => {
 
 const AppContent: React.FC = () => {
     const { user } = useAuth();
-    const { users } = useApp(); 
-
-    // FIX: Refined the loading gate logic. Only show the loader if a user is logged in
-    // but the main application data (like the users array) hasn't been populated yet.
-    // This specifically targets the race condition that occurs immediately after login.
-    if (user && (!users || users.length === 0)) {
-        return <CenteredLoading />;
-    }
+    
+    // FIX: Removed the global loading gate. The responsibility for showing a loading
+    // state is now delegated to individual screens (like HomeScreen), allowing the main
+    // layout to render immediately for a better user experience.
     
     return (
          <ErrorBoundaryModule.ErrorBoundary FallbackComponent={RecoveryUI} resetKeys={[user]}>
