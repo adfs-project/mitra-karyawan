@@ -11,6 +11,7 @@ import FinancialPlanning from '../../components/user/wallet/FinancialPlanning';
 import TopUpModal from '../../components/user/wallet/TopUpModal';
 import TransferModal from '../../components/user/wallet/TransferModal';
 import FinancialAdvisorModal from '../../components/user/wallet/FinancialAdvisorModal';
+import PayLaterStatusCard from '../../components/user/wallet/PayLaterStatusCard';
 
 
 type Tab = 'Analitik' | 'Perencanaan' | 'Riwayat';
@@ -92,6 +93,8 @@ const WalletScreen: React.FC = () => {
                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(user?.wallet.balance || 0)}
                 </p>
             </div>
+
+            <PayLaterStatusCard />
 
             <div className="grid grid-cols-2 gap-4">
                  <button onClick={() => setTopUpModalOpen(true)} className="flex items-center justify-center space-x-2 p-3 bg-surface rounded-lg hover:bg-surface-light transition-colors font-semibold">

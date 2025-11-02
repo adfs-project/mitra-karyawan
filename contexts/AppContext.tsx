@@ -399,12 +399,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             deleteScheduledPayment: () => showToast("Deletion is disabled.", 'warning'),
             applyForPayLater: () => {
                 if (!user) return;
+                // Allow re-application if not applied or rejected
+                if (user.payLater?.status === 'pending' || user.payLater?.status === 'approved') {
+                    showToast(`Anda sudah memiliki status PayLater: ${user.payLater.status}.`, 'info');
+                    return;
+                }
+
                 const fullUser = vaultService.findUserByEmail(user.email);
                 if(fullUser) {
                     const updatedUser = { ...fullUser, payLater: { status: 'pending' as const } };
                     vaultService.updateUser(updatedUser);
                      updateCurrentUser({ ...user, payLater: { status: 'pending' } });
-                    showToast('PayLater application submitted.', 'success');
+                    showToast('Pengajuan PayLater berhasil dikirim.', 'success');
                 }
             },
             generatePayslipData: (userId: string) => {
