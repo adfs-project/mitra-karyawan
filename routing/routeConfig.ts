@@ -129,7 +129,7 @@ export const routes: RouteConfig[] = [
     { name: 'adminSystemIntegrity', path: '/admin/system/integrity', component: AdminSystemIntegrityScreen, layout: 'admin', isPrivate: true },
 
     // HR
-    { name: 'hrPortal', path: '/hr-portal', component: HrPortalScreen, layout: 'user', isPrivate: true },
+    { name: 'hrPortal', path: '/hr-portal', component: HrPortalScreen, layout: 'hr', isPrivate: true },
     { name: 'hrDashboard', path: '/hr/dashboard', component: HrDashboard, layout: 'hr', isPrivate: true },
     { name: 'hrOnboarding', path: '/hr/onboarding', component: HrOnboarding, layout: 'hr', isPrivate: true },
     { name: 'hrLeave', path: '/hr/leave', component: HrLeaveManagement, layout: 'hr', isPrivate: true },
