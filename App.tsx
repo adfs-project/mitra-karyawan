@@ -97,8 +97,8 @@ const PrivateRoute: React.FC<{ children: React.ReactNode; route: RouteConfig }> 
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
     
-    // FIX: If user object exists but role doesn't, it's a transitional state. Show loading to prevent crash.
-    if (!user.role) {
+    // FIX: If user object exists but core properties don't, it's a transitional state. Show loading to prevent crash.
+    if (!user.role || !user.profile) {
         return <CenteredLoading />;
     }
 
