@@ -5,7 +5,7 @@ import App from './App';
 // Assuming a global CSS file exists for Tailwind directives.
 import './index.css';
 
-console.log('Mitra Karyawan App Version: 1.6.17');
+console.log('Mitra Karyawan App Version: 1.6.18');
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
