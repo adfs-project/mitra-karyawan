@@ -1,6 +1,7 @@
 // FIX: The file content was placeholder text. Replaced it with the root application component, setting up providers and routing.
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import * as ErrorBoundaryModule from 'react-error-boundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AppProvider, useApp } from './contexts/AppContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -11,7 +12,6 @@ import { PersonalizationProvider } from './contexts/PersonalizationContext';
 import { routes, rolePermissions, RouteConfig } from './routing/routeConfig';
 import { Role } from './types';
 import ToastContainer from './components/common/ToastContainer';
-import ErrorBoundary from './components/common/ErrorBoundary';
 import RecoveryUI from './components/common/RecoveryUI';
 import UserLayout from './components/layout/UserLayout';
 import AdminLayout from './components/layout/AdminLayout';
@@ -23,6 +23,40 @@ const CenteredLoading: React.FC = () => (
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
     </div>
 );
+
+// This component catches unhandled errors (async, event handlers) and passes them to the Error Boundary
+const GlobalErrorCatcher: React.FC = () => {
+    // Re-implementing useErrorHandler's logic to bypass CDN import issues.
+    // This state setter is used to re-throw an error inside React's render cycle.
+    const [_, setError] = useState<any>(null);
+
+    useEffect(() => {
+        const errorHandler = (event: ErrorEvent) => {
+            // This is the core pattern that useErrorHandler uses internally.
+            // Using the state setter to re-throw the error during the next render.
+            setError(() => { throw event.error; });
+        };
+        
+        const rejectionHandler = (event: PromiseRejectionEvent) => {
+            // Also handle unhandled promise rejections
+            setError(() => { throw event.reason; });
+        };
+
+        window.addEventListener('error', errorHandler);
+        window.addEventListener('unhandledrejection', rejectionHandler);
+
+        return () => {
+            window.removeEventListener('error', errorHandler);
+            window.removeEventListener('unhandledrejection', rejectionHandler);
+        };
+    }, []);
+
+    // This component does not render anything. The error is thrown inside the
+    // state setter, which React catches and propagates to the nearest error
+    // boundary during the state update process.
+    return null;
+};
+
 
 const getHomeRoute = (user: any) => {
     if (!user) return '/login';
@@ -113,28 +147,36 @@ const AppRoutes: React.FC = () => {
     );
 };
 
+const AppContent: React.FC = () => {
+    const { user } = useAuth();
+    return (
+         <ErrorBoundaryModule.ErrorBoundary FallbackComponent={RecoveryUI} resetKeys={[user]}>
+            <GlobalErrorCatcher />
+            <Router>
+                <AppRoutes />
+                <ToastContainer />
+            </Router>
+        </ErrorBoundaryModule.ErrorBoundary>
+    )
+}
+
 const App: React.FC = () => {
     return (
-        <ErrorBoundary FallbackComponent={RecoveryUI}>
-            <ThemeProvider>
-                <AuthProvider>
-                    <AppProvider>
-                        <PersonalizationProvider>
-                            <MarketplaceProvider>
-                                <HealthProvider>
-                                    <HRProvider>
-                                        <Router>
-                                            <AppRoutes />
-                                            <ToastContainer />
-                                        </Router>
-                                    </HRProvider>
-                                </HealthProvider>
-                            </MarketplaceProvider>
-                        </PersonalizationProvider>
-                    </AppProvider>
-                </AuthProvider>
-            </ThemeProvider>
-        </ErrorBoundary>
+        <ThemeProvider>
+            <AuthProvider>
+                <AppProvider>
+                    <PersonalizationProvider>
+                        <HRProvider>
+                            <HealthProvider>
+                                <MarketplaceProvider>
+                                    <AppContent />
+                                </MarketplaceProvider>
+                            </HealthProvider>
+                        </HRProvider>
+                    </PersonalizationProvider>
+                </AppProvider>
+            </AuthProvider>
+        </ThemeProvider>
     );
 };
 

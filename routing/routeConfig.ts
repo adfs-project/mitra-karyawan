@@ -1,5 +1,6 @@
 import React from 'react';
 import { Role } from '../types';
+import { lazyWithTimeout } from '../utils/lazyWithTimeout';
 
 type LayoutType = 'user' | 'admin' | 'hr' | 'finance' | 'none';
 
@@ -11,66 +12,66 @@ export interface RouteConfig {
     isPrivate: boolean;
 }
 
-// Lazy load components
-const LoginScreen = React.lazy(() => import('../screens/auth/LoginScreen'));
-const RegisterScreen = React.lazy(() => import('../screens/auth/RegisterScreen'));
-const DeactivatedAccountScreen = React.lazy(() => import('../screens/auth/DeactivatedAccountScreen'));
-const HomeScreen = React.lazy(() => import('../screens/user/HomeScreen'));
-const WalletScreen = React.lazy(() => import('../screens/user/WalletScreen'));
-const MarketScreen = React.lazy(() => import('../screens/user/MarketScreen'));
-const InfoNewsScreen = React.lazy(() => import('../screens/user/InfoNewsScreen'));
-const HealthScreen = React.lazy(() => import('../screens/user/HealthScreen'));
-const MyAccountScreen = React.lazy(() => import('../screens/user/MyAccountScreen'));
-const LoyaltyScreen = React.lazy(() => import('../screens/user/LoyaltyScreen'));
-const CartScreen = React.lazy(() => import('../screens/user/CartScreen'));
-const WishlistScreen = React.lazy(() => import('../screens/user/WishlistScreen'));
-const MyProductsStoreScreen = React.lazy(() => import('../screens/user/MyProductsStoreScreen'));
-const BookmarkedArticlesScreen = React.lazy(() => import('../screens/user/BookmarkedArticlesScreen'));
-const AllFeaturesScreen = React.lazy(() => import('../screens/user/AllFeaturesScreen'));
-const AttendanceHistoryScreen = React.lazy(() => import('../screens/user/AttendanceHistoryScreen'));
-const OpexScreen = React.lazy(() => import('../screens/user/OpexScreen'));
-const NewOpexRequestScreen = React.lazy(() => import('../screens/user/opex/NewOpexRequestScreen'));
-const DoctorDetailScreen = React.lazy(() => import('../screens/user/health/DoctorDetailScreen'));
-const MyConsultationsScreen = React.lazy(() => import('../screens/user/health/MyConsultationsScreen'));
-const ConsultationRoomScreen = React.lazy(() => import('../screens/user/health/ConsultationRoomScreen'));
-const EprescriptionScreen = React.lazy(() => import('../screens/user/health/EprescriptionScreen'));
-const HealthRecordScreen = React.lazy(() => import('../screens/user/health/HealthRecordScreen'));
-const InsuranceClaimScreen = React.lazy(() => import('../screens/user/health/InsuranceClaimScreen'));
-const PharmacyCheckoutScreen = React.lazy(() => import('../screens/user/health/PharmacyCheckoutScreen'));
-const HealthPlusScreen = React.lazy(() => import('../screens/user/health/HealthPlusScreen'));
-const SubscriptionUpsellScreen = React.lazy(() => import('../screens/user/health/SubscriptionUpsellScreen'));
-const FunctionalPlaceholderScreen = React.lazy(() => import('../screens/common/FunctionalPlaceholderScreen'));
-const NotFoundScreen = React.lazy(() => import('../screens/common/NotFoundScreen')); // New import
-const AdminDashboard = React.lazy(() => import('../screens/admin/AdminDashboard'));
-const AdminUserIntelligence = React.lazy(() => import('../screens/admin/AdminUserIntelligence'));
-const AdminApiIntegration = React.lazy(() => import('../screens/admin/AdminApiIntegration'));
-const AdminScalability = React.lazy(() => import('../screens/admin/AdminScalability'));
-const AdminFinancialHub = React.lazy(() => import('../screens/admin/AdminFinancialHub'));
-const AdminInfoNewsManagement = React.lazy(() => import('../screens/admin/AdminInfoNewsManagement'));
-const AdminMarketplaceOversight = React.lazy(() => import('../screens/admin/AdminMarketplaceOversight'));
-const AdminHealthProviderManagement = React.lazy(() => import('../screens/admin/AdminHealthProviderManagement'));
-const AdminMonetizationEngine = React.lazy(() => import('../screens/admin/AdminMonetizationEngine'));
-const AdminTaxManagement = React.lazy(() => import('../screens/admin/AdminTaxManagement'));
-const AdminPersonalizationEngine = React.lazy(() => import('../screens/admin/AdminPersonalizationEngine'));
-const AdminHomePageOrchestrator = React.lazy(() => import('../screens/admin/AdminHomePageOrchestrator'));
-const AdminAssistantHub = React.lazy(() => import('../screens/admin/AdminAssistantHub'));
-const AdminSystemControlsScreen = React.lazy(() => import('../screens/admin/AdminSystemControlsScreen'));
-const AdminServiceLinkageScreen = React.lazy(() => import('../screens/admin/AdminServiceLinkageScreen'));
-const AdminSystemIntegrityScreen = React.lazy(() => import('../screens/admin/AdminSystemIntegrityScreen'));
-const HrPortalScreen = React.lazy(() => import('../screens/hr/HrPortalScreen'));
-const HrDashboard = React.lazy(() => import('../screens/hr/HrDashboard'));
-const HrOnboarding = React.lazy(() => import('../screens/hr/HrOnboarding'));
-const HrLeaveManagement = React.lazy(() => import('../screens/hr/HrLeaveManagement'));
-const HrPayroll = React.lazy(() => import('../screens/hr/HrPayroll'));
-const HrBenefitManagement = React.lazy(() => import('../screens/hr/HrBenefitManagement'));
-const HrWellnessManagement = React.lazy(() => import('../screens/hr/HrWellnessManagement'));
-const HrAiCopilotScreen = React.lazy(() => import('../screens/hr/HrAiCopilotScreen'));
-const HrAttendanceManagement = React.lazy(() => import('../screens/hr/HrAttendanceManagement'));
-const HrOpexManagementScreen = React.lazy(() => import('../screens/hr/HrOpexManagementScreen'));
-const FinanceDashboard = React.lazy(() => import('../screens/finance/FinanceDashboard'));
-const FinanceCommandCenter = React.lazy(() => import('../screens/finance/FinanceCommandCenter'));
-const FinancePayrollReport = React.lazy(() => import('../screens/finance/FinancePayrollReport'));
-const FinancePayLaterScreen = React.lazy(() => import('../screens/finance/FinancePayLaterScreen'));
+// Lazy load components with timeout
+const LoginScreen = lazyWithTimeout(() => import('../screens/auth/LoginScreen'));
+const RegisterScreen = lazyWithTimeout(() => import('../screens/auth/RegisterScreen'));
+const DeactivatedAccountScreen = lazyWithTimeout(() => import('../screens/auth/DeactivatedAccountScreen'));
+const HomeScreen = lazyWithTimeout(() => import('../screens/user/HomeScreen'));
+const WalletScreen = lazyWithTimeout(() => import('../screens/user/WalletScreen'));
+const MarketScreen = lazyWithTimeout(() => import('../screens/user/MarketScreen'));
+const InfoNewsScreen = lazyWithTimeout(() => import('../screens/user/InfoNewsScreen'));
+const HealthScreen = lazyWithTimeout(() => import('../screens/user/HealthScreen'));
+const MyAccountScreen = lazyWithTimeout(() => import('../screens/user/MyAccountScreen'));
+const LoyaltyScreen = lazyWithTimeout(() => import('../screens/user/LoyaltyScreen'));
+const CartScreen = lazyWithTimeout(() => import('../screens/user/CartScreen'));
+const WishlistScreen = lazyWithTimeout(() => import('../screens/user/WishlistScreen'));
+const MyProductsStoreScreen = lazyWithTimeout(() => import('../screens/user/MyProductsStoreScreen'));
+const BookmarkedArticlesScreen = lazyWithTimeout(() => import('../screens/user/BookmarkedArticlesScreen'));
+const AllFeaturesScreen = lazyWithTimeout(() => import('../screens/user/AllFeaturesScreen'));
+const AttendanceHistoryScreen = lazyWithTimeout(() => import('../screens/user/AttendanceHistoryScreen'));
+const OpexScreen = lazyWithTimeout(() => import('../screens/user/OpexScreen'));
+const NewOpexRequestScreen = lazyWithTimeout(() => import('../screens/user/opex/NewOpexRequestScreen'));
+const DoctorDetailScreen = lazyWithTimeout(() => import('../screens/user/health/DoctorDetailScreen'));
+const MyConsultationsScreen = lazyWithTimeout(() => import('../screens/user/health/MyConsultationsScreen'));
+const ConsultationRoomScreen = lazyWithTimeout(() => import('../screens/user/health/ConsultationRoomScreen'));
+const EprescriptionScreen = lazyWithTimeout(() => import('../screens/user/health/EprescriptionScreen'));
+const HealthRecordScreen = lazyWithTimeout(() => import('../screens/user/health/HealthRecordScreen'));
+const InsuranceClaimScreen = lazyWithTimeout(() => import('../screens/user/health/InsuranceClaimScreen'));
+const PharmacyCheckoutScreen = lazyWithTimeout(() => import('../screens/user/health/PharmacyCheckoutScreen'));
+const HealthPlusScreen = lazyWithTimeout(() => import('../screens/user/health/HealthPlusScreen'));
+const SubscriptionUpsellScreen = lazyWithTimeout(() => import('../screens/user/health/SubscriptionUpsellScreen'));
+const FunctionalPlaceholderScreen = lazyWithTimeout(() => import('../screens/common/FunctionalPlaceholderScreen'));
+const NotFoundScreen = lazyWithTimeout(() => import('../screens/common/NotFoundScreen')); // New import
+const AdminDashboard = lazyWithTimeout(() => import('../screens/admin/AdminDashboard'));
+const AdminUserIntelligence = lazyWithTimeout(() => import('../screens/admin/AdminUserIntelligence'));
+const AdminApiIntegration = lazyWithTimeout(() => import('../screens/admin/AdminApiIntegration'));
+const AdminScalability = lazyWithTimeout(() => import('../screens/admin/AdminScalability'));
+const AdminFinancialHub = lazyWithTimeout(() => import('../screens/admin/AdminFinancialHub'));
+const AdminInfoNewsManagement = lazyWithTimeout(() => import('../screens/admin/AdminInfoNewsManagement'));
+const AdminMarketplaceOversight = lazyWithTimeout(() => import('../screens/admin/AdminMarketplaceOversight'));
+const AdminHealthProviderManagement = lazyWithTimeout(() => import('../screens/admin/AdminHealthProviderManagement'));
+const AdminMonetizationEngine = lazyWithTimeout(() => import('../screens/admin/AdminMonetizationEngine'));
+const AdminTaxManagement = lazyWithTimeout(() => import('../screens/admin/AdminTaxManagement'));
+const AdminPersonalizationEngine = lazyWithTimeout(() => import('../screens/admin/AdminPersonalizationEngine'));
+const AdminHomePageOrchestrator = lazyWithTimeout(() => import('../screens/admin/AdminHomePageOrchestrator'));
+const AdminAssistantHub = lazyWithTimeout(() => import('../screens/admin/AdminAssistantHub'));
+const AdminSystemControlsScreen = lazyWithTimeout(() => import('../screens/admin/AdminSystemControlsScreen'));
+const AdminServiceLinkageScreen = lazyWithTimeout(() => import('../screens/admin/AdminServiceLinkageScreen'));
+const AdminSystemIntegrityScreen = lazyWithTimeout(() => import('../screens/admin/AdminSystemIntegrityScreen'));
+const HrPortalScreen = lazyWithTimeout(() => import('../screens/hr/HrPortalScreen'));
+const HrDashboard = lazyWithTimeout(() => import('../screens/hr/HrDashboard'));
+const HrOnboarding = lazyWithTimeout(() => import('../screens/hr/HrOnboarding'));
+const HrLeaveManagement = lazyWithTimeout(() => import('../screens/hr/HrLeaveManagement'));
+const HrPayroll = lazyWithTimeout(() => import('../screens/hr/HrPayroll'));
+const HrBenefitManagement = lazyWithTimeout(() => import('../screens/hr/HrBenefitManagement'));
+const HrWellnessManagement = lazyWithTimeout(() => import('../screens/hr/HrWellnessManagement'));
+const HrAiCopilotScreen = lazyWithTimeout(() => import('../screens/hr/HrAiCopilotScreen'));
+const HrAttendanceManagement = lazyWithTimeout(() => import('../screens/hr/HrAttendanceManagement'));
+const HrOpexManagementScreen = lazyWithTimeout(() => import('../screens/hr/HrOpexManagementScreen'));
+const FinanceDashboard = lazyWithTimeout(() => import('../screens/finance/FinanceDashboard'));
+const FinanceCommandCenter = lazyWithTimeout(() => import('../screens/finance/FinanceCommandCenter'));
+const FinancePayrollReport = lazyWithTimeout(() => import('../screens/finance/FinancePayrollReport'));
+const FinancePayLaterScreen = lazyWithTimeout(() => import('../screens/finance/FinancePayLaterScreen'));
 
 
 // The "Peta Rute Resmi" (Official Route Map)
