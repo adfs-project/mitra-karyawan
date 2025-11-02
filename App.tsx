@@ -154,11 +154,12 @@ const AppRoutes: React.FC = () => {
 
 const AppContent: React.FC = () => {
     const { user } = useAuth();
-    // FIX: Add a loading gate to wait for essential data from AppContext, preventing race conditions on login.
     const { users } = useApp(); 
 
-    // If users data isn't loaded yet, show a loading indicator. This is crucial after login.
-    if (!users || users.length === 0) {
+    // FIX: Refined the loading gate logic. Only show the loader if a user is logged in
+    // but the main application data (like the users array) hasn't been populated yet.
+    // This specifically targets the race condition that occurs immediately after login.
+    if (user && (!users || users.length === 0)) {
         return <CenteredLoading />;
     }
     
