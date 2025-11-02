@@ -1,5 +1,5 @@
 // FIX: The file content was placeholder text. Replaced it with the root application component, setting up providers and routing.
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AppProvider, useApp } from './contexts/AppContext';
@@ -34,9 +34,19 @@ const getHomeRoute = (user: any) => {
     }
 };
 
-const RouteRenderer: React.FC<{ route: RouteConfig }> = ({ route }) => {
-    const { user } = useAuth();
+// FIX: New component to handle access denied logic safely without violating Rules of Hooks.
+const AccessDeniedRedirect: React.FC<{ redirectTo: string }> = ({ redirectTo }) => {
     const { showToast } = useApp();
+    useEffect(() => {
+        showToast("Akses ditolak: Anda tidak memiliki izin yang diperlukan.", "error");
+    }, [showToast]);
+    return <Navigate to={redirectTo} replace />;
+};
+
+
+const RouteRenderer: React.FC<{ route: RouteConfig }> = ({ route }) => {
+    // FIX: All hook calls are moved to the top level to conform to the Rules of Hooks.
+    const { user } = useAuth();
     const location = useLocation();
 
     const PageComponent = <Suspense fallback={<CenteredLoading />}><route.component /></Suspense>;
@@ -72,11 +82,8 @@ const RouteRenderer: React.FC<{ route: RouteConfig }> = ({ route }) => {
     // If they are on a private page, check their role permissions.
     const allowedRoutes = rolePermissions[user.role];
     if (!allowedRoutes || !allowedRoutes.includes(route.name)) {
-        // Not allowed, show a toast and redirect them to their home.
-        React.useEffect(() => {
-            showToast("Akses ditolak: Anda tidak memiliki izin yang diperlukan.", "error");
-        }, [showToast]);
-        return <Navigate to={getHomeRoute(user)} replace />;
+        // FIX: Use the dedicated component for redirection to avoid conditional hook calls.
+        return <AccessDeniedRedirect redirectTo={getHomeRoute(user)} />;
     }
 
     // If all checks pass, render the private page.
@@ -85,7 +92,6 @@ const RouteRenderer: React.FC<{ route: RouteConfig }> = ({ route }) => {
 
 const AppRoutes: React.FC = () => {
     const { user } = useAuth();
-    const fallbackRoute = routes.find(r => r.path === '*');
 
     return (
         <Routes>
