@@ -124,7 +124,7 @@ const ForYouWidget: React.FC = () => {
     
     // Welcome card logic
     const hasTransactions = (transactions || []).some(tx => tx.userId === user?.id);
-    if(!hasTransactions && user) {
+    if(!hasTransactions && user?.profile?.name) {
         const WelcomeCard = (
             <div key="welcome" className="flex-shrink-0 w-80 bg-surface rounded-lg p-4 border border-primary flex flex-col justify-between">
                 <div>

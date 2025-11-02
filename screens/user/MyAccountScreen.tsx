@@ -335,7 +335,7 @@ const MyAccountScreen: React.FC = () => {
     const [isChangePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
     const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
 
-    if (!user) return null;
+    if (!user || !user.profile) return null;
 
     const menuItems = [
         { name: 'Riwayat Konsultasi', icon: DocumentTextIcon, path: '/my-consultations' },

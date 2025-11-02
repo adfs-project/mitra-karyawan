@@ -15,7 +15,9 @@ const PersonalizedGreeting: React.FC = () => {
         return "Selamat Malam";
     };
 
-    const unreadCount = notifications.filter(n => n.userId === user?.id && !n.read).length;
+    if (!user?.profile?.name) return null;
+
+    const unreadCount = notifications.filter(n => n.userId === user.id && !n.read).length;
 
     const getSmartSummary = () => {
         if (unreadCount > 0) {
@@ -23,8 +25,6 @@ const PersonalizedGreeting: React.FC = () => {
         }
         return "Semoga harimu menyenangkan!";
     };
-
-    if (!user) return null;
 
     return (
         <div>
