@@ -1,20 +1,27 @@
 import React, { useMemo, useState } from 'react';
-import { BuildingStorefrontIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from '@heroicons/react/24/solid';
+import { BuildingStorefrontIcon, CheckCircleIcon, XCircleIcon, EyeIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import { useMarketplace } from '../../hooks/useMarketplace';
 import { Product } from '../../types';
 
 const AdminMarketplaceOversight: React.FC = () => {
     const { products, updateProductStatus } = useMarketplace();
     const [filter, setFilter] = useState<'All' | 'Needs Review'>('Needs Review');
+    const [searchTerm, setSearchTerm] = useState('');
     const [processingId, setProcessingId] = useState<string | null>(null);
 
     const filteredProducts = useMemo(() => {
-        const sorted = [...products].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        if (filter === 'Needs Review') {
-            return sorted.filter(p => p.status === 'Needs Review');
-        }
-        return sorted;
-    }, [products, filter]);
+        return products.filter(p => {
+            const matchesFilter = filter === 'All' || p.status === filter;
+            
+            const searchLower = searchTerm.toLowerCase();
+            const matchesSearch = searchTerm === '' ||
+                p.name.toLowerCase().includes(searchLower) ||
+                p.description.toLowerCase().includes(searchLower) ||
+                p.sellerName.toLowerCase().includes(searchLower);
+
+            return matchesFilter && matchesSearch;
+        }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }, [products, filter, searchTerm]);
 
     const handleUpdateStatus = async (productId: string, status: 'Listed' | 'Unlisted') => {
         setProcessingId(productId);
@@ -32,16 +39,28 @@ const AdminMarketplaceOversight: React.FC = () => {
             </h1>
             <p className="text-text-secondary">Tinjau dan kelola produk yang dijual oleh karyawan di marketplace.</p>
 
-            <div className="flex space-x-2 border-b border-border-color">
-                <button onClick={() => setFilter('Needs Review')} className={`px-4 py-2 font-semibold ${filter === 'Needs Review' ? 'text-primary border-b-2 border-primary' : 'text-text-secondary'}`}>
-                    Needs Review ({products.filter(p => p.status === 'Needs Review').length})
-                </button>
-                <button onClick={() => setFilter('All')} className={`px-4 py-2 font-semibold ${filter === 'All' ? 'text-primary border-b-2 border-primary' : 'text-text-secondary'}`}>
-                    All Products
-                </button>
-            </div>
-
             <div className="bg-surface p-4 rounded-lg border border-border-color">
+                <div className="flex justify-between items-center mb-4">
+                    <div className="flex space-x-2 border-b border-border-color">
+                        <button onClick={() => setFilter('Needs Review')} className={`px-4 py-2 font-semibold ${filter === 'Needs Review' ? 'text-primary border-b-2 border-primary' : 'text-text-secondary'}`}>
+                            Needs Review ({products.filter(p => p.status === 'Needs Review').length})
+                        </button>
+                        <button onClick={() => setFilter('All')} className={`px-4 py-2 font-semibold ${filter === 'All' ? 'text-primary border-b-2 border-primary' : 'text-text-secondary'}`}>
+                            All Products
+                        </button>
+                    </div>
+                     <div className="relative w-full max-w-xs">
+                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-text-secondary" />
+                        <input 
+                            type="text"
+                            placeholder="Cari produk, penjual..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full p-2 pl-10 bg-surface-light border border-border-color rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                    </div>
+                </div>
+            
                 <div className="overflow-x-auto">
                     {filteredProducts.length > 0 ? (
                         <table className="w-full text-sm text-left text-text-secondary">

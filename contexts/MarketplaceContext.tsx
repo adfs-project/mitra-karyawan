@@ -1,7 +1,8 @@
-import React, { createContext, useContext, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, ReactNode, useCallback, useState } from 'react';
 import { Product, Role, CartItem, Order } from '../types';
 import { useAuth } from './AuthContext';
 import { useApp } from './AppContext';
+import vaultService from '../services/vaultService';
 
 export interface MarketplaceContextType {
     products: Product[];
@@ -23,52 +24,60 @@ export const MarketplaceContext = createContext<MarketplaceContextType | undefin
 
 export const MarketplaceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { user, updateCurrentUser } = useAuth();
-    const { products, cart, orders, updateState, addTransaction, showToast, addNotification } = useApp();
+    const { addTransaction, showToast, addNotification } = useApp();
+    
+    // State is now managed locally within this context
+    const [products, setProducts] = useState<Product[]>(() => vaultService.getSanitizedData().products);
+    const [cart, setCart] = useState<CartItem[]>(() => vaultService.getSanitizedData().cart);
+    const [orders, setOrders] = useState<Order[]>(() => vaultService.getSanitizedData().orders);
+
+    const updateProductsState = (newProducts: Product[]) => {
+        setProducts(newProducts);
+        vaultService.setData('products', newProducts);
+    }
+    const updateCartState = (newCart: CartItem[]) => {
+        setCart(newCart);
+        vaultService.setData('cart', newCart);
+    }
+    const updateOrdersState = (newOrders: Order[]) => {
+        setOrders(newOrders);
+        vaultService.setData('orders', newOrders);
+    }
 
     const addToCart = useCallback((productId: string, quantity: number) => {
-        if (!user) {
-            showToast('You must be logged in to add items to the cart.', 'error');
-            return;
-        }
+        if (!user) { showToast('You must be logged in...', 'error'); return; }
         const product = products.find(p => p.id === productId);
-        if (!product) {
-            showToast('Product not found.', 'error');
-            return;
-        }
-        if (product.stock < quantity) {
-            showToast('Not enough stock available.', 'warning');
-            return;
-        }
+        if (!product || product.stock < quantity) { showToast('Product not available or not enough stock.', 'warning'); return; }
         
-        const existingItem = cart.find(item => item.productId === productId);
-        let newCart;
-        if (existingItem) {
-            newCart = cart.map(item => item.productId === productId ? { ...item, quantity: item.quantity + quantity } : item);
-        } else {
-            newCart = [...cart, { productId, quantity }];
-        }
-        updateState('cart', newCart);
+        setCart(prevCart => {
+            const existingItem = prevCart.find(item => item.productId === productId);
+            let newCart;
+            if (existingItem) {
+                newCart = prevCart.map(item => item.productId === productId ? { ...item, quantity: Math.min(product.stock, item.quantity + quantity) } : item);
+            } else {
+                newCart = [...prevCart, { productId, quantity }];
+            }
+            vaultService.setData('cart', newCart);
+            return newCart;
+        });
         showToast(`${product.name} added to cart.`, 'success');
-    }, [user, products, cart, updateState, showToast]);
+    }, [user, products, showToast]);
 
     const removeFromCart = useCallback((productId: string) => {
-        updateState('cart', cart.filter(item => item.productId !== productId));
+        updateCartState(cart.filter(item => item.productId !== productId));
         showToast('Item removed from cart.', 'info');
-    }, [cart, updateState, showToast]);
+    }, [cart, showToast]);
 
     const updateCartQuantity = useCallback((productId: string, quantity: number) => {
         const product = products.find(p => p.id === productId);
-        if (quantity < 1) {
-            removeFromCart(productId);
-            return;
-        }
+        if (quantity < 1) { removeFromCart(productId); return; }
         if (product && quantity > product.stock) {
             showToast(`Only ${product.stock} items in stock.`, 'warning');
-            updateState('cart', cart.map(item => item.productId === productId ? { ...item, quantity: product.stock } : item));
+            updateCartState(cart.map(item => item.productId === productId ? { ...item, quantity: product.stock } : item));
             return;
         }
-        updateState('cart', cart.map(item => item.productId === productId ? { ...item, quantity } : item));
-    }, [products, cart, updateState, removeFromCart, showToast]);
+        updateCartState(cart.map(item => item.productId === productId ? { ...item, quantity } : item));
+    }, [products, cart, removeFromCart, showToast]);
 
     const checkoutCart = useCallback(async (): Promise<{ success: boolean; message: string }> => {
         if (!user) return { success: false, message: 'User not logged in.' };
@@ -78,64 +87,30 @@ export const MarketplaceProvider: React.FC<{ children: ReactNode }> = ({ childre
 
         if (subtotal <= 0) return { success: false, message: 'Cart is empty.' };
 
-        // Transaction for buyer
-        const txResult = await addTransaction({
-            userId: user.id,
-            type: 'Marketplace',
-            amount: -subtotal,
-            description: `Purchase of ${cartDetails.length} items from Marketplace`,
-            status: 'Completed',
-        });
-
+        const txResult = await addTransaction({ userId: user.id, type: 'Marketplace', amount: -subtotal, description: `Purchase of ${cartDetails.length} items`, status: 'Completed' });
         if (!txResult.success) return txResult;
 
-        // Create order
-        const newOrder: Order = {
-            id: `ord-${Date.now()}`,
-            userId: user.id,
-            items: cartDetails.map(item => ({
-                productId: item.productId,
-                quantity: item.quantity,
-                price: item.product!.price,
-                productName: item.product!.name
-            })),
-            total: subtotal,
-            timestamp: new Date().toISOString()
-        };
-        updateState('orders', [...orders, newOrder]);
+        const newOrder: Order = { id: `ord-${Date.now()}`, userId: user.id, items: cartDetails.map(item => ({ productId: item.productId, quantity: item.quantity, price: item.product!.price, productName: item.product!.name })), total: subtotal, timestamp: new Date().toISOString() };
+        updateOrdersState([...orders, newOrder]);
 
-        // Transaction and notification for sellers
         const sellerTransactions: Record<string, number> = {};
         const updatedProducts = [...products];
 
         for (const item of cartDetails) {
-            const sellerId = item.product!.sellerId;
-            const saleAmount = item.product!.price * item.quantity;
-            sellerTransactions[sellerId] = (sellerTransactions[sellerId] || 0) + saleAmount;
-
+            sellerTransactions[item.product!.sellerId] = (sellerTransactions[item.product!.sellerId] || 0) + (item.product!.price * item.quantity);
             const productIndex = updatedProducts.findIndex(p => p.id === item.productId);
-            if (productIndex > -1) {
-                updatedProducts[productIndex].stock -= item.quantity;
-            }
+            if (productIndex > -1) updatedProducts[productIndex].stock -= item.quantity;
         }
-        
-        updateState('products', updatedProducts);
+        updateProductsState(updatedProducts);
 
         for (const [sellerId, amount] of Object.entries(sellerTransactions)) {
-            await addTransaction({
-                userId: sellerId,
-                type: 'Marketplace',
-                amount: amount,
-                description: `Sale of items from order ${newOrder.id}`,
-                status: 'Completed'
-            });
-            addNotification(sellerId, `You've sold items totaling ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount)}!`, 'success');
+            await addTransaction({ userId: sellerId, type: 'Marketplace', amount, description: `Sale from order ${newOrder.id}`, status: 'Completed' });
+            addNotification(sellerId, `You sold items for ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount)}!`, 'success');
         }
 
-        updateState('cart', []);
-        
+        updateCartState([]);
         return { success: true, message: 'Checkout successful!' };
-    }, [user, cart, products, orders, addTransaction, updateState, addNotification]);
+    }, [user, cart, products, orders, addTransaction, addNotification]);
     
     const toggleWishlist = useCallback((productId: string) => {
         if (!user) return;
@@ -145,43 +120,37 @@ export const MarketplaceProvider: React.FC<{ children: ReactNode }> = ({ childre
 
     const addProduct = useCallback(async (productData: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount' | 'status' | 'createdAt'>) => {
         if (!user) return;
-        const newProduct: Product = {
-            ...productData,
-            id: `p-${Date.now()}`,
-            sellerId: user.id,
-            sellerName: user.profile.name,
-            reviews: [],
-            rating: 0,
-            reviewCount: 0,
-            status: 'Listed',
-            createdAt: new Date().toISOString()
-        };
-        updateState('products', [newProduct, ...products]);
-        showToast('Product listed successfully!', 'success');
-    }, [user, products, updateState, showToast]);
+        const newProduct: Product = { ...productData, id: `p-${Date.now()}`, sellerId: user.id, sellerName: user.profile.name, reviews: [], rating: 0, reviewCount: 0, status: 'Needs Review', createdAt: new Date().toISOString() };
+        updateProductsState([newProduct, ...products]);
+        showToast('Product submitted for review!', 'success');
+        addNotification('admin-001', `${user.profile.name} has listed a new product for review: ${newProduct.name}.`, 'info');
+    }, [user, products, showToast, addNotification]);
 
     const updateProduct = useCallback(async (productData: Product) => {
-        updateState('products', products.map(p => p.id === productData.id ? productData : p));
-        showToast('Product updated successfully!', 'success');
-    }, [products, updateState, showToast]);
+        updateProductsState(products.map(p => p.id === productData.id ? {...productData, status: 'Needs Review'} : p));
+        showToast('Product updated and resubmitted for review!', 'success');
+        addNotification('admin-001', `Product "${productData.name}" was updated and needs review.`, 'info');
+    }, [products, showToast, addNotification]);
 
     const deleteProduct = useCallback(async (productId: string) => {
         showToast("Core data deletion is permanently disabled.", 'warning');
     }, [showToast]);
 
     const updateProductStatus = useCallback(async (productId: string, status: Product['status']) => {
-        updateState('products', products.map(p => p.id === productId ? {...p, status} : p));
-        showToast('Product status updated.', 'success');
-    }, [products, updateState, showToast]);
+        const product = products.find(p => p.id === productId);
+        if(product) {
+            updateProductsState(products.map(p => p.id === productId ? {...p, status} : p));
+            addNotification(product.sellerId, `Your product "${product.name}" is now ${status}.`, status === 'Listed' ? 'success' : 'warning');
+            showToast('Product status updated.', 'success');
+        }
+    }, [products, addNotification, showToast]);
 
     const addMultipleProductsByAdmin = useCallback(async (productsData: any[]): Promise<{ success: number; failed: number; errors: string[] }> => {
-        if (!user || user.role !== Role.Admin) {
-            return { success: 0, failed: productsData.length, errors: ["Unauthorized"] };
-        }
+        if (!user || user.role !== Role.Admin) { return { success: 0, failed: productsData.length, errors: ["Unauthorized"] }; }
         let success = 0;
-        const newProducts: Product[] = [];
-        for(const prod of productsData) {
-            newProducts.push({
+        const newProducts: Product[] = productsData.map(prod => {
+            success++;
+            return {
                 id: `p-${Date.now()}-${success}`,
                 name: prod.name,
                 description: prod.description,
@@ -191,17 +160,14 @@ export const MarketplaceProvider: React.FC<{ children: ReactNode }> = ({ childre
                 imageUrl: prod.imageUrl || `https://picsum.photos/seed/prod${Date.now()}-${success}/400/400`,
                 sellerId: 'admin-001',
                 sellerName: 'Koperasi Mitra',
-                rating: 0,
-                reviewCount: 0,
-                reviews: [],
+                rating: 0, reviewCount: 0, reviews: [],
                 status: 'Listed',
                 createdAt: new Date().toISOString(),
-            });
-            success++;
-        }
-        updateState('products', [...newProducts, ...products]);
+            };
+        });
+        updateProductsState([...newProducts, ...products]);
         return { success, failed: 0, errors: [] };
-    }, [user, products, updateState]);
+    }, [user, products]);
 
     const value: MarketplaceContextType = {
         products, cart, orders, addToCart, removeFromCart, updateCartQuantity,

@@ -180,15 +180,15 @@ const App: React.FC = () => {
         <ThemeProvider>
             <AuthProvider>
                 <AppProvider>
-                    <PersonalizationProvider>
-                        <HRProvider>
-                            <HealthProvider>
-                                <MarketplaceProvider>
+                    <MarketplaceProvider>
+                        <PersonalizationProvider>
+                            <HRProvider>
+                                <HealthProvider>
                                     <AppContent />
-                                </MarketplaceProvider>
-                            </HealthProvider>
-                        </HRProvider>
-                    </PersonalizationProvider>
+                                </HealthProvider>
+                            </HRProvider>
+                        </PersonalizationProvider>
+                    </MarketplaceProvider>
                 </AppProvider>
             </AuthProvider>
         </ThemeProvider>

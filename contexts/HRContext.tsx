@@ -1,8 +1,9 @@
-import React, { createContext, useContext, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, ReactNode, useCallback, useState } from 'react';
 import { LeaveRequest, AttendanceRecord, OpexRequest, Role, Coordinates } from '../types';
 import { useAuth } from './AuthContext';
 import { useApp } from './AppContext';
 import { GoogleGenAI } from '@google/genai';
+import vaultService from '../services/vaultService';
 
 export interface HRContextType {
     leaveRequests: LeaveRequest[];
@@ -22,7 +23,16 @@ export const HRContext = createContext<HRContextType | undefined>(undefined);
 
 export const HRProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { user } = useAuth();
-    const { users, leaveRequests, attendanceRecords, opexRequests, updateState, addNotification, showToast } = useApp();
+    const { users, addNotification, showToast } = useApp();
+
+    const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(() => vaultService.getSanitizedData().leaveRequests);
+    const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(() => vaultService.getSanitizedData().attendanceRecords);
+    const [opexRequests, setOpexRequests] = useState<OpexRequest[]>(() => vaultService.getSanitizedData().opexRequests);
+
+    const updateLeaveRequests = (data: LeaveRequest[]) => { setLeaveRequests(data); vaultService.setData('leaveRequests', data); };
+    const updateAttendanceRecords = (data: AttendanceRecord[]) => { setAttendanceRecords(data); vaultService.setData('attendanceRecords', data); };
+    const updateOpexRequests = (data: OpexRequest[]) => { setOpexRequests(data); vaultService.setData('opexRequests', data); };
+
 
     const clockIn = useCallback((photoUrl: string): Promise<{ success: boolean; message: string; }> => {
         return new Promise((resolve) => {
@@ -34,14 +44,14 @@ export const HRProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 (position) => {
                     const { latitude, longitude } = position.coords;
                     const newRecord: AttendanceRecord = { id: `att-${Date.now()}`, userId: user.id, userName: user.profile.name, branch: user.profile.branch || 'N/A', date: new Date().toISOString().split('T')[0], clockInTime: new Date().toISOString(), clockInLocation: { latitude, longitude }, clockInPhotoUrl: photoUrl };
-                    updateState('attendanceRecords', [...attendanceRecords, newRecord]);
+                    updateAttendanceRecords([...attendanceRecords, newRecord]);
                     resolve({ success: true, message: `Berhasil Clock In pada ${new Date().toLocaleTimeString('id-ID')}` });
                 },
                 (error) => resolve({ success: false, message: `Gagal mendapatkan lokasi: ${error.message}` }),
                 { enableHighAccuracy: true, maximumAge: 0 }
             );
         });
-    }, [user, attendanceRecords, updateState]);
+    }, [user, attendanceRecords]);
 
     const clockOut = useCallback((photoUrl: string): Promise<{ success: boolean; message: string; }> => {
         return new Promise((resolve) => {
@@ -52,30 +62,30 @@ export const HRProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 (position) => {
                     const { latitude, longitude } = position.coords;
                     const updatedRecord = { ...recordToClockOut, clockOutTime: new Date().toISOString(), clockOutLocation: { latitude, longitude }, clockOutPhotoUrl: photoUrl };
-                    updateState('attendanceRecords', attendanceRecords.map(r => r.id === updatedRecord.id ? updatedRecord : r));
+                    updateAttendanceRecords(attendanceRecords.map(r => r.id === updatedRecord.id ? updatedRecord : r));
                     resolve({ success: true, message: `Berhasil Clock Out pada ${new Date().toLocaleTimeString('id-ID')}` });
                 },
                 (error) => resolve({ success: false, message: `Gagal mendapatkan lokasi: ${error.message}` }),
                 { enableHighAccuracy: true, maximumAge: 0 }
             );
         });
-    }, [user, attendanceRecords, updateState]);
+    }, [user, attendanceRecords]);
 
     const submitLeaveRequest = useCallback(async (req: { startDate: string, endDate: string, reason: string }) => {
         if (!user) return;
         const newReq: LeaveRequest = { id: `lr-${Date.now()}`, userId: user.id, userName: user.profile.name, branch: user.profile.branch || 'N/A', status: 'Pending', ...req };
-        updateState('leaveRequests', [...leaveRequests, newReq]);
+        updateLeaveRequests([...leaveRequests, newReq]);
         showToast('Leave request submitted.', 'success');
         const hrUser = users.find(u => u.role === 'HR' && u.profile.branch === user.profile.branch);
         if (hrUser) addNotification(hrUser.id, `${user.profile.name} submitted a leave request.`, 'info');
-    }, [user, leaveRequests, users, updateState, showToast, addNotification]);
+    }, [user, leaveRequests, users, showToast, addNotification]);
     
     const updateLeaveRequestStatus = useCallback(async (id: string, status: 'Approved' | 'Rejected') => {
         const request = leaveRequests.find(r => r.id === id);
         if (!request) return;
-        updateState('leaveRequests', leaveRequests.map(r => r.id === id ? { ...r, status } : r));
+        updateLeaveRequests(leaveRequests.map(r => r.id === id ? { ...r, status } : r));
         addNotification(request.userId, `Your leave request for ${request.startDate} has been ${status}.`, status === 'Approved' ? 'success' : 'error');
-    }, [leaveRequests, updateState, addNotification]);
+    }, [leaveRequests, addNotification]);
 
     const getBranchMoodAnalytics = useCallback(async (branch: string): Promise<{ summary: string; data: { mood: string; count: number }[] }> => {
         const branchUsers = users.filter(u => u.profile.branch === branch && u.role === 'User');
@@ -99,11 +109,11 @@ export const HRProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const submitOpexRequest = useCallback(async (requestData: Omit<OpexRequest, 'id'|'userId'|'userName'|'branch'|'status'|'timestamp'|'hrApproverId'|'hrApprovalTimestamp'|'financeApproverId'|'financeApprovalTimestamp'|'rejectionReason'>) => {
         if (!user) return;
         const newRequest: OpexRequest = { ...requestData, id: `opex-${Date.now()}`, userId: user.id, userName: user.profile.name, branch: user.profile.branch || 'N/A', status: 'Pending HR Verification', timestamp: new Date().toISOString() };
-        updateState('opexRequests', [...opexRequests, newRequest]);
+        updateOpexRequests([...opexRequests, newRequest]);
         showToast('Opex request submitted.', 'success');
         const hrUser = users.find(u => u.role === Role.HR && u.profile.branch === user.profile.branch);
         if (hrUser) addNotification(hrUser.id, `${user.profile.name} submitted a new Opex request.`, 'info');
-    }, [user, opexRequests, users, updateState, showToast, addNotification]);
+    }, [user, opexRequests, users, showToast, addNotification]);
     
     const approveOpexByHr = useCallback(async (id: string, amount?: number) => {
         const request = opexRequests.find(r => r.id === id);
@@ -113,21 +123,21 @@ export const HRProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             if (amount && amount > 0) { updatedRequest.amount = amount; } 
             else { showToast("Please set the meal allowance amount before approving.", "error"); return; }
         }
-        updateState('opexRequests', opexRequests.map(r => r.id === id ? updatedRequest : r));
+        updateOpexRequests(opexRequests.map(r => r.id === id ? updatedRequest : r));
         const financeUser = users.find(u => u.role === Role.Finance && u.profile.branch === request.branch);
         if (financeUser) addNotification(financeUser.id, `An opex request from ${request.userName} needs your approval.`, 'info');
         addNotification(request.userId, `Your opex request for ${request.type} has been verified by HR.`, 'info');
         showToast("Opex request forwarded to Finance.", "success");
-    }, [user, opexRequests, users, updateState, showToast, addNotification]);
+    }, [user, opexRequests, users, showToast, addNotification]);
 
     const rejectOpexByHr = useCallback(async (id: string, reason: string) => {
         const request = opexRequests.find(r => r.id === id);
         if (!user || !request) return;
         const updatedRequest: OpexRequest = { ...request, status: 'Rejected', hrApproverId: user.id, hrApprovalTimestamp: new Date().toISOString(), rejectionReason: `Rejected by HR: ${reason}` };
-        updateState('opexRequests', opexRequests.map(r => (r.id === id ? updatedRequest : r)));
+        updateOpexRequests(opexRequests.map(r => (r.id === id ? updatedRequest : r)));
         addNotification(request.userId, `Your opex request for ${request.type} has been rejected by HR.`, 'warning');
         showToast("Opex request has been rejected.", "success");
-    }, [user, opexRequests, updateState, showToast, addNotification]);
+    }, [user, opexRequests, showToast, addNotification]);
     
     const value: HRContextType = {
         leaveRequests, attendanceRecords, opexRequests,

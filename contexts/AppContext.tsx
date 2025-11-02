@@ -5,28 +5,21 @@ import {
     CartItem, Dispute, ApiIntegration, ScalabilityService, LeaveRequest, Budget, ScheduledPayment,
     MonetizationConfig, TaxConfig, HomePageConfig, AssistantLog, EngagementAnalytics,
     AdminWallets, PersonalizationRule, Order, Eprescription, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap, Toast, OpexRequest, IntegrationStatus, Role,
-    AttendanceRecord, SystemIntegrityLog, SystemIntegrityLogType
+    AttendanceRecord, SystemIntegrityLog, SystemIntegrityLogType, OpexRequestStatus
 } from '../types';
 import { testApiConnection } from '../services/apiService';
-import { provisionService } from '../services/orchestratorService';
 import { useAuth } from './AuthContext';
 
 // This is the shape of our global state
 interface AppStateType {
     users: User[];
-    products: Product[];
     articles: Article[];
     transactions: Transaction[];
     notifications: Notification[];
     toasts: Toast[];
-    doctors: Doctor[];
-    consultations: Consultation[];
-    eprescriptions: Eprescription[];
-    cart: CartItem[];
     disputes: Dispute[];
     apiIntegrations: ApiIntegration[];
     scalabilityServices: ScalabilityService[];
-    leaveRequests: LeaveRequest[];
     budgets: Budget[];
     scheduledPayments: ScheduledPayment[];
     monetizationConfig: MonetizationConfig;
@@ -35,15 +28,9 @@ interface AppStateType {
     assistantLogs: AssistantLog[];
     engagementAnalytics: EngagementAnalytics;
     adminWallets: AdminWallets;
-    orders: Order[];
     personalizationRules: PersonalizationRule[];
-    healthDocuments: HealthDocument[];
-    healthChallenges: HealthChallenge[];
-    insuranceClaims: InsuranceClaim[];
     serviceLinkage: ServiceLinkageMap;
     isAiGuardrailDisabled: boolean;
-    opexRequests: OpexRequest[];
-    attendanceRecords: AttendanceRecord[];
     integrityLogs: SystemIntegrityLog[];
 }
 
@@ -102,8 +89,16 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, setState] = useState<AppStateType>(() => {
         const initialData = vaultService.getSanitizedData();
+        // Exclude domain-specific data that will be managed by other contexts
+        const {
+            products, cart, orders, doctors, consultations, eprescriptions,
+            healthDocuments, healthChallenges, insuranceClaims, leaveRequests,
+            attendanceRecords, opexRequests,
+            ...coreData
+        } = initialData;
+
         return {
-            ...initialData,
+            ...coreData,
             integrityLogs: [], // Initialize logs in memory
         };
     });
@@ -113,7 +108,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (key === 'integrityLogs') {
              setState(prevState => ({ ...prevState, [key]: value }));
         } else {
-            vaultService.setData(key, value);
+            // FIX: The type of `value` is compatible, but TypeScript cannot infer the relationship
+            // between AppStateType and the internal AppData type from vaultService. A type assertion to 'any'
+            // is the most straightforward way to resolve this without modifying the vault service.
+            vaultService.setData(key, value as any);
             setState(prevState => ({ ...prevState, [key]: value }));
         }
     }, []);
@@ -161,32 +159,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, [state.notifications, updateState]);
 
     const resolveDispute = useCallback(async (disputeId: string, resolution: 'grant_refund' | 'side_with_seller', method: 'Admin' | 'Guardian' = 'Admin') => {
+        // This function now needs access to orders and products, which are in MarketplaceContext.
+        // For now, we'll leave it but acknowledge it's a cross-context dependency that might need a better solution (e.g., event bus).
         const dispute = state.disputes.find(d => d.id === disputeId);
         if (!dispute || dispute.status !== 'Open') return;
+        
+        const allOrders = vaultService.getSanitizedData().orders;
+        const allProducts = vaultService.getSanitizedData().products;
 
-        const order = state.orders.find(o => o.id === dispute.orderId);
+        const order = allOrders.find(o => o.id === dispute.orderId);
         if (!order) return;
         
-        const sellerId = state.products.find(p => p.id === order.items[0].productId)?.sellerId;
+        const sellerId = allProducts.find(p => p.id === order.items[0].productId)?.sellerId;
         if (!sellerId) return;
 
         if (resolution === 'grant_refund') {
-            await addTransaction({
-                userId: dispute.userId,
-                type: 'Refund',
-                amount: order.total,
-                description: `Refund for order ${order.id} (Dispute Resolved)`,
-                status: 'Completed',
-                relatedId: order.id,
-            });
-            await addTransaction({
-                userId: sellerId,
-                type: 'Reversal',
-                amount: -order.total,
-                description: `Reversal for order ${order.id} (Dispute Resolved)`,
-                status: 'Completed',
-                relatedId: order.id,
-            });
+            await addTransaction({ userId: dispute.userId, type: 'Refund', amount: order.total, description: `Refund for order ${order.id}`, status: 'Completed' });
+            await addTransaction({ userId: sellerId, type: 'Reversal', amount: -order.total, description: `Reversal for order ${order.id}`, status: 'Completed' });
             addNotification(dispute.userId, `Your dispute for order ${order.id} has been resolved in your favor.`, 'success');
             addNotification(sellerId, `Dispute for order ${order.id} was resolved in the buyer's favor.`, 'warning');
         } else {
@@ -196,46 +185,40 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
         const updatedDispute: Dispute = { ...dispute, status: 'Resolved', resolutionMethod: method };
         updateState('disputes', state.disputes.map(d => d.id === disputeId ? updatedDispute : d));
-    }, [state.disputes, state.orders, state.products, updateState, addTransaction, addNotification]);
+    }, [state.disputes, updateState, addTransaction, addNotification]);
 
     useEffect(() => {
         const guardianInterval = setInterval(() => {
             if (!state.homePageConfig.isIntegrityGuardianActive) return;
-
+            const allOrders = vaultService.getSanitizedData().orders;
+            
             const addIntegrityLog = (type: SystemIntegrityLogType, message: string, details?: Record<string, any>) => {
                 const newLog: SystemIntegrityLog = { id: `log-${Date.now()}`, timestamp: new Date().toISOString(), type, message, details };
                 updateState('integrityLogs', [newLog, ...state.integrityLogs]);
             };
 
-            // --- Dispute Management Logic ---
             const openDisputes = state.disputes.filter(d => d.status === 'Open');
             const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
             openDisputes.forEach(dispute => {
-                const order = state.orders.find(o => o.id === dispute.orderId);
+                const order = allOrders.find(o => o.id === dispute.orderId);
                 if (!order) return;
-
-                // Auto-resolve low-value disputes
                 if (order.total < 50000) {
                     resolveDispute(dispute.id, 'grant_refund', 'Guardian');
                     const message = `Auto-resolved low-value dispute for order ${order.id}.`;
                     addIntegrityLog('AUTO_DISPUTE_RESOLUTION', message, { orderId: order.id, amount: order.total });
                     addNotification('admin-001', message, 'success');
-                    return;
-                }
-
-                // Escalate old disputes
-                if (dispute.timestamp < sevenDaysAgo) {
+                } else if (dispute.timestamp < sevenDaysAgo) {
                     const message = `Dispute for order ${order.id} is over 7 days old and requires attention.`;
                     addIntegrityLog('DISPUTE_ESCALATION', message, { orderId: order.id });
                     addNotification('admin-001', message, 'warning');
                 }
             });
 
-        }, 30000); // Run every 30 seconds
+        }, 30000);
 
         return () => clearInterval(guardianInterval);
-    }, [state.homePageConfig.isIntegrityGuardianActive, state.disputes, state.orders, updateState, addNotification, resolveDispute]);
+    }, [state.homePageConfig.isIntegrityGuardianActive, state.disputes, updateState, addNotification, resolveDispute]);
 
     const logAssistantQuery = useCallback((query: string, detectedIntent: AssistantLog['detectedIntent']) => {
         if (!user) return;
@@ -325,14 +308,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                  if (!user) return;
                  updateState('articles', state.articles.map(a => {
                     if (a.id === articleId && a.pollOptions) {
-                        return {
-                            ...a,
-                            pollOptions: a.pollOptions.map((opt, i) => {
-                                const newVotes = opt.votes.filter(v => v !== user.id);
-                                if (i === optionIndex) newVotes.push(user.id);
-                                return { ...opt, votes: newVotes };
-                            })
-                        };
+                        return { ...a, pollOptions: a.pollOptions.map((opt, i) => { const newVotes = opt.votes.filter(v => v !== user.id); if (i === optionIndex) newVotes.push(user.id); return { ...opt, votes: newVotes }; }) };
                     }
                     return a;
                 }));
@@ -344,19 +320,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             },
             toggleCommentLike: (articleId, commentTimestamp) => {
                  if (!user) return;
-                 updateState('articles', state.articles.map(a => {
-                    if (a.id === articleId) {
-                        return { ...a, comments: a.comments.map(c => {
-                            if (c.timestamp === commentTimestamp) {
-                                const isLiked = c.likes.includes(user.id);
-                                const newLikes = isLiked ? c.likes.filter(id => id !== user.id) : [...c.likes, user.id];
-                                return { ...c, likes: newLikes };
-                            }
-                            return c;
-                        })};
-                    }
-                    return a;
-                }));
+                 updateState('articles', state.articles.map(a => a.id === articleId ? { ...a, comments: a.comments.map(c => c.timestamp === commentTimestamp ? { ...c, likes: c.likes.includes(user.id) ? c.likes.filter(id => id !== user.id) : [...c.likes, user.id] } : c) } : a));
             },
             updateMonetizationConfig: (config) => updateState('monetizationConfig', config),
             updateTaxConfig: (config) => updateState('taxConfig', config),
@@ -399,12 +363,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             deleteScheduledPayment: () => showToast("Deletion is disabled.", 'warning'),
             applyForPayLater: () => {
                 if (!user) return;
-                // Allow re-application if not applied or rejected
                 if (user.payLater?.status === 'pending' || user.payLater?.status === 'approved') {
                     showToast(`Anda sudah memiliki status PayLater: ${user.payLater.status}.`, 'info');
                     return;
                 }
-
                 const fullUser = vaultService.findUserByEmail(user.email);
                 if(fullUser) {
                     const updatedUser = { ...fullUser, payLater: { status: 'pending' as const } };
@@ -415,49 +377,37 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             },
             generatePayslipData: (userId: string) => {
                 const salary = vaultService.getRawSalaryForUser(userId) || 0;
-                const insentifKinerja = salary * 0.1; // 10%
-                const bpjsTkNatura = salary * 0.0054;
+                const insentifKinerja = salary * 0.1; const bpjsTkNatura = salary * 0.0054;
                 const totalPendapatan = salary + insentifKinerja + bpjsTkNatura;
-                
-                const pajakPph21 = totalPendapatan * 0.025;
-                const bpjsTkKaryawan2 = salary * 0.02;
-                const bpjsTkKaryawan054 = salary * 0.0054;
-                const bpjsPensiunKaryawan = salary * 0.01;
+                const pajakPph21 = totalPendapatan * 0.025; const bpjsTkKaryawan2 = salary * 0.02; const bpjsTkKaryawan054 = salary * 0.0054; const bpjsPensiunKaryawan = salary * 0.01;
                 const totalPotongan = pajakPph21 + bpjsTkKaryawan2 + bpjsTkKaryawan054 + bpjsPensiunKaryawan;
-                
-                const bpjsPensiunPerusahaan = salary * 0.02;
-                const bpjsTkPerusahaan = salary * 0.037;
-                
+                const bpjsPensiunPerusahaan = salary * 0.02; const bpjsTkPerusahaan = salary * 0.037;
                 const takeHomePay = totalPendapatan - totalPotongan;
-                
-                return {
-                    gajiPokok: salary, insentifKinerja, bpjsTkNatura, totalPendapatan,
-                    pajakPph21, bpjsTkKaryawan2, bpjsTkKaryawan054, bpjsPensiunKaryawan, totalPotongan,
-                    bpjsPensiunPerusahaan, bpjsTkPerusahaan, saldoPinjaman: 0, takeHomePay
-                };
+                return { gajiPokok: salary, insentifKinerja, bpjsTkNatura, totalPendapatan, pajakPph21, bpjsTkKaryawan2, bpjsTkKaryawan054, bpjsPensiunKaryawan, totalPotongan, bpjsPensiunPerusahaan, bpjsTkPerusahaan, saldoPinjaman: 0, takeHomePay };
             },
-            approveOpexByFinance: async (id: string) => {
-                const req = state.opexRequests.find(r => r.id === id);
+             approveOpexByFinance: async (id: string) => {
+                const opexRequests = vaultService.getSanitizedData().opexRequests;
+                const req = opexRequests.find(r => r.id === id);
                 if(req && user){
                     await addTransaction({userId: req.userId, amount: req.amount, description: `Pencairan Opex: ${req.type}`, type: 'Dana Opex', status: 'Completed', relatedId: id});
-                    updateState('opexRequests', state.opexRequests.map(r => r.id === id ? {...r, status: 'Approved', financeApproverId: user.id, financeApprovalTimestamp: new Date().toISOString()} : r));
+                    // FIX: Explicitly cast the status string literal to OpexRequestStatus to prevent type widening to `string` during inference.
+                    const updatedOpexRequests = opexRequests.map(r => r.id === id ? {...r, status: 'Approved' as OpexRequestStatus, financeApproverId: user.id, financeApprovalTimestamp: new Date().toISOString()} : r);
+                    vaultService.setData('opexRequests', updatedOpexRequests);
+                    setState(s => ({ ...s, opexRequests: updatedOpexRequests })); // To trigger HRContext update
                     addNotification(req.userId, `Pengajuan dana opex Anda untuk ${req.type} telah disetujui dan dicairkan.`, 'success');
                 }
             },
             rejectOpexByFinance: async(id, reason) => {
                 if(user) {
-                    updateState('opexRequests', state.opexRequests.map(r => r.id === id ? {...r, status: 'Rejected', financeApproverId: user.id, financeApprovalTimestamp: new Date().toISOString(), rejectionReason: `Rejected by Finance: ${reason}`} : r));
+                     const opexRequests = vaultService.getSanitizedData().opexRequests;
+                     // FIX: Explicitly cast the status string literal to OpexRequestStatus to prevent type widening to `string` during inference.
+                     const updatedOpexRequests = opexRequests.map(r => r.id === id ? {...r, status: 'Rejected' as OpexRequestStatus, financeApproverId: user.id, financeApprovalTimestamp: new Date().toISOString(), rejectionReason: `Rejected by Finance: ${reason}`} : r);
+                     vaultService.setData('opexRequests', updatedOpexRequests);
+                     setState(s => ({ ...s, opexRequests: updatedOpexRequests }));
                 }
             },
             addMultipleArticlesByAdmin: async (articlesData: any[]) => {
-                const newArticles = articlesData.map((data, i) => ({
-                     ...data,
-                    id: `art-${Date.now()}-${i}`,
-                    author: 'Admin',
-                    timestamp: new Date().toISOString(),
-                    likes: [],
-                    comments: [],
-                }));
+                const newArticles = articlesData.map((data, i) => ({ ...data, id: `art-${Date.now()}-${i}`, author: 'Admin', timestamp: new Date().toISOString(), likes: [], comments: [] }));
                 updateState('articles', [...newArticles, ...state.articles]);
                 return { success: newArticles.length, failed: 0, errors: [] };
             },

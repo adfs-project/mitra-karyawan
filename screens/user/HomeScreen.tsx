@@ -18,14 +18,17 @@ const HomeScreenSkeleton: React.FC = () => (
             <div className="h-8 w-3/4 bg-surface-light rounded-lg"></div>
             <div className="h-4 w-1/2 bg-surface-light rounded-lg"></div>
         </div>
+
         {/* Smart Assistant Skeleton */}
-        <div className="h-12 bg-surface-light rounded-full"></div>
+        <div className="h-14 bg-surface rounded-full border-2 border-surface-light"></div>
+        
         {/* Attendance Card Skeleton */}
         <div className="h-36 bg-surface rounded-lg p-4 space-y-3">
              <div className="h-5 w-1/3 bg-surface-light rounded-lg"></div>
              <div className="h-4 w-3/4 bg-surface-light rounded-lg"></div>
-             <div className="h-12 bg-surface-light rounded-lg"></div>
+             <div className="h-12 bg-surface-light rounded-lg mt-2"></div>
         </div>
+
         {/* Quick Access Skeleton */}
         <div className="space-y-4">
              <div className="h-6 w-1/4 bg-surface-light rounded-lg"></div>
@@ -36,13 +39,27 @@ const HomeScreenSkeleton: React.FC = () => (
              </div>
              <div className="h-12 bg-surface rounded-lg"></div>
         </div>
+
         {/* For You & News Skeleton */}
         <div>
             <div className="h-6 w-1/3 bg-surface-light rounded-lg mb-4"></div>
-            <div className="flex overflow-x-auto space-x-4 pb-4">
-                <div className="flex-shrink-0 w-80 h-48 bg-surface rounded-lg"></div>
-                <div className="flex-shrink-0 w-48 h-48 bg-surface rounded-lg"></div>
-                <div className="flex-shrink-0 w-48 h-48 bg-surface rounded-lg"></div>
+            <div className="space-y-3">
+                <div className="h-24 bg-surface rounded-lg flex items-center p-3 space-x-4">
+                    <div className="w-16 h-16 bg-surface-light rounded-md flex-shrink-0"></div>
+                    <div className="flex-grow space-y-2">
+                         <div className="h-3 w-1/4 bg-surface-light rounded-full"></div>
+                         <div className="h-4 w-full bg-surface-light rounded-lg"></div>
+                         <div className="h-3 w-3/4 bg-surface-light rounded-lg"></div>
+                    </div>
+                </div>
+                 <div className="h-24 bg-surface rounded-lg flex items-center p-3 space-x-4">
+                    <div className="w-16 h-16 bg-surface-light rounded-md flex-shrink-0"></div>
+                    <div className="flex-grow space-y-2">
+                         <div className="h-3 w-1/4 bg-surface-light rounded-full"></div>
+                         <div className="h-4 w-full bg-surface-light rounded-lg"></div>
+                         <div className="h-3 w-3/4 bg-surface-light rounded-lg"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
