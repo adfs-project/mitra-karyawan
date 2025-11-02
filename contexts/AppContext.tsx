@@ -93,6 +93,8 @@ interface AppContextType extends AppStateType {
     approveOpexByFinance: (id: string) => Promise<void>;
     rejectOpexByFinance: (id: string, reason: string) => Promise<void>;
     addMultipleArticlesByAdmin: (articlesData: any[]) => Promise<{ success: number; failed: number; errors: string[] }>;
+    approvePayLater: (userId: string, limit: number) => Promise<void>;
+    rejectPayLater: (userId: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -452,6 +454,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 }));
                 updateState('articles', [...newArticles, ...state.articles]);
                 return { success: newArticles.length, failed: 0, errors: [] };
+            },
+            approvePayLater: async (userId, limit) => {
+                const fullUser = vaultService.findUserByEmail(state.users.find(u => u.id === userId)!.email);
+                if (fullUser) {
+                    const payLater = { status: 'approved' as const, limit, remainingLimit: limit };
+                    const updatedUser = { ...fullUser, payLater };
+                    vaultService.updateUser(updatedUser);
+                    updateState('users', state.users.map(u => u.id === userId ? { ...u, payLater } : u));
+                    addNotification(userId, `Selamat! Aplikasi PayLater Anda disetujui dengan limit Rp ${limit.toLocaleString('id-ID')}.`, 'success');
+                    showToast('PayLater application approved.', 'success');
+                }
+            },
+            rejectPayLater: async (userId) => {
+                const fullUser = vaultService.findUserByEmail(state.users.find(u => u.id === userId)!.email);
+                if (fullUser) {
+                    const payLater = { status: 'rejected' as const };
+                    const updatedUser = { ...fullUser, payLater };
+                    vaultService.updateUser(updatedUser);
+                    updateState('users', state.users.map(u => u.id === userId ? { ...u, payLater } : u));
+                    addNotification(userId, `Maaf, aplikasi PayLater Anda ditolak.`, 'error');
+                    showToast('PayLater application rejected.', 'success');
+                }
             },
         }}>
             {children}

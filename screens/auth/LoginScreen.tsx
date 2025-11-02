@@ -19,7 +19,8 @@ const LoginScreen: React.FC = () => {
 
         switch (result.result) {
             case 'success':
-                navigate('/home');
+                // The declarative routing in App.tsx will handle the redirect.
+                // No navigation needed here.
                 break;
             case 'inactive':
                 navigate('/deactivated');

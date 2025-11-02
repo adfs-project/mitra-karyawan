@@ -70,6 +70,7 @@ const HrOpexManagementScreen = React.lazy(() => import('../screens/hr/HrOpexMana
 const FinanceDashboard = React.lazy(() => import('../screens/finance/FinanceDashboard'));
 const FinanceCommandCenter = React.lazy(() => import('../screens/finance/FinanceCommandCenter'));
 const FinancePayrollReport = React.lazy(() => import('../screens/finance/FinancePayrollReport'));
+const FinancePayLaterScreen = React.lazy(() => import('../screens/finance/FinancePayLaterScreen'));
 
 
 // The "Peta Rute Resmi" (Official Route Map)
@@ -140,6 +141,7 @@ export const routes: RouteConfig[] = [
 
     // Finance
     { name: 'financeDashboard', path: '/finance/dashboard', component: FinanceDashboard, layout: 'finance', isPrivate: true },
+    { name: 'financePayLater', path: '/finance/pay-later', component: FinancePayLaterScreen, layout: 'finance', isPrivate: true },
     { name: 'financeCommandCenter', path: '/finance/command-center', component: FinanceCommandCenter, layout: 'finance', isPrivate: true },
     { name: 'financePayrollReport', path: '/finance/payroll-report', component: FinancePayrollReport, layout: 'finance', isPrivate: true },
 
@@ -165,7 +167,7 @@ const hrRoutes = [
 
 const financeRoutes = [
     ...userRoutes,
-    'financeDashboard', 'financeCommandCenter', 'financePayrollReport'
+    'financeDashboard', 'financeCommandCenter', 'financePayrollReport', 'financePayLater'
 ];
 
 const adminRoutes = [

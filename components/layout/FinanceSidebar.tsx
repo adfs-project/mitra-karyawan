@@ -1,9 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { ChartBarIcon, BanknotesIcon, Cog6ToothIcon } from '@heroicons/react/24/solid';
+import { ChartBarIcon, BanknotesIcon, Cog6ToothIcon, CreditCardIcon } from '@heroicons/react/24/solid';
 
 const navigation = [
     { name: 'Opex Approval', href: '/finance/dashboard', icon: ChartBarIcon },
+    { name: 'PayLater Approval', href: '/finance/pay-later', icon: CreditCardIcon },
     { name: 'Command Center', href: '/finance/command-center', icon: BanknotesIcon },
     { name: 'Payroll Report', href: '/finance/payroll-report', icon: BanknotesIcon },
 ];
