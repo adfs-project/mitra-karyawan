@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon, ClipboardDocumentListIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import { Role, User } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -337,15 +337,6 @@ const MyAccountScreen: React.FC = () => {
 
     if (!user || !user.profile) return null;
 
-    // Fungsi untuk menguji GlobalErrorCatcher
-    const testAsyncError = () => {
-        console.log('Testing async error...');
-        setTimeout(() => {
-            // Error ini akan dilempar di luar siklus render React
-            throw new Error("Tes Error Asinkron dari MyAccountScreen.");
-        }, 100);
-    };
-
     const menuItems = [
         { name: 'Riwayat Konsultasi', icon: DocumentTextIcon, path: '/my-consultations' },
         { name: 'Wishlist Saya', icon: HeartIcon, path: '/wishlist' },
@@ -447,13 +438,6 @@ const MyAccountScreen: React.FC = () => {
             </div>
 
              <div className="m-4 space-y-3">
-                 <button
-                    onClick={testAsyncError}
-                    className="w-full flex items-center justify-center p-4 bg-yellow-500/10 text-yellow-500 rounded-lg font-bold hover:bg-yellow-500/20 transition-colors"
-                >
-                    <ExclamationTriangleIcon className="h-6 w-6 mr-2" />
-                    Test Error Boundary (Async)
-                </button>
                 <button 
                     onClick={logout} 
                     className="w-full flex items-center justify-center p-4 bg-red-500/10 text-red-500 rounded-lg font-bold hover:bg-red-500/20 transition-colors"

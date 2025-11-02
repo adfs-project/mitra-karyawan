@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const LoginScreen: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -34,6 +35,15 @@ const LoginScreen: React.FC = () => {
             default:
                 setError('An unexpected error occurred.');
         }
+    };
+
+    // Fungsi untuk menguji GlobalErrorCatcher dari halaman login
+    const testAsyncError = () => {
+        console.log('Testing async error from LoginScreen...');
+        setTimeout(() => {
+            // Error ini akan dilempar di luar siklus render React
+            throw new Error("Async Error Test from LoginScreen.");
+        }, 100);
     };
 
     return (
@@ -80,6 +90,16 @@ const LoginScreen: React.FC = () => {
                             Register
                         </Link>
                     </p>
+                </div>
+
+                <div className="mt-4">
+                    <button
+                        onClick={testAsyncError}
+                        className="w-full flex items-center justify-center p-3 bg-yellow-500/10 text-yellow-500 rounded-lg font-bold hover:bg-yellow-500/20 transition-colors text-sm"
+                    >
+                        <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
+                        Test Error Boundary (Async)
+                    </button>
                 </div>
             </div>
         </div>
