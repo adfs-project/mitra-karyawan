@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as ErrorBoundaryModule from 'react-error-boundary';
-import { ExclamationTriangleIcon, ArrowLeftOnRectangleIcon, SparklesIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
+import { ExclamationTriangleIcon, ArrowLeftOnRectangleIcon, SparklesIcon, ArrowPathIcon, PencilSquareIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from '@google/genai';
 import { useApp } from '../../contexts/AppContext';
 
@@ -8,6 +8,7 @@ const RecoveryUI: React.FC<ErrorBoundaryModule.FallbackProps> = ({ error, resetE
     const { showToast } = useApp();
     const [aiAnalysis, setAiAnalysis] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(true);
+    const [userDescription, setUserDescription] = useState('');
 
     useEffect(() => {
         const getAIAnalysis = async () => {
@@ -69,6 +70,20 @@ const RecoveryUI: React.FC<ErrorBoundaryModule.FallbackProps> = ({ error, resetE
                     ) : (
                         <pre className="text-sm text-text-secondary whitespace-pre-wrap font-sans bg-background/50 p-3 rounded">{aiAnalysis}</pre>
                     )}
+                </div>
+
+                <div className="text-left my-6">
+                    <h2 className="font-bold text-lg flex items-center mb-2">
+                        <PencilSquareIcon className="h-5 w-5 mr-2 text-text-secondary" />
+                        Jelaskan Masalah Anda (Opsional)
+                    </h2>
+                    <textarea
+                        value={userDescription}
+                        onChange={(e) => setUserDescription(e.target.value)}
+                        rows={3}
+                        className="w-full bg-surface-light p-2 border border-border-color rounded-lg text-sm focus:ring-1 focus:ring-primary focus:outline-none"
+                        placeholder="Contoh: Aplikasi error setelah saya menekan tombol 'Beli' di halaman marketplace..."
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
