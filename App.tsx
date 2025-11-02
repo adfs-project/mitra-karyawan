@@ -154,6 +154,14 @@ const AppRoutes: React.FC = () => {
 
 const AppContent: React.FC = () => {
     const { user } = useAuth();
+    // FIX: Add a loading gate to wait for essential data from AppContext, preventing race conditions on login.
+    const { users } = useApp(); 
+
+    // If users data isn't loaded yet, show a loading indicator. This is crucial after login.
+    if (!users || users.length === 0) {
+        return <CenteredLoading />;
+    }
+    
     return (
          <ErrorBoundaryModule.ErrorBoundary FallbackComponent={RecoveryUI} resetKeys={[user]}>
             <GlobalErrorCatcher />
