@@ -49,7 +49,7 @@ const AttendanceCard: React.FC = () => {
     // This finds an open session (clocked in, not out)
     const activeRecord = useMemo(() => {
         if (!user) return null;
-        return [...attendanceRecords]
+        return [...(attendanceRecords || [])]
             .filter(r => r.userId === user.id && r.clockInTime && !r.clockOutTime)
             .sort((a, b) => new Date(b.clockInTime!).getTime() - new Date(a.clockInTime!).getTime())[0];
     }, [attendanceRecords, user]);
@@ -58,7 +58,7 @@ const AttendanceCard: React.FC = () => {
     const latestRecordToday = useMemo(() => {
         if (!user) return null;
         const today = new Date().toISOString().split('T')[0];
-        const recordsToday = attendanceRecords.filter(r => r.userId === user.id && r.date === today);
+        const recordsToday = (attendanceRecords || []).filter(r => r.userId === user.id && r.date === today);
         if (recordsToday.length === 0) return null;
 
         return recordsToday.sort((a, b) => {
@@ -134,7 +134,7 @@ const AttendanceCard: React.FC = () => {
 const HomeScreen: React.FC = () => {
     const { articles } = useApp();
 
-    const latestNews = articles
+    const latestNews = (articles || [])
         .filter(a => a.status === 'Published')
         .sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
         .slice(0, 2);

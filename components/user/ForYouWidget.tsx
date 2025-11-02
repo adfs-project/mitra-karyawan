@@ -86,8 +86,8 @@ const ForYouWidget: React.FC = () => {
     // Card 1: Pinned Item from Admin
     const pinnedId = homePageConfig.pinnedItemId;
     if (pinnedId) {
-        const pinnedProduct = products.find(p => p.id === pinnedId);
-        const pinnedArticle = articles.find(a => a.id === pinnedId);
+        const pinnedProduct = (products || []).find(p => p.id === pinnedId);
+        const pinnedArticle = (articles || []).find(a => a.id === pinnedId);
         if (pinnedProduct) {
              cardList.push({
                 id: pinnedProduct.id,
@@ -109,13 +109,13 @@ const ForYouWidget: React.FC = () => {
     }
 
     // Card 3: Latest News Article
-    const latestArticle = articles.filter(a => a.status === 'Published' && a.category !== 'Banner' && a.id !== pinnedId).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+    const latestArticle = (articles || []).filter(a => a.status === 'Published' && a.category !== 'Banner' && a.id !== pinnedId).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
     if(latestArticle && !cardList.some(c => c.id === latestArticle.id)) {
         cardList.push({ id: latestArticle.id, type: 'news', component: <NewsCard key={latestArticle.id} article={latestArticle} onClick={() => logEngagementEvent('forYouClicks', `article:${latestArticle.id}`)} /> })
     }
 
     // Card 4 & 5: Product Recommendations
-    const recommendedProducts = products.filter(p => p.id !== pinnedId).slice(0, 2);
+    const recommendedProducts = (products || []).filter(p => p.id !== pinnedId).slice(0, 2);
     recommendedProducts.forEach(p => {
         if (!cardList.some(c => c.id === p.id)) {
             cardList.push({ id: p.id, type: 'product', component: <ProductCard key={p.id} product={p} onClick={() => logEngagementEvent('forYouClicks', `product:${p.id}`)} /> });
@@ -123,7 +123,7 @@ const ForYouWidget: React.FC = () => {
     })
     
     // Welcome card logic
-    const hasTransactions = transactions.some(tx => tx.userId === user?.id);
+    const hasTransactions = (transactions || []).some(tx => tx.userId === user?.id);
     if(!hasTransactions && user) {
         const WelcomeCard = (
             <div key="welcome" className="flex-shrink-0 w-80 bg-surface rounded-lg p-4 border border-primary flex flex-col justify-between">
