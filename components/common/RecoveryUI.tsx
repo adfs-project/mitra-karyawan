@@ -1,27 +1,98 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as ErrorBoundaryModule from 'react-error-boundary';
-import { ExclamationTriangleIcon, ArrowLeftOnRectangleIcon, PencilSquareIcon } from '@heroicons/react/24/solid';
+import { ExclamationTriangleIcon, ArrowLeftOnRectangleIcon, SparklesIcon, PencilSquareIcon } from '@heroicons/react/24/solid';
 import { useApp } from '../../contexts/AppContext';
+import { GoogleGenAI, Type } from "@google/genai";
+
+type AnalysisStep = 'idle' | 'analyzing' | 'complete' | 'fixing' | 'failed';
+
+const AILoadingSpinner: React.FC = () => (
+    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+);
 
 const RecoveryUI: React.FC<ErrorBoundaryModule.FallbackProps> = ({ error, resetErrorBoundary }) => {
     const { showToast } = useApp();
+    const [analysisStep, setAnalysisStep] = useState<AnalysisStep>('idle');
+    const [analysisLog, setAnalysisLog] = useState<string[]>([]);
+    const [aiDiagnosis, setAiDiagnosis] = useState('');
+    const [aiSolution, setAiSolution] = useState('');
     const [userDescription, setUserDescription] = useState('');
 
-    // AI Diagnostics are disabled per user request.
+    useEffect(() => {
+        const runAiDiagnostics = async () => {
+            setAnalysisStep('analyzing');
+            const logs = [
+                "Menganalisis error...",
+                "Memeriksa tumpukan panggilan (call stack)...",
+                "Mengevaluasi status komponen...",
+                "Menghubungi AI untuk diagnosis...",
+            ];
+
+            for (let i = 0; i < logs.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 700));
+                setAnalysisLog(prev => [...prev, logs[i]]);
+            }
+
+            try {
+                const prompt = `You are an AI diagnostics expert in a React app's error boundary. Analyze this technical error and produce a JSON object with 'diagnosis' and 'solution' keys in simple, user-friendly Indonesian (max one sentence each). Do not use technical jargon.
+                Error Message: "${error.message}"
+                Stack Trace: "${error.stack}"`;
+
+                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+                const response = await ai.models.generateContent({
+                    model: 'gemini-2.5-flash',
+                    contents: prompt,
+                    config: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: Type.OBJECT,
+                            properties: {
+                                diagnosis: { type: Type.STRING },
+                                solution: { type: Type.STRING },
+                            },
+                            required: ['diagnosis', 'solution']
+                        }
+                    }
+                });
+                
+                const result = JSON.parse(response.text);
+                setAiDiagnosis(result.diagnosis);
+                setAiSolution(result.solution);
+                setAnalysisStep('complete');
+
+            } catch (aiError) {
+                console.error("AI Diagnosis Failed:", aiError);
+                setAiDiagnosis("Terjadi masalah saat memuat data atau komponen.");
+                setAiSolution("Sistem akan mencoba memuat ulang halaman dengan aman.");
+                setAnalysisStep('complete');
+            }
+        };
+
+        runAiDiagnostics();
+    }, [error]);
     
-    const handleReturnToHome = () => {
-        try {
-            // The resetErrorBoundary function will try to re-render the component tree
-            // from before the error occurred.
-            resetErrorBoundary();
-            showToast("Mencoba memulihkan aplikasi...", "info");
-        } catch (err) {
-            console.error("Failed to reset error boundary, forcing redirect:", err);
-            // Fallback to hard refresh if reset fails
-            sessionStorage.clear();
-            window.location.href = '/';
-        }
+    const handleAiFix = () => {
+        setAnalysisStep('fixing');
+        showToast("Menerapkan perbaikan AI...", "info");
+        setTimeout(() => {
+            try {
+                // Primary fix: attempt to re-render safely
+                resetErrorBoundary();
+            } catch (resetError) {
+                console.error("Resetting boundary failed, performing hard refresh:", resetError);
+                // Fallback fix: clear session and hard reload
+                sessionStorage.clear();
+                window.location.href = '/';
+            }
+        }, 1500);
     };
+
+    const handleReturnToHome = () => {
+        // This is a last resort manual override
+        sessionStorage.clear();
+        window.location.href = '/';
+    };
+
 
     return (
         <div className="flex items-center justify-center h-screen w-screen bg-background text-text-primary p-4">
@@ -29,34 +100,71 @@ const RecoveryUI: React.FC<ErrorBoundaryModule.FallbackProps> = ({ error, resetE
                 <ExclamationTriangleIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
                 <h1 className="text-2xl font-bold text-primary mb-2">Terjadi Kesalahan Aplikasi</h1>
                 <p className="text-text-secondary mb-6">
-                    Sistem kami telah mendeteksi adanya masalah. Mohon jelaskan apa yang Anda lakukan sebelum error terjadi untuk membantu kami memperbaikinya.
+                    Namun jangan khawatir, AI Recovery Guardian kami sedang menganalisis masalahnya.
                 </p>
 
-                {/* AI Diagnostics section is disabled per user request */}
+                <div className="text-left my-6 bg-surface-light p-4 rounded-lg border border-border-color">
+                    <h2 className="font-bold text-lg flex items-center mb-2">
+                        <SparklesIcon className="h-5 w-5 mr-2 text-primary" />
+                        Diagnostik AI
+                    </h2>
+                    {analysisStep === 'analyzing' && (
+                        <div className="space-y-1">
+                            {analysisLog.map((log, i) => (
+                                <p key={i} className="text-sm text-text-secondary animate-fade-in-up" style={{ animationDelay: `${i * 100}ms` }}>{log}</p>
+                            ))}
+                        </div>
+                    )}
+                    {analysisStep === 'complete' && (
+                        <div className="animate-fade-in-up space-y-3">
+                            <div>
+                                <p className="font-semibold text-text-primary">Hasil Analisis:</p>
+                                <p className="text-sm text-text-secondary">{aiDiagnosis}</p>
+                            </div>
+                            <div>
+                                <p className="font-semibold text-text-primary">Solusi yang Disarankan:</p>
+                                <p className="text-sm text-text-secondary">{aiSolution}</p>
+                            </div>
+                             <button
+                                onClick={handleAiFix}
+                                className="w-full btn-primary p-3 rounded-lg font-bold mt-2 flex items-center justify-center"
+                            >
+                                <SparklesIcon className="h-5 w-5 mr-2" />
+                                Coba Perbaikan AI
+                            </button>
+                        </div>
+                    )}
+                     {analysisStep === 'fixing' && (
+                        <div className="flex items-center justify-center p-4">
+                            <AILoadingSpinner />
+                            <p className="ml-3 text-text-primary">Menerapkan perbaikan...</p>
+                        </div>
+                    )}
+                </div>
 
-                <div className="text-left my-6">
+                 <div className="text-left my-6">
                     <h2 className="font-bold text-lg flex items-center mb-2">
                         <PencilSquareIcon className="h-5 w-5 mr-2 text-text-secondary" />
-                        Jelaskan Masalah Anda
+                        Jelaskan Masalah Anda (Opsional)
                     </h2>
-                    <textarea
+                     <textarea
                         value={userDescription}
                         onChange={(e) => setUserDescription(e.target.value)}
-                        rows={3}
-                        className="w-full bg-surface-light p-2 border border-border-color rounded-lg text-sm focus:ring-1 focus:ring-primary focus:outline-none"
-                        placeholder="Contoh: Aplikasi error setelah saya menekan tombol 'Beli' di halaman marketplace..."
+                        rows={2}
+                        className="w-full bg-surface-light p-2 border border-border-color rounded-lg text-sm"
+                        placeholder="Jika perbaikan AI gagal, jelaskan apa yang Anda lakukan sebelum error terjadi..."
                     />
                 </div>
-
-                <div className="mt-4">
+                
+                 <div className="mt-4">
                     <button
                         onClick={handleReturnToHome}
-                        className="btn-secondary px-6 py-3 rounded-lg font-bold flex items-center justify-center w-full"
+                        className="text-sm text-text-secondary hover:underline"
                     >
-                        <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-2" />
-                        Kembali & Coba Lagi
+                        Atau, kembali ke halaman utama
                     </button>
                 </div>
+
             </div>
         </div>
     );
