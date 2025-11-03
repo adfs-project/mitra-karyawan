@@ -1,10 +1,15 @@
-
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@mk/shared": ["../../packages/shared/src"],
+      "@mk/shared/*": ["../../packages/shared/src/*"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "../../packages/shared" }]
