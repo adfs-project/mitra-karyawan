@@ -87,10 +87,9 @@ const RecoveryUI: React.FC<ErrorBoundaryModule.FallbackProps> = ({ error, resetE
         }, 1500);
     };
 
-    const handleReturnToHome = () => {
-        // This is a last resort manual override
-        sessionStorage.clear();
-        window.location.href = '/';
+    const handleReturnToPreviousPage = () => {
+        // A manual override to navigate back to the previous page.
+        window.history.back();
     };
 
 
@@ -144,10 +143,10 @@ const RecoveryUI: React.FC<ErrorBoundaryModule.FallbackProps> = ({ error, resetE
 
                  <div className="mt-4">
                     <button
-                        onClick={handleReturnToHome}
+                        onClick={handleReturnToPreviousPage}
                         className="text-sm text-text-secondary hover:underline"
                     >
-                        Atau, kembali ke halaman utama
+                        Atau, kembali ke halaman sebelumnya
                     </button>
                 </div>
 
