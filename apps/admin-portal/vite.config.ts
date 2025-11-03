@@ -1,4 +1,3 @@
-
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
@@ -15,8 +14,11 @@ export default defineConfig({
     port: 3001, // Admin portal runs on port 3001
   },
   resolve: {
-    alias: {
-      '@mk/shared': path.resolve(__dirname, '../../packages/shared/src'),
-    },
+    alias: [
+      { 
+        find: '@mk/shared', 
+        replacement: path.resolve(__dirname, '../../packages/shared/src') 
+      },
+    ],
   },
 })
