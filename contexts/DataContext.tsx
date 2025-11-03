@@ -158,7 +158,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return {
             ...initialData,
             integrityLogs: [],
-            interestProfiles: JSON.parse(localStorage.getItem('app_interest_profiles') || '{}'),
+            interestProfiles: JSON.parse(sessionStorage.getItem('app_interest_profiles') || '{}'),
             isLoading: true, // Start in loading state
         };
     });
@@ -183,7 +183,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (['integrityLogs', 'isLoading', 'interestProfiles'].includes(key as string)) {
              setState(prevState => ({ ...prevState, [key]: value }));
              if (key === 'interestProfiles') {
-                localStorage.setItem('app_interest_profiles', JSON.stringify(value));
+                sessionStorage.setItem('app_interest_profiles', JSON.stringify(value));
              }
         } else {
             vaultService.setData(key as any, value as any);

@@ -15,7 +15,8 @@ import {
     AdminWallets, PersonalizationRule, Order, Eprescription, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap, Toast, OpexRequest, IntegrationStatus,
     ScalabilityServiceStatus,
     AttendanceRecord,
-    SystemIntegrityLog
+    SystemIntegrityLog,
+    PerformanceReview
 } from '../types';
 
 import {
@@ -23,7 +24,8 @@ import {
     initialDoctors, initialConsultations, initialDisputes, initialApiIntegrations,
     initialScalabilityServices, initialLeaveRequests, initialMonetizationConfig,
     initialTaxConfig, initialHomePageConfig, initialAdminWallets, initialPersonalizationRules,
-    initialOrders, initialHealthChallenges, initialInsuranceClaims, initialAttendanceRecords, initialOpexRequests
+    initialOrders, initialHealthChallenges, initialInsuranceClaims, initialAttendanceRecords, initialOpexRequests,
+    initialPerformanceReviews
 } from '../data/mockData';
 
 type AppData = {
@@ -59,6 +61,7 @@ type AppData = {
     isAiGuardrailDisabled: boolean;
     opexRequests: OpexRequest[];
     integrityLogs: SystemIntegrityLog[];
+    performanceReviews: PerformanceReview[];
 };
 
 class VaultService {
@@ -104,45 +107,46 @@ class VaultService {
         }));
 
         return {
-            users: this._deobfuscate<User[]>('app_users', initialUsersWithHashedPasswords),
-            products: this._deobfuscate<Product[]>('app_products', initialProducts),
-            articles: this._deobfuscate<Article[]>('app_articles', initialArticles),
-            transactions: this._deobfuscate<Transaction[]>('app_transactions', initialTransactions),
-            notifications: this._deobfuscate<Notification[]>('app_notifications', initialNotifications),
+            users: this._deobfuscate<User[]>(sessionStorage.getItem('app_users'), initialUsersWithHashedPasswords),
+            products: this._deobfuscate<Product[]>(sessionStorage.getItem('app_products'), initialProducts),
+            articles: this._deobfuscate<Article[]>(sessionStorage.getItem('app_articles'), initialArticles),
+            transactions: this._deobfuscate<Transaction[]>(sessionStorage.getItem('app_transactions'), initialTransactions),
+            notifications: this._deobfuscate<Notification[]>(sessionStorage.getItem('app_notifications'), initialNotifications),
             toasts: [], // In-memory only
-            doctors: this._deobfuscate<Doctor[]>('app_doctors', initialDoctors),
-            consultations: this._deobfuscate<Consultation[]>('app_consultations', initialConsultations),
-            eprescriptions: this._deobfuscate<Eprescription[]>('app_eprescriptions', []),
-            cart: this._deobfuscate<CartItem[]>('app_cart', []),
-            disputes: this._deobfuscate<Dispute[]>('app_disputes', initialDisputes),
-            apiIntegrations: this._deobfuscate<ApiIntegration[]>('app_api_integrations', initialApiIntegrations),
-            scalabilityServices: this._deobfuscate<ScalabilityService[]>('app_scalability_services', initialScalabilityServices),
-            leaveRequests: this._deobfuscate<LeaveRequest[]>('app_leave_requests', initialLeaveRequests),
-            budgets: this._deobfuscate<Budget[]>('app_budgets', []),
-            scheduledPayments: this._deobfuscate<ScheduledPayment[]>('app_scheduled_payments', []),
-            monetizationConfig: this._deobfuscate<MonetizationConfig>('app_monetization_config', initialMonetizationConfig),
-            taxConfig: this._deobfuscate<TaxConfig>('app_tax_config', initialTaxConfig),
-            homePageConfig: this._deobfuscate<HomePageConfig>('app_homepage_config', initialHomePageConfig),
-            assistantLogs: this._deobfuscate<AssistantLog[]>('app_assistant_logs', []),
-            engagementAnalytics: this._deobfuscate<EngagementAnalytics>('app_engagement_analytics', { forYouClicks: {}, quickAccessClicks: {} }),
-            adminWallets: this._deobfuscate<AdminWallets>('app_admin_wallets', initialAdminWallets),
-            orders: this._deobfuscate<Order[]>('app_orders', initialOrders),
-            personalizationRules: this._deobfuscate<PersonalizationRule[]>('app_personalization_rules', initialPersonalizationRules),
-            healthDocuments: this._deobfuscate<HealthDocument[]>('app_health_documents', []),
-            healthChallenges: this._deobfuscate<HealthChallenge[]>('app_health_challenges', initialHealthChallenges),
-            insuranceClaims: this._deobfuscate<InsuranceClaim[]>('app_insurance_claims', initialInsuranceClaims),
-            attendanceRecords: this._deobfuscate<AttendanceRecord[]>('app_attendance_records', initialAttendanceRecords),
-            serviceLinkage: this._deobfuscate<ServiceLinkageMap>('app_service_linkage', {}),
-            isAiGuardrailDisabled: this._deobfuscate<boolean>('app_ai_guardrail_disabled', false),
-            opexRequests: this._deobfuscate<OpexRequest[]>('app_opex_requests', initialOpexRequests),
+            doctors: this._deobfuscate<Doctor[]>(sessionStorage.getItem('app_doctors'), initialDoctors),
+            consultations: this._deobfuscate<Consultation[]>(sessionStorage.getItem('app_consultations'), initialConsultations),
+            eprescriptions: this._deobfuscate<Eprescription[]>(sessionStorage.getItem('app_eprescriptions'), []),
+            cart: this._deobfuscate<CartItem[]>(sessionStorage.getItem('app_cart'), []),
+            disputes: this._deobfuscate<Dispute[]>(sessionStorage.getItem('app_disputes'), initialDisputes),
+            apiIntegrations: this._deobfuscate<ApiIntegration[]>(sessionStorage.getItem('app_api_integrations'), initialApiIntegrations),
+            scalabilityServices: this._deobfuscate<ScalabilityService[]>(sessionStorage.getItem('app_scalability_services'), initialScalabilityServices),
+            leaveRequests: this._deobfuscate<LeaveRequest[]>(sessionStorage.getItem('app_leave_requests'), initialLeaveRequests),
+            budgets: this._deobfuscate<Budget[]>(sessionStorage.getItem('app_budgets'), []),
+            scheduledPayments: this._deobfuscate<ScheduledPayment[]>(sessionStorage.getItem('app_scheduled_payments'), []),
+            monetizationConfig: this._deobfuscate<MonetizationConfig>(sessionStorage.getItem('app_monetization_config'), initialMonetizationConfig),
+            taxConfig: this._deobfuscate<TaxConfig>(sessionStorage.getItem('app_tax_config'), initialTaxConfig),
+            homePageConfig: this._deobfuscate<HomePageConfig>(sessionStorage.getItem('app_homepage_config'), initialHomePageConfig),
+            assistantLogs: this._deobfuscate<AssistantLog[]>(sessionStorage.getItem('app_assistant_logs'), []),
+            engagementAnalytics: this._deobfuscate<EngagementAnalytics>(sessionStorage.getItem('app_engagement_analytics'), { forYouClicks: {}, quickAccessClicks: {} }),
+            adminWallets: this._deobfuscate<AdminWallets>(sessionStorage.getItem('app_admin_wallets'), initialAdminWallets),
+            orders: this._deobfuscate<Order[]>(sessionStorage.getItem('app_orders'), initialOrders),
+            personalizationRules: this._deobfuscate<PersonalizationRule[]>(sessionStorage.getItem('app_personalization_rules'), initialPersonalizationRules),
+            healthDocuments: this._deobfuscate<HealthDocument[]>(sessionStorage.getItem('app_health_documents'), []),
+            healthChallenges: this._deobfuscate<HealthChallenge[]>(sessionStorage.getItem('app_health_challenges'), initialHealthChallenges),
+            insuranceClaims: this._deobfuscate<InsuranceClaim[]>(sessionStorage.getItem('app_insurance_claims'), initialInsuranceClaims),
+            attendanceRecords: this._deobfuscate<AttendanceRecord[]>(sessionStorage.getItem('app_attendance_records'), initialAttendanceRecords),
+            serviceLinkage: this._deobfuscate<ServiceLinkageMap>(sessionStorage.getItem('app_service_linkage'), {}),
+            isAiGuardrailDisabled: this._deobfuscate<boolean>(sessionStorage.getItem('app_ai_guardrail_disabled'), false),
+            opexRequests: this._deobfuscate<OpexRequest[]>(sessionStorage.getItem('app_opex_requests'), initialOpexRequests),
             integrityLogs: [], // In-memory only
+            performanceReviews: this._deobfuscate<PerformanceReview[]>(sessionStorage.getItem('app_performance_reviews'), initialPerformanceReviews)
         };
     }
     
     private _save<K extends keyof AppData>(key: K) {
         // Do not save in-memory only data
         if (key === 'toasts' || key === 'integrityLogs') return;
-        localStorage.setItem(`app_${key}`, this._obfuscate(this._data[key]));
+        sessionStorage.setItem(`app_${key}`, this._obfuscate(this._data[key]));
     }
 
     private _sanitizeUser(user: User): User {

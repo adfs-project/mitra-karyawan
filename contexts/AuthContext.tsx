@@ -77,9 +77,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         // As per user request, clear all persisted application data upon logout
         // to ensure no changes from the session are saved.
-        Object.keys(localStorage).forEach(key => {
+        Object.keys(sessionStorage).forEach(key => {
             if (key.startsWith('app_')) {
-                localStorage.removeItem(key);
+                sessionStorage.removeItem(key);
             }
         });
 
