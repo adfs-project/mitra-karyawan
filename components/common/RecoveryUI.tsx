@@ -126,7 +126,8 @@ const RecoveryUI: React.FC<ErrorBoundaryModule.FallbackProps> = ({ error, resetE
                             </div>
                              <button
                                 onClick={handleAiFix}
-                                className="w-full btn-primary p-3 rounded-lg font-bold mt-2 flex items-center justify-center"
+                                disabled
+                                className="w-full btn-primary p-3 rounded-lg font-bold mt-2 flex items-center justify-center disabled:bg-gray-600 disabled:cursor-not-allowed"
                             >
                                 <SparklesIcon className="h-5 w-5 mr-2" />
                                 Coba Perbaikan AI
