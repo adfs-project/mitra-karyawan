@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Product, buildSecurePrompt, useData } from '@mk/shared';
+import { Product } from '../../types';
+import { buildSecurePrompt } from '../../services/aiGuardrailService';
+import { useData } from '../../contexts/DataContext';
 import { SparklesIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
 

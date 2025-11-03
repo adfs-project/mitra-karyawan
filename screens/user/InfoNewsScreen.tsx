@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useData, Article } from '@mk/shared';
+import { useData } from '../../contexts/DataContext';
+import { Article } from '../../types';
 import ArticleCard from '../../components/user/news/ArticleCard';
 import CommentModal from '../../components/user/news/CommentModal';
 import AiPersonalizedFeed from '../../components/user/news/AiPersonalizedFeed';

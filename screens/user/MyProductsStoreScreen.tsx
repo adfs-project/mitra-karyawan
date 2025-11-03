@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { useAuth, Product, useData } from '@mk/shared';
+import { useAuth } from '../../contexts/AuthContext';
+import { Product } from '../../types';
+import { useData } from '../../contexts/DataContext';
 import { BuildingStorefrontIcon, PlusIcon, PencilIcon, TrashIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import ProductFormModal from '../../components/user/market/ProductFormModal';
 

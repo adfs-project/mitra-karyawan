@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { useAuth, useData, Transaction } from '@mk/shared';
+import { useAuth } from '../../contexts/AuthContext';
+import { useData } from '../../contexts/DataContext';
+import { Transaction } from '../../types';
 import { SparklesIcon } from '@heroicons/react/24/solid';
 import { FunnelIcon, ArrowUpCircleIcon, ArrowsRightLeftIcon, ArrowDownCircleIcon } from '@heroicons/react/24/outline';
 
@@ -20,6 +22,7 @@ const getTransactionIcon = (type: Transaction['type']) => {
         case 'Refund':
         case 'Reversal':
         case 'Dana Opex':
+        case 'Insurance Claim':
             return <ArrowUpCircleIcon className="h-8 w-8 text-green-400" />;
         default:
              return <ArrowDownCircleIcon className="h-8 w-8 text-red-400" />;

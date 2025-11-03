@@ -1,5 +1,6 @@
 import React from 'react';
-import { useAuth, useData } from '@mk/shared';
+import { useAuth } from '../../contexts/AuthContext';
+import { useData } from '../../contexts/DataContext';
 
 const PersonalizedGreeting: React.FC = () => {
     const { user } = useAuth();

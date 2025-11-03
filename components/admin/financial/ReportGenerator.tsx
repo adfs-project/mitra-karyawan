@@ -1,7 +1,6 @@
 import React from 'react';
 import { DocumentArrowDownIcon } from '@heroicons/react/24/solid';
-// FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
-import { useData } from '../../../packages/shared/contexts/DataContext';
+import { useData } from '../../../contexts/DataContext';
 
 const ReportGenerator: React.FC = () => {
     const { transactions, users, articles, taxConfig } = useData();

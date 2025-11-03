@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { useAuth, useData, Budget, ScheduledPayment } from '@mk/shared';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useData } from '../../../contexts/DataContext';
+import { Budget, ScheduledPayment } from '../../../types';
 import { PlusIcon, BanknotesIcon, CalendarDaysIcon, PencilIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 import BudgetModal from './BudgetModal';
 import ScheduledPaymentModal from './ScheduledPaymentModal';

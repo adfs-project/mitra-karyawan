@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../packages/shared/contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 

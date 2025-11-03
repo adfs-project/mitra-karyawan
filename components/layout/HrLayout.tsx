@@ -1,8 +1,6 @@
-
-
 import React from 'react';
 import HrSidebar from './HrSidebar';
-import { useAuth } from '../../packages/shared/contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 

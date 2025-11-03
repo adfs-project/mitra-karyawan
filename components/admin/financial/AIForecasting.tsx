@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { PaperAirplaneIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
-import { buildSecurePrompt } from '../../../packages/shared/services/aiGuardrailService';
+import { buildSecurePrompt } from '../../../services/aiGuardrailService';
 
 interface Message {
     sender: 'user' | 'ai';

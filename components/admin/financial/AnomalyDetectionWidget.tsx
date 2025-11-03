@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldExclamationIcon, LockClosedIcon, ShieldCheckIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
-import { useData } from '../../../packages/shared/contexts/DataContext';
+import { useData } from '../../../contexts/DataContext';
 
 const AnomalyDetectionWidget: React.FC = () => {
     const { homePageConfig, runAnomalyScan } = useData();

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Transaction } from '../../../packages/shared/types';
+import { Transaction } from '../../../types';
 import { ChartBarIcon, ShoppingCartIcon, BoltIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/solid';
 
 const Bar: React.FC<{ value: number; maxValue: number; color: string; label: string }> = ({ value, maxValue, color, label }) => {

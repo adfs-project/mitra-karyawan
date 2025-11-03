@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useAuth, useData } from '@mk/shared';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useData } from '../../../contexts/DataContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const TransferModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {

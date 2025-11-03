@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Article, useAuth, useData } from '@mk/shared';
+import { Article } from '../../../types';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useData } from '../../../contexts/DataContext';
 import { XMarkIcon, PaperAirplaneIcon, HandThumbUpIcon } from '@heroicons/react/24/outline';
 import { HandThumbUpIcon as HandThumbUpSolidIcon } from '@heroicons/react/24/solid';
 

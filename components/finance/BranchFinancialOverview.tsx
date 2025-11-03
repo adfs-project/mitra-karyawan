@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
-// FIX: Replaced deprecated `useApp` and `useHR` hooks with the consolidated `useData` hook.
-import { useData } from '../../packages/shared/contexts/DataContext';
+import { useData } from '../../contexts/DataContext';
 import { BanknotesIcon, ClockIcon, UsersIcon, ArrowUpCircleIcon } from '@heroicons/react/24/solid';
-import { Transaction } from '../../packages/shared/types';
+import { Transaction } from '../../types';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ElementType }> = ({ title, value, icon: Icon }) => (
     <div className="bg-surface p-6 rounded-lg border border-border-color">

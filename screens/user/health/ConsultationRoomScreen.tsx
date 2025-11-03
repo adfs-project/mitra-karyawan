@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useData, useAuth, ChatMessage } from '@mk/shared';
+import { useData } from '../../../contexts/DataContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { ChatMessage } from '../../../types';
 import { ArrowLeftIcon, PhoneIcon, PaperAirplaneIcon } from '@heroicons/react/24/solid';
 
 const ConsultationRoomScreen: React.FC = () => {

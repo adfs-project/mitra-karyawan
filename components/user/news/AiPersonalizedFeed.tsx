@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
-import { useAuth, useData, Article } from '@mk/shared';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useData } from '../../../contexts/DataContext';
+import { Article } from '../../../types';
 import ArticleCard from './ArticleCard';
 import { SparklesIcon } from '@heroicons/react/24/solid';
 

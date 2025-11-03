@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingCartIcon, BellIcon, LanguageIcon, XMarkIcon, StarIcon } from '@heroicons/react/24/outline';
-import { useData } from '../../packages/shared/contexts/DataContext';
-import { useAuth } from '../../packages/shared/contexts/AuthContext';
+import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
-import { Notification } from '../../packages/shared/types';
+import { Notification } from '../../types';
 
 const NotificationPanel: React.FC<{
     isOpen: boolean;

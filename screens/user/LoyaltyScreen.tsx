@@ -1,5 +1,6 @@
 import React from 'react';
-import { useAuth, Achievement } from '@mk/shared';
+import { useAuth } from '../../contexts/AuthContext';
+import { Achievement } from '../../types';
 import { StarIcon, ShoppingBagIcon, BanknotesIcon, TrophyIcon } from '@heroicons/react/24/solid';
 
 const achievementDetails: Record<Achievement, { name: string; description: string; icon: React.ElementType }> = {

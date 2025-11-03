@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../packages/shared/contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, ClipboardDocumentListIcon, CameraIcon } from '@heroicons/react/24/solid';
-import LocationName from '../../packages/shared/components/common/LocationName';
-import PhotoViewerModal from '../../packages/shared/components/common/PhotoViewerModal';
-import { useData } from '../../packages/shared/contexts/DataContext';
+import LocationName from '../../components/common/LocationName';
+import PhotoViewerModal from '../../components/common/PhotoViewerModal';
+import { useData } from '../../contexts/DataContext';
 
 const AttendanceHistoryScreen: React.FC = () => {
     const { user } = useAuth();

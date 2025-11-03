@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../../packages/shared/contexts/AuthContext';
-// FIX: Replaced deprecated `useApp` hook with the consolidated `useData` hook.
-import { useData } from '../../../packages/shared/contexts/DataContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useData } from '../../../contexts/DataContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 interface AddFinanceAccountModalProps {

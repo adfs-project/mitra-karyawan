@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { User } from '../../packages/shared/types';
+import { User } from '../../types';
 import { XMarkIcon } from '@heroicons/react/24/solid';
-import { useData } from '../../packages/shared/contexts/DataContext';
+import { useData } from '../../contexts/DataContext';
 
 interface SetPayLaterLimitModalProps {
     isOpen: boolean;

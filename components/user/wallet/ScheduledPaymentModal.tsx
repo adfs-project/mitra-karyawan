@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useData, ScheduledPayment } from '@mk/shared';
+import { useData } from '../../../contexts/DataContext';
+import { ScheduledPayment } from '../../../types';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 interface ScheduledPaymentModalProps {

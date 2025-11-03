@@ -1,6 +1,6 @@
 import React from 'react';
-import { Role } from '../packages/shared/types';
-import { lazyWithTimeout } from '../packages/shared/utils/lazyWithTimeout';
+import { Role } from '../types';
+import { lazyWithTimeout } from '../utils/lazyWithTimeout';
 
 // This interface defines the structure for a single route configuration object.
 export interface RouteConfig {
@@ -179,7 +179,7 @@ export const routes: RouteConfig[] = [
     { name: 'admin-system-integrity', path: '/admin/system/integrity', component: AdminSystemIntegrityScreen, isPrivate: true, layout: 'admin' },
 
     // HR routes
-    { name: 'hr-portal', path: '/hr-portal', component: HrPortalScreen, isPrivate: true, layout: 'none' },
+    { name: 'hr-portal', path: '/hr-portal', component: HrPortalScreen, isPrivate: true, layout: 'hr' },
     { name: 'hr-dashboard', path: '/hr/dashboard', component: HrDashboard, isPrivate: true, layout: 'hr' },
     { name: 'hr-onboarding', path: '/hr/onboarding', component: HrOnboarding, isPrivate: true, layout: 'hr' },
     { name: 'hr-leave', path: '/hr/leave', component: HrLeaveManagement, isPrivate: true, layout: 'hr' },
@@ -217,10 +217,10 @@ export const rolePermissions: Record<Role, string[]> = {
     ],
     [Role.HR]: [
         'hr-portal', 'hr-dashboard', 'hr-onboarding', 'hr-leave', 'hr-payroll', 'hr-copilot', 'hr-wellness', 
-        'hr-attendance', 'hr-opex', 'hr-benefits', 'hr-pay-later', 'hr-performance', 'hr-analytics'
+        'hr-attendance', 'hr-opex', 'hr-benefits', 'hr-pay-later', 'hr-performance', 'hr-analytics', 'account'
     ],
     [Role.Finance]: [
-        'finance-dashboard', 'finance-command-center', 'finance-payroll-report', 'finance-pay-later'
+        'finance-dashboard', 'finance-command-center', 'finance-payroll-report', 'finance-pay-later', 'account'
     ],
     [Role.User]: [
         'home', 'wallet', 'market', 'news', 'health', 'account', 'cart', 'wishlist',

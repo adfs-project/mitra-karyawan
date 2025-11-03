@@ -1,13 +1,13 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import * as ErrorBoundaryModule from 'react-error-boundary';
-import { AuthProvider, useAuth } from './packages/shared/contexts/AuthContext';
-import { DataProvider, useData } from './packages/shared/contexts/DataContext';
-import { ThemeProvider } from './packages/shared/contexts/ThemeContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { DataProvider, useData } from './contexts/DataContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { routes, rolePermissions, RouteConfig } from './routing/routeConfig';
-import { Role } from './packages/shared/types';
-import ToastContainer from './packages/shared/components/common/ToastContainer';
-import RecoveryUI from './packages/shared/components/common/RecoveryUI';
+import { Role } from './types';
+import ToastContainer from './components/common/ToastContainer';
+import RecoveryUI from './components/common/RecoveryUI';
 import UserLayout from './components/layout/UserLayout';
 import AdminLayout from './components/layout/AdminLayout';
 import HrLayout from './components/layout/HrLayout';
@@ -63,7 +63,7 @@ const getHomeRoute = (user: any) => {
     if (!user) return '/login';
     switch (user.role) {
         case Role.Admin: return '/admin/dashboard';
-        case Role.HR: return '/hr-portal';
+        case Role.HR: return '/hr/dashboard';
         case Role.Finance: return '/finance/dashboard';
         default: return '/home';
     }

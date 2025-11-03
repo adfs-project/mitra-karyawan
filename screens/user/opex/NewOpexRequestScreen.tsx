@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useData } from '../../../packages/shared/contexts/DataContext';
+import { useData } from '../../../contexts/DataContext';
 import { ArrowLeftIcon, CameraIcon } from '@heroicons/react/24/solid';
-import { OpexRequestType, Coordinates } from '../../../packages/shared/types';
+import { OpexRequestType, Coordinates } from '../../../types';
 import AttendanceCameraModal from '../../../components/user/AttendanceCameraModal';
 
 const opexTypes: OpexRequestType[] = ['Bensin', 'Token Listrik', 'Beli Barang', 'Fotocopy', 'Parkir', 'Tiket Pesawat/Kereta', 'Booking Hotel', 'Biaya Makan Perjalanan Dinas'];
@@ -141,5 +141,4 @@ const NewOpexRequestScreen: React.FC = () => {
     );
 };
 
-// FIX: Added default export for the component to be lazily loaded.
 export default NewOpexRequestScreen;

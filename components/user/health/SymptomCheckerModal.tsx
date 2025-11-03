@@ -2,7 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { XMarkIcon, PaperAirplaneIcon, BeakerIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
-import { buildSecurePrompt, useData, loggingService } from '@mk/shared';
+import { useData } from '../../contexts/DataContext';
+import { buildSecurePrompt } from '../../services/aiGuardrailService';
+import loggingService from '../../services/loggingService';
 
 interface Message {
     sender: 'user' | 'ai';

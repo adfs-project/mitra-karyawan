@@ -1,5 +1,7 @@
 import React from 'react';
-import { useAuth, useData, Article, Product, Achievement } from '@mk/shared';
+import { useAuth } from '../../contexts/AuthContext';
+import { useData } from '../../contexts/DataContext';
+import { Article, Product, Achievement } from '../../types';
 import { Link } from 'react-router-dom';
 import { TrophyIcon, NewspaperIcon } from '@heroicons/react/24/solid';
 

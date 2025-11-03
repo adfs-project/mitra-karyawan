@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { SparklesIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
-import { useData, useAuth, buildSecurePrompt, circuitBreaker, loggingService } from '@mk/shared';
+import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { buildSecurePrompt } from '../../services/aiGuardrailService';
+import circuitBreaker from '../../services/circuitBreakerService';
+import loggingService from '../../services/loggingService';
 
 const SmartAssistant: React.FC = () => {
     const [query, setQuery] = useState('');

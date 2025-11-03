@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Product, useAuth, useData } from '@mk/shared';
+import { Product } from '../../types';
+import { useAuth } from '../../contexts/AuthContext';
+import { useData } from '../../contexts/DataContext';
 import { ShoppingCartIcon, StarIcon as StarSolidIcon, HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { HeartIcon as HeartOutlineIcon } from '@heroicons/react/24/outline';
 

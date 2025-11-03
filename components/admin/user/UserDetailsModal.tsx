@@ -1,6 +1,6 @@
 import React from 'react';
-import { User, Transaction, Order } from '../../../packages/shared/types';
-import { useData } from '../../../packages/shared/contexts/DataContext';
+import { User, Transaction, Order } from '../../../types';
+import { useData } from '../../../contexts/DataContext';
 import { XMarkIcon, UserCircleIcon, WalletIcon, ShoppingCartIcon, TrophyIcon, ArrowUpCircleIcon, ArrowDownCircleIcon } from '@heroicons/react/24/solid';
 
 const Stat: React.FC<{ label: string; value: string | number; color?: string }> = ({ label, value, color = 'text-primary' }) => (
@@ -11,7 +11,7 @@ const Stat: React.FC<{ label: string; value: string | number; color?: string }> 
 );
 
 const getTransactionIcon = (type: Transaction['type']) => {
-    return type === 'Top-Up' || type === 'Refund' || type === 'Reversal'
+    return type === 'Top-Up' || type === 'Refund' || type === 'Reversal' || type === 'Dana Opex' || type === 'Insurance Claim'
         ? <ArrowUpCircleIcon className="h-6 w-6 text-green-400" />
         : <ArrowDownCircleIcon className="h-6 w-6 text-red-400" />;
 };
@@ -32,7 +32,8 @@ const UserDetailsModal: React.FC<{
     
     const payLaterStatusMap = {
         not_applied: { text: "Not Applied", color: "text-text-secondary" },
-        pending: { text: "Pending", color: "text-yellow-400" },
+        pending: { text: "Pending HR", color: "text-yellow-400" },
+        'Pending Finance Approval': { text: "Pending Finance", color: "text-blue-400" },
         approved: { text: "Approved", color: "text-green-400" },
         rejected: { text: "Rejected", color: "text-red-400" },
     };
@@ -65,49 +66,51 @@ const UserDetailsModal: React.FC<{
                         <Stat label="PayLater" value={payLaterInfo.text} color={payLaterInfo.color} />
                     </div>
 
-                    {/* Wallets & Marketplace */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-surface-light p-4 rounded-lg">
-                            <h4 className="font-bold flex items-center mb-2"><WalletIcon className="h-5 w-5 mr-2"/> Wallet</h4>
-                            <Stat label="Balance" value={new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(user.wallet.balance)} />
-                            <Stat label="Loyalty Points" value={user.loyaltyPoints} />
-                        </div>
-                        <div className="bg-surface-light p-4 rounded-lg">
-                            <h4 className="font-bold flex items-center mb-2"><ShoppingCartIcon className="h-5 w-5 mr-2"/> Marketplace</h4>
-                            <Stat label="Orders Placed" value={userOrders.length} />
-                            <Stat label="Products Listed" value={userProductsListed.length} />
-                        </div>
-                         <div className="bg-surface-light p-4 rounded-lg">
-                            <h4 className="font-bold flex items-center mb-2"><TrophyIcon className="h-5 w-5 mr-2"/> Achievements</h4>
-                             <p className="text-sm">{user.achievements.join(', ') || 'None'}</p>
-                        </div>
-                    </div>
-                    
-                    {/* Recent Transactions */}
-                    <div className="mt-4">
-                        <h4 className="font-bold mb-2">Recent Transactions</h4>
-                         <div className="space-y-2">
-                            {userTransactions.map(tx => (
-                                <div key={tx.id} className="bg-surface-light p-2 rounded flex items-center justify-between text-sm">
-                                    <div className="flex items-center space-x-2">
-                                        {getTransactionIcon(tx.type)}
-                                        <div>
-                                            <p className="font-semibold">{tx.description}</p>
-                                            <p className="text-xs text-text-secondary">{new Date(tx.timestamp).toLocaleString()}</p>
-                                        </div>
+                    {/* Transaction History */}
+                    <div className="my-4">
+                        <h3 className="font-bold flex items-center mb-2"><WalletIcon className="h-5 w-5 mr-2"/> Recent Transactions</h3>
+                        <div className="space-y-2">
+                            {userTransactions.length > 0 ? userTransactions.map(tx => (
+                                <div key={tx.id} className="flex items-center p-2 bg-surface-light rounded-lg">
+                                    <div className="mr-3">{getTransactionIcon(tx.type)}</div>
+                                    <div className="flex-grow">
+                                        <p className="text-sm font-semibold">{tx.description}</p>
+                                        <p className="text-xs text-text-secondary">{new Date(tx.timestamp).toLocaleString()}</p>
                                     </div>
-                                    <p className={`font-bold ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(tx.amount)}
-                                    </p>
+                                    <p className={`font-bold text-sm ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(tx.amount)}</p>
                                 </div>
-                            ))}
-                             {userTransactions.length === 0 && <p className="text-xs text-text-secondary text-center">No recent transactions.</p>}
+                            )) : <p className="text-sm text-text-secondary">No recent transactions.</p>}
                         </div>
                     </div>
-                </div>
 
-                <div className="flex justify-end mt-6 flex-shrink-0">
-                    <button onClick={onClose} className="px-4 py-2 rounded bg-surface-light hover:bg-border-color">Close</button>
+                    {/* Marketplace Activity */}
+                    <div className="my-4">
+                        <h3 className="font-bold flex items-center mb-2"><ShoppingCartIcon className="h-5 w-5 mr-2"/> Marketplace Activity</h3>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p className="font-semibold">Orders Placed</p>
+                                <p>{userOrders.length} orders</p>
+                            </div>
+                            <div>
+                                <p className="font-semibold">Products Listed</p>
+                                <p>{userProductsListed.length} products</p>
+                            </div>
+                        </div>
+                    </div>
+                    {/* Loyalty Info */}
+                    <div className="my-4">
+                        <h3 className="font-bold flex items-center mb-2"><TrophyIcon className="h-5 w-5 mr-2"/> Loyalty &amp; Engagement</h3>
+                         <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p className="font-semibold">Loyalty Points</p>
+                                <p>{user.loyaltyPoints.toLocaleString('id-ID')}</p>
+                            </div>
+                            <div>
+                                <p className="font-semibold">Achievements</p>
+                                <p>{user.achievements.length > 0 ? user.achievements.join(', ') : 'None'}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

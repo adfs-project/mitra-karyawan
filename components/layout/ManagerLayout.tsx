@@ -1,6 +1,6 @@
 import React from 'react';
 import ManagerSidebar from './ManagerSidebar';
-import { useAuth } from '../../packages/shared/contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 

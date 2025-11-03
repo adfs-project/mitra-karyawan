@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Article, useData, useAuth } from '@mk/shared';
+import { Article } from '../../../types';
+import { useData } from '../../../contexts/DataContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import { BookmarkIcon, ChatBubbleBottomCenterTextIcon, HandThumbUpIcon, PlayCircleIcon } from '@heroicons/react/24/outline';
 import { HandThumbUpIcon as HandThumbUpSolidIcon, BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
 

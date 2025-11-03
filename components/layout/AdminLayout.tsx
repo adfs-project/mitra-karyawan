@@ -1,8 +1,6 @@
-
-
 import React from 'react';
 import AdminSidebar from './AdminSidebar';
-import { useAuth } from '../../packages/shared/contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user, logout } = useAuth();

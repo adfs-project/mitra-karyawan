@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import ProductCard from '../../components/user/market/ProductCard';
-import { Product, useData, useAuth } from '@mk/shared';
+import { Product } from '../../types';
+import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { MagnifyingGlassIcon, FunnelIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import AiRecommendations from '../../components/user/market/AiRecommendations';
 
