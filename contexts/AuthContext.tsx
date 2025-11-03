@@ -74,7 +74,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const logout = () => {
         setUser(null);
-        // sessionStorage.removeItem('loggedInUser'); // Temporarily disabled
+        
+        // As per user request, clear all persisted application data upon logout
+        // to ensure no changes from the session are saved.
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('app_')) {
+                localStorage.removeItem(key);
+            }
+        });
+
+        // Force a full application reload to re-initialize the vault with initial mock data.
+        window.location.reload();
     };
 
     const register = async (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData'>): Promise<'success' | 'exists'> => {
