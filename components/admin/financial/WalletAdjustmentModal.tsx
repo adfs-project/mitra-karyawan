@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { User } from '../../../types';
+import { User } from '../../../packages/shared/types';
 // FIX: Replaced useCore with useApp as it is the correct exported member from AppContext.
-import { useData } from '../../../contexts/DataContext';
+import { useData } from '../../../packages/shared/contexts/DataContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const WalletAdjustmentModal: React.FC<{

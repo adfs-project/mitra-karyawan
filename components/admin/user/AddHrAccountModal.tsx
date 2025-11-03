@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../../contexts/AuthContext';
-import { useData } from '../../../contexts/DataContext';
+import { useAuth } from '../../../packages/shared/contexts/AuthContext';
+import { useData } from '../../../packages/shared/contexts/DataContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
-import { UserProfile } from '../../../types';
+import { UserProfile } from '../../../packages/shared/types';
 
 interface AddHrAccountModalProps {
     isOpen: boolean;

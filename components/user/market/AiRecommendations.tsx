@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { SparklesIcon } from '@heroicons/react/24/solid';
-import { buildSecurePrompt } from '../../../services/aiGuardrailService';
-import { useData } from '../../../contexts/DataContext';
-import { Product } from '../../../types';
+import { buildSecurePrompt } from '../../../packages/shared/services/aiGuardrailService';
+import { useData } from '../../../packages/shared/contexts/DataContext';
+import { Product } from '../../../packages/shared/types';
 import ProductCard from './ProductCard';
 
 const FallbackRecommendations: React.FC = () => {
@@ -97,7 +97,8 @@ const AiRecommendations: React.FC<{ searchTerm: string }> = ({ searchTerm }) => 
     return (
         <div className="bg-surface p-4 rounded-lg border border-primary/50">
             <h2 className="text-lg font-bold text-primary mb-2 flex items-center">
-                <SparklesIcon className="h-5 w-5 mr-2" /> Tips Belanja dari AI
+                <SparklesIcon className="h-5 w-5 mr-2" />
+                Tips Belanja dari AI
             </h2>
             <div className="text-sm text-text-primary whitespace-pre-wrap">
                 {advice}

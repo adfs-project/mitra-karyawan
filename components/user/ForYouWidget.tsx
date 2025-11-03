@@ -1,8 +1,8 @@
 import React from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../packages/shared/contexts/AuthContext';
+import { useData } from '../../packages/shared/contexts/DataContext';
 import { Link } from 'react-router-dom';
-import { Article, Product, Achievement } from '../../types';
+import { Article, Product, Achievement } from '../../packages/shared/types';
 import { TrophyIcon, NewspaperIcon } from '@heroicons/react/24/solid';
 
 const totalAchievements: Achievement[] = ['First Purchase', 'Punctual Payer', 'Top Spender'];

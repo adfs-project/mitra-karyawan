@@ -1,8 +1,8 @@
 import React from 'react';
 import { ExclamationTriangleIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { Role } from '../../types';
+import { useAuth } from '../../packages/shared/contexts/AuthContext';
+import { Role } from '../../packages/shared/types';
 
 const NotFoundScreen: React.FC = () => {
     const { user } = useAuth();

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
-import { User, PerformanceReview } from '../../types';
+import { useAuth } from '../../packages/shared/contexts/AuthContext';
+import { useData } from '../../packages/shared/contexts/DataContext';
+import { User, PerformanceReview } from '../../packages/shared/types';
 import { UserGroupIcon, PencilSquareIcon } from '@heroicons/react/24/solid';
 import KpiModal from '../../components/hr/KpiModal';
 

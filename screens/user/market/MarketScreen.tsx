@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import ProductCard from '../../../components/user/market/ProductCard';
-import { Product } from '../../../types';
+import { Product } from '../../../packages/shared/types';
 import { MagnifyingGlassIcon, FunnelIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import AiRecommendations from '../../../components/user/market/AiRecommendations';
 // FIX: Replaced deprecated hooks with the consolidated `useData` hook.
-import { useData } from '../../../contexts/DataContext';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useData } from '../../../packages/shared/contexts/DataContext';
+import { useAuth } from '../../../packages/shared/contexts/AuthContext';
 
 const AiPoweredRecommendations: React.FC = () => {
     const { user } = useAuth();

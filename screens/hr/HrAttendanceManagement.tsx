@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
-import { AttendanceRecord, Coordinates } from '../../types';
-import LocationName from '../../components/common/LocationName';
-import PhotoViewerModal from '../../components/common/PhotoViewerModal';
+import { useAuth } from '../../packages/shared/contexts/AuthContext';
+import { useData } from '../../packages/shared/contexts/DataContext';
+import { AttendanceRecord, Coordinates } from '../../packages/shared/types';
+import LocationName from '../../packages/shared/components/common/LocationName';
+import PhotoViewerModal from '../../packages/shared/components/common/PhotoViewerModal';
 import { CameraIcon } from '@heroicons/react/24/solid';
 
 const HrAttendanceManagement: React.FC = () => {

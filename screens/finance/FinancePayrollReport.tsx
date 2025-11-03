@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../packages/shared/contexts/AuthContext';
+import { useData } from '../../packages/shared/contexts/DataContext';
 import { BanknotesIcon, ShieldCheckIcon } from '@heroicons/react/24/solid';
 
 const StatCard: React.FC<{ title: string; value: string | number; description: string; }> = ({ title, value, description }) => (

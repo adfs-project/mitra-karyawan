@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Product } from '../../../types';
+import { Product } from '../../../packages/shared/types';
 import { SparklesIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
-import { buildSecurePrompt } from '../../../services/aiGuardrailService';
-import { useData } from '../../../contexts/DataContext';
+import { buildSecurePrompt } from '../../../packages/shared/services/aiGuardrailService';
+import { useData } from '../../../packages/shared/contexts/DataContext';
 
 const AILoadingSpinner: React.FC = () => (
     <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>

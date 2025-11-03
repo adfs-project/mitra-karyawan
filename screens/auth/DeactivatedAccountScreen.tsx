@@ -1,9 +1,6 @@
-
-
-
 import React, { useState } from 'react';
 // FIX: Replaced useCore with useApp as DataContext is deprecated.
-import { useData } from '../../contexts/DataContext';
+import { useData } from '../../packages/shared/contexts/DataContext';
 
 const DeactivatedAccountScreen: React.FC = () => {
     const { addNotification } = useData();

@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { User, PerformanceReview, Kpi } from '../../types';
+import { User, PerformanceReview, Kpi } from '../../packages/shared/types';
 import { XMarkIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/solid';
-import { useData } from '../../contexts/DataContext';
+import { useData } from '../../packages/shared/contexts/DataContext';
 
 interface MyKpiModalProps {
     isOpen: boolean;

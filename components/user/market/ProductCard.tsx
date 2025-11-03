@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Product } from '../../../types';
-import { useAuth } from '../../../contexts/AuthContext';
+import { Product } from '../../../packages/shared/types';
+import { useAuth } from '../../../packages/shared/contexts/AuthContext';
 import { ShoppingCartIcon, StarIcon as StarSolidIcon, HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { HeartIcon as HeartOutlineIcon } from '@heroicons/react/24/outline';
-import { useData } from '../../../contexts/DataContext';
+import { useData } from '../../../packages/shared/contexts/DataContext';
 
 const ImagePlaceholder: React.FC = () => (
     <div className="w-full h-32 bg-surface-light animate-pulse"></div>

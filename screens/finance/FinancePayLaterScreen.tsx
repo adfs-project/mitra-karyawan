@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { useData } from '../../contexts/DataContext';
-import { User } from '../../types';
+import { useData } from '../../packages/shared/contexts/DataContext';
+import { User } from '../../packages/shared/types';
 import { CreditCardIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import SetPayLaterLimitModal from '../../components/finance/SetPayLaterLimitModal';
 

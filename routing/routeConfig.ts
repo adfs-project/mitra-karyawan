@@ -1,6 +1,6 @@
 import React from 'react';
-import { Role } from '../types';
-import { lazyWithTimeout } from '../utils/lazyWithTimeout';
+import { Role } from '../packages/shared/types';
+import { lazyWithTimeout } from '../packages/shared/utils/lazyWithTimeout';
 
 // This interface defines the structure for a single route configuration object.
 export interface RouteConfig {

@@ -1,6 +1,6 @@
 import React from 'react';
 import FinanceSidebar from './FinanceSidebar';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../packages/shared/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 
 const FinanceLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {

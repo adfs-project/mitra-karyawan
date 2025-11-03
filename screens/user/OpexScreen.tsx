@@ -1,10 +1,10 @@
 import React from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../packages/shared/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, CreditCardIcon, PlusIcon } from '@heroicons/react/24/solid';
-import { OpexRequest, OpexRequestStatus } from '../../types';
+import { OpexRequest, OpexRequestStatus } from '../../packages/shared/types';
 // FIX: Replaced deprecated `useHR` hook with the consolidated `useData` hook.
-import { useData } from '../../contexts/DataContext';
+import { useData } from '../../packages/shared/contexts/DataContext';
 
 const getStatusChip = (status: OpexRequestStatus) => {
     switch (status) {

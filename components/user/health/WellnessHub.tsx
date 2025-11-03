@@ -1,8 +1,8 @@
 import React from 'react';
-import { useAuth } from '../../../contexts/AuthContext';
-import { useData } from '../../../contexts/DataContext';
+import { useAuth } from '../../../packages/shared/contexts/AuthContext';
+import { useData } from '../../../packages/shared/contexts/DataContext';
 import { TrophyIcon, BookOpenIcon, SparklesIcon, FireIcon, UserGroupIcon } from '@heroicons/react/24/solid';
-import { MoodHistory, HealthChallenge } from '../../../types';
+import { MoodHistory, HealthChallenge } from '../../../packages/shared/types';
 
 
 const moodOptions: MoodHistory['mood'][] = ['Sangat Sedih', 'Sedih', 'Biasa', 'Senang', 'Sangat Senang'];

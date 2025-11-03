@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../packages/shared/contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { verifyEmailIsActive } from '../../services/emailVerificationService';
+import { verifyEmailIsActive } from '../../packages/shared/services/emailVerificationService';
 import { CheckCircleIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 
 const RegisterScreen: React.FC = () => {

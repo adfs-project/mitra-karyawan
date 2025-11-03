@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PerformanceReview, Kpi } from '../../types';
+import { PerformanceReview, Kpi } from '../../packages/shared/types';
 import { XMarkIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 interface KpiModalProps {

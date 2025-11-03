@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#121212">
+    
+    <title>MK App</title>
+    <style>
+      /* Global styles and theme variables remain here */
+      @import url('https://rsms.me/inter/inter.css');
+      html { font-family: 'Inter', sans-serif; }
+      
+      html.dark {
+        --color-primary: #39FF14;
+        --color-secondary: #FF5F1F;
+        --color-background: #121212;
+        --color-surface: #1e1e1e;
+        --color-surface-light: #2a2a2a;
+        --color-text-primary: #e0e0e0;
+        --color-text-secondary: #a0a0a0;
+        --color-border: #444444;
+      }
+      
+      html.light {
+        --color-primary: #006400;
+        --color-secondary: #d95f02;
+        --color-background: #f8f9fa;
+        --color-surface: #ffffff;
+        --color-surface-light: #f1f3f4;
+        --color-text-primary: #212529;
+        --color-text-secondary: #6c757d;
+        --color-border: #dee2e6;
+      }
+
+      body {
+        background-color: var(--color-background);
+        color: var(--color-text-primary);
+        overscroll-behavior: none;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>

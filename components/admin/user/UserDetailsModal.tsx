@@ -1,6 +1,6 @@
 import React from 'react';
-import { User, Transaction, Order } from '../../../types';
-import { useData } from '../../../contexts/DataContext';
+import { User, Transaction, Order } from '../../../packages/shared/types';
+import { useData } from '../../../packages/shared/contexts/DataContext';
 import { XMarkIcon, UserCircleIcon, WalletIcon, ShoppingCartIcon, TrophyIcon, ArrowUpCircleIcon, ArrowDownCircleIcon } from '@heroicons/react/24/solid';
 
 const Stat: React.FC<{ label: string; value: string | number; color?: string }> = ({ label, value, color = 'text-primary' }) => (
