@@ -168,10 +168,8 @@ const AppContent: React.FC = () => {
     return (
          <ErrorBoundaryModule.ErrorBoundary FallbackComponent={RecoveryUI} resetKeys={[user]}>
             <GlobalErrorCatcher />
-            <Router>
-                <AppRoutes />
-                <ToastContainer />
-            </Router>
+            <AppRoutes />
+            <ToastContainer />
         </ErrorBoundaryModule.ErrorBoundary>
     )
 }
@@ -181,7 +179,9 @@ const App: React.FC = () => {
         <ThemeProvider>
             <AuthProvider>
                 <DataProvider>
-                    <AppContent />
+                    <Router>
+                        <AppContent />
+                    </Router>
                 </DataProvider>
             </AuthProvider>
         </ThemeProvider>
