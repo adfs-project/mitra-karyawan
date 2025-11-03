@@ -142,9 +142,45 @@ export const initialDisputes: Dispute[] = [
 ];
 
 export const initialApiIntegrations: ApiIntegration[] = [
+    // --- Bank BUMN ---
+    { id: 'bank-mandiri', name: 'Bank Mandiri', type: IntegrationType.Bank, status: IntegrationStatus.Active },
+    { id: 'bank-bri', name: 'Bank Rakyat Indonesia (BRI)', type: IntegrationType.Bank, status: IntegrationStatus.Inactive },
+    { id: 'bank-bni', name: 'Bank Negara Indonesia (BNI)', type: IntegrationType.Bank, status: IntegrationStatus.Active },
+    { id: 'bank-btn', name: 'Bank Tabungan Negara (BTN)', type: IntegrationType.Bank, status: IntegrationStatus.Inactive },
+    // --- Bank Swasta ---
     { id: 'bca-va', name: 'BCA', type: IntegrationType.Bank, status: IntegrationStatus.Active },
+    { id: 'bank-danamon', name: 'Bank Danamon', type: IntegrationType.Bank, status: IntegrationStatus.Inactive },
+    { id: 'bank-cimb', name: 'Bank CIMB Niaga', type: IntegrationType.Bank, status: IntegrationStatus.Inactive },
+    { id: 'bank-permata', name: 'Bank Permata', type: IntegrationType.Bank, status: IntegrationStatus.Inactive },
+    // --- Bank Daerah ---
+    { id: 'bank-dki', name: 'Bank DKI', type: IntegrationType.Bank, status: IntegrationStatus.Inactive },
+    { id: 'bank-bjb', name: 'Bank BJB', type: IntegrationType.Bank, status: IntegrationStatus.Inactive },
+    { id: 'bank-sumsel', name: 'Bank Sumsel Babel', type: IntegrationType.Bank, status: IntegrationStatus.Inactive },
+    // --- Bank Asing ---
+    { id: 'bank-citi', name: 'Citibank', type: IntegrationType.Bank, status: IntegrationStatus.Inactive },
+    { id: 'bank-hsbc', name: 'HSBC', type: IntegrationType.Bank, status: IntegrationStatus.Inactive },
+    { id: 'bank-sc', name: 'Standard Chartered', type: IntegrationType.Bank, status: IntegrationStatus.Inactive },
+    // --- Bank Syariah ---
+    { id: 'bank-bsi', name: 'Bank Syariah Indonesia (BSI)', type: IntegrationType.Bank, status: IntegrationStatus.Inactive },
+    { id: 'bank-muamalat', name: 'Bank Muamalat', type: IntegrationType.Bank, status: IntegrationStatus.Inactive },
+
+    // --- E-Wallets ---
     { id: 'gopay-gw', name: 'GoPay', type: IntegrationType.EWallet, status: IntegrationStatus.Inactive },
+    { id: 'ovo-gw', name: 'OVO', type: IntegrationType.EWallet, status: IntegrationStatus.Active },
+    { id: 'dana-gw', name: 'DANA', type: IntegrationType.EWallet, status: IntegrationStatus.Active },
+    { id: 'linkaja-gw', name: 'LinkAja', type: IntegrationType.EWallet, status: IntegrationStatus.Inactive },
+    { id: 'shopeepay-gw', name: 'ShopeePay', type: IntegrationType.EWallet, status: IntegrationStatus.Inactive },
+    { id: 'bayarind-gw', name: 'Bayarind', type: IntegrationType.EWallet, status: IntegrationStatus.Inactive },
+    { id: 'octo-gw', name: 'OCTO Mobile', type: IntegrationType.EWallet, status: IntegrationStatus.Inactive },
+    { id: 'sakuku-gw', name: 'Sakuku', type: IntegrationType.EWallet, status: IntegrationStatus.Inactive },
+    { id: 'jenius-gw', name: 'Jenius', type: IntegrationType.EWallet, status: IntegrationStatus.Inactive },
+    { id: 'doku-gw', name: 'Doku Wallet', type: IntegrationType.EWallet, status: IntegrationStatus.Inactive },
+
+    // --- Retail ---
+    { id: 'alfamart-retail', name: 'Alfamart', type: IntegrationType.Retail, status: IntegrationStatus.Active },
+    { id: 'indomaret-retail', name: 'Indomaret', type: IntegrationType.Retail, status: IntegrationStatus.Inactive },
 ];
+
 
 export const initialScalabilityServices: ScalabilityService[] = [
     { id: 'redis-1', name: 'Redis Cache', type: 'redis', status: ScalabilityServiceStatus.Inactive, cost: 0, logs: [], metadata: {} },
