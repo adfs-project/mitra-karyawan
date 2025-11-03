@@ -33,7 +33,8 @@ export interface MoodHistory {
 }
 
 export interface PayLaterStatus {
-    status: 'not_applied' | 'pending' | 'approved' | 'rejected';
+    // FIX: Added 'Pending Finance Approval' to support a two-step approval workflow.
+    status: 'not_applied' | 'pending' | 'Pending Finance Approval' | 'approved' | 'rejected';
     limit?: number;
     remainingLimit?: number;
 }

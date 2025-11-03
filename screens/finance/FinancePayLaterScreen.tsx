@@ -10,7 +10,8 @@ const FinancePayLaterScreen: React.FC = () => {
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [processingId, setProcessingId] = useState<string | null>(null);
 
-    const pendingApplications = useMemo(() => users.filter(u => u.payLater?.status === 'pending'), [users]);
+    // FIX: Changed filter from 'pending' to 'Pending Finance Approval' for the finance queue.
+    const pendingApplications = useMemo(() => users.filter(u => u.payLater?.status === 'Pending Finance Approval'), [users]);
     const historyApplications = useMemo(() => users.filter(u => u.payLater?.status === 'approved' || u.payLater?.status === 'rejected').sort((a,b) => (a.profile.name > b.profile.name ? 1 : -1)), [users]);
 
     const handleOpenApproveModal = (user: User) => {

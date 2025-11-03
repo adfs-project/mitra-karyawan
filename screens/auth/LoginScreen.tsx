@@ -37,23 +37,6 @@ const LoginScreen: React.FC = () => {
         }
     };
 
-    // Fungsi untuk menguji GlobalErrorCatcher dari halaman login (async throw)
-    const testAsyncError = () => {
-        console.log('Testing async error from LoginScreen...');
-        setTimeout(() => {
-            // Error ini akan dilempar di luar siklus render React
-            throw new Error("Async Error Test from LoginScreen.");
-        }, 100);
-    };
-
-    // Fungsi baru untuk menguji penolakan Promise yang tidak ditangani
-    const testPromiseRejection = () => {
-        console.log('Testing unhandled promise rejection...');
-        // Promise ini akan ditolak dan tidak ada .catch() yang akan menanganinya,
-        // sehingga memicu event 'unhandledrejection' pada window.
-        Promise.reject(new Error("Unhandled Promise Rejection Test."));
-    };
-
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
             <div className="w-full max-w-md bg-surface p-8 rounded-lg shadow-lg border border-border-color">
@@ -98,23 +81,6 @@ const LoginScreen: React.FC = () => {
                             Register
                         </Link>
                     </p>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                    <button
-                        onClick={testAsyncError}
-                        className="w-full flex items-center justify-center p-3 bg-yellow-500/10 text-yellow-500 rounded-lg font-bold hover:bg-yellow-500/20 transition-colors text-sm"
-                    >
-                        <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
-                        Test Error Boundary (Async Throw)
-                    </button>
-                    <button
-                        onClick={testPromiseRejection}
-                        className="w-full flex items-center justify-center p-3 bg-orange-500/10 text-orange-500 rounded-lg font-bold hover:bg-orange-500/20 transition-colors text-sm"
-                    >
-                        <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
-                        Test Error Boundary (Promise Rejection)
-                    </button>
                 </div>
             </div>
         </div>

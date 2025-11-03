@@ -142,20 +142,6 @@ const RecoveryUI: React.FC<ErrorBoundaryModule.FallbackProps> = ({ error, resetE
                     )}
                 </div>
 
-                 <div className="text-left my-6">
-                    <h2 className="font-bold text-lg flex items-center mb-2">
-                        <PencilSquareIcon className="h-5 w-5 mr-2 text-text-secondary" />
-                        Jelaskan Masalah Anda (Opsional)
-                    </h2>
-                     <textarea
-                        value={userDescription}
-                        onChange={(e) => setUserDescription(e.target.value)}
-                        rows={2}
-                        className="w-full bg-surface-light p-2 border border-border-color rounded-lg text-sm"
-                        placeholder="Jika perbaikan AI gagal, jelaskan apa yang Anda lakukan sebelum error terjadi..."
-                    />
-                </div>
-                
                  <div className="mt-4">
                     <button
                         onClick={handleReturnToHome}

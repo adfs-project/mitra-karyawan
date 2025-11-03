@@ -97,6 +97,7 @@ interface DataContextType extends DataContextState {
     approveOpexByFinance: (id: string) => Promise<void>;
     rejectOpexByFinance: (id: string, reason: string) => Promise<void>;
     addMultipleArticlesByAdmin: (articlesData: any[]) => Promise<{ success: number; failed: number; errors: string[] }>;
+    approvePayLaterByHr: (userId: string) => Promise<void>;
     approvePayLater: (userId: string, limit: number) => Promise<void>;
     rejectPayLater: (userId: string) => Promise<void>;
 
@@ -887,6 +888,36 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, [state.users, showToast]);
 
+    // FIX: Added approvePayLaterByHr to support two-step PayLater approval.
+    const approvePayLaterByHr = useCallback(async (userId: string) => {
+        const userIndex = state.users.findIndex(u => u.id === userId);
+        if (userIndex === -1) {
+            showToast('User not found.', 'error');
+            return;
+        }
+
+        const updatedUsers = [...state.users];
+        const userToUpdate = updatedUsers[userIndex];
+
+        if (userToUpdate.payLater && userToUpdate.payLater.status === 'pending') {
+            updatedUsers[userIndex] = {
+                ...userToUpdate,
+                payLater: { ...userToUpdate.payLater, status: 'Pending Finance Approval' }
+            };
+
+            updateState('users', updatedUsers);
+
+            // Notify Finance
+            const financeUser = state.users.find(u => u.role === Role.Finance && u.profile.branch === userToUpdate.profile.branch);
+            if (financeUser) {
+                addNotification(financeUser.id, `PayLater application from ${userToUpdate.profile.name} needs your approval.`, 'info');
+            }
+            showToast(`PayLater application for ${userToUpdate.profile.name} verified and forwarded to Finance.`, 'success');
+        } else {
+            showToast('Application is not in a pending state.', 'warning');
+        }
+    }, [state.users, updateState, addNotification, showToast]);
+
     const approvePayLater = useCallback(async (userId: string, limit: number) => {
         const userIndex = state.users.findIndex(u => u.id === userId);
         if (userIndex === -1) {
@@ -1074,6 +1105,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             updateUserStatus,
             createHealthChallenge,
             getBranchMoodAnalytics,
+            approvePayLaterByHr,
             approvePayLater,
             rejectPayLater,
             generatePayslipData,
