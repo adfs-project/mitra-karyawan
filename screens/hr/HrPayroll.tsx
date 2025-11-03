@@ -28,6 +28,10 @@ const PayslipView: React.FC<{ employee: User; period: string, payrollData: any }
                         <td>NAMA : {employee.profile.name}</td>
                         <td className="text-right">NPWP : N/A</td>
                     </tr>
+                    <tr>
+                        <td>SKOR KINERJA: {payrollData.performanceScore.toFixed(2)}</td>
+                        <td className="text-right"></td>
+                    </tr>
                 </tbody>
             </table>
              <table className="w-full my-2">
@@ -99,13 +103,20 @@ const PayslipView: React.FC<{ employee: User; period: string, payrollData: any }
 
 const HrPayroll: React.FC = () => {
     const { user: hrUser } = useAuth();
-    const { users, generatePayslipData } = useData();
+    const { users, generatePayslipData, performanceReviews } = useData();
     const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
 
     const branchEmployees = useMemo(() => {
         if (!hrUser || hrUser.role !== 'HR') return [];
         return users.filter(u => u.profile.branch === hrUser.profile.branch && u.role === 'User');
     }, [users, hrUser]);
+
+    const reviewForSelected = useMemo(() => {
+        if (selectedEmployeeId) {
+            return performanceReviews.find(pr => pr.userId === selectedEmployeeId && pr.period === 'Q3 2024');
+        }
+        return null;
+    }, [selectedEmployeeId, performanceReviews]);
 
     const selectedEmployee = users.find(u => u.id === selectedEmployeeId);
     const payrollDataForSelected = useMemo(() => {
@@ -160,6 +171,15 @@ const HrPayroll: React.FC = () => {
                         Cetak Slip Gaji
                     </button>
                 </div>
+                {reviewForSelected && (
+                    <div className="mt-4 text-sm bg-surface-light p-3 rounded-lg border border-border-color">
+                        Skor Kinerja (Q3 2024):{' '}
+                        <span className={`font-bold ${reviewForSelected.status === 'Completed' ? 'text-primary' : 'text-yellow-400'}`}>
+                            {reviewForSelected.status === 'Completed' ? reviewForSelected.finalScore.toFixed(2) : 'Pending'}
+                        </span>
+                        {reviewForSelected.status !== 'Completed' && <p className="text-xs text-yellow-500 mt-1">Insentif kinerja akan dihitung sebagai 0 jika skor belum difinalisasi oleh HR di menu Performance.</p>}
+                    </div>
+                )}
             </div>
 
             {selectedEmployee && payrollDataForSelected ? (

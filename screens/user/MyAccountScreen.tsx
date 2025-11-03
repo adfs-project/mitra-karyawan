@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
+// FIX: Import 'ClipboardDocumentCheckIcon' from heroicons to resolve the 'Cannot find name' error.
+import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon, ClipboardDocumentListIcon, ClipboardDocumentCheckIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import { Role, User } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 // FIX: Replaced 'useApp' and 'useHR' with the consolidated 'useData' hook.
 import { useData } from '../../contexts/DataContext';
+import MyKpiModal from '../../components/user/MyKpiModal';
 
 
 const EditProfileModal: React.FC<{
@@ -244,6 +246,10 @@ const PayslipModal: React.FC<{
                                 <td>NAMA : {user.profile.name}</td>
                                 <td className="text-right">NPWP : N/A</td>
                             </tr>
+                             <tr>
+                                <td>SKOR KINERJA: {payroll.performanceScore.toFixed(2)}</td>
+                                <td className="text-right"></td>
+                            </tr>
                         </tbody>
                     </table>
                     <table className="w-full my-2">
@@ -329,11 +335,17 @@ const ThemeToggle: React.FC = () => {
 
 const MyAccountScreen: React.FC = () => {
     const { user, logout } = useAuth();
-    const { applyForPayLater, submitLeaveRequest } = useData();
+    const { applyForPayLater, users } = useData();
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [isLeaveModalOpen, setLeaveModalOpen] = useState(false);
     const [isChangePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
     const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
+    const [isKpiModalOpen, setIsKpiModalOpen] = useState(false);
+
+    const isManager = useMemo(() => {
+        if (!user) return false;
+        return users.some(u => u.profile.managerId === user.id);
+    }, [users, user]);
 
     if (!user || !user.profile) return null;
 
@@ -343,6 +355,7 @@ const MyAccountScreen: React.FC = () => {
         { name: 'Toko Saya', icon: BuildingStorefrontIcon, path: '/my-products' },
         { name: 'Artikel Tersimpan', icon: BookmarkIcon, path: '/bookmarked-articles' },
         { name: 'Riwayat Absensi', icon: ClipboardDocumentListIcon, path: '/attendance-history' },
+        { name: 'Kinerja & KPI', icon: ClipboardDocumentCheckIcon, path: '#', action: () => setIsKpiModalOpen(true) },
         { name: 'Pengajuan Dana Opex', icon: CreditCardIcon, path: '/opex' },
         { name: 'Ajukan Cuti', icon: CalendarDaysIcon, path: '#', action: () => setLeaveModalOpen(true) },
         { name: 'Aplikasi PayLater', icon: CreditCardIcon, path: '#', action: () => applyForPayLater() },
@@ -351,6 +364,7 @@ const MyAccountScreen: React.FC = () => {
     ];
     
     const hrMenuItem = { name: 'Portal HR', icon: BriefcaseIcon, path: '/hr-portal' };
+    const managerMenuItem = { name: 'Portal Manajer', icon: UserGroupIcon, path: '/manager/dashboard' };
 
     const MenuItem: React.FC<{ item: { name: string, icon: React.ElementType, path: string, action?: () => void } }> = ({ item }) => {
         const content = (
@@ -434,6 +448,15 @@ const MyAccountScreen: React.FC = () => {
                         <ChevronRightIcon className="h-5 w-5 text-primary" />
                     </Link>
                 )}
+                {isManager && (
+                     <Link to={managerMenuItem.path} key={managerMenuItem.name} className="flex justify-between items-center p-4 w-full text-left border-t border-border-color bg-secondary/10 hover:bg-secondary/20">
+                        <div className="flex items-center">
+                            <managerMenuItem.icon className="h-6 w-6 text-secondary mr-4" />
+                            <span className="text-secondary font-bold">{managerMenuItem.name}</span>
+                        </div>
+                        <ChevronRightIcon className="h-5 w-5 text-secondary" />
+                    </Link>
+                )}
                 {menuItems.filter(item => item.name !== 'Aplikasi PayLater').map((item) => <MenuItem key={item.name} item={item} />)}
             </div>
 
@@ -451,6 +474,7 @@ const MyAccountScreen: React.FC = () => {
             <LeaveRequestModal isOpen={isLeaveModalOpen} onClose={() => setLeaveModalOpen(false)} />
             <ChangePasswordModal isOpen={isChangePasswordModalOpen} onClose={() => setChangePasswordModalOpen(false)} />
             <PayslipModal isOpen={isPayslipModalOpen} onClose={() => setIsPayslipModalOpen(false)} user={user} />
+            <MyKpiModal isOpen={isKpiModalOpen} onClose={() => setIsKpiModalOpen(false)} user={user} />
         </div>
     );
 };

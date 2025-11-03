@@ -21,13 +21,18 @@ const ProviderLogo = ({ providerName }: { providerName: string }) => {
 const GameVoucherScreen = () => {
     const navigate = useNavigate();
     const { serviceLinkage, apiIntegrations, showToast } = useData();
+    const [userId, setUserId] = useState('');
 
     const provider = apiIntegrations.find(api => api.id === serviceLinkage['lifestyle-game']);
     const isConnected = !!provider;
 
     const handleNext = () => {
+        if (!userId.trim()) {
+            showToast('User ID harus diisi.', 'warning');
+            return;
+        }
         if (provider) {
-            showToast(`Mengecek User ID via ${provider.name}... (Simulasi)`, 'info');
+            showToast(`Mengecek User ID ${userId} via ${provider.name}... (Simulasi)`, 'info');
         }
     };
 
@@ -61,7 +66,14 @@ const GameVoucherScreen = () => {
                     </div>
                     <div>
                         <label className="text-sm font-bold text-text-secondary">User ID</label>
-                        <input type="text" disabled={!isConnected} className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color disabled:cursor-not-allowed" />
+                        <input 
+                            type="text" 
+                            disabled={!isConnected} 
+                            value={userId}
+                            onChange={e => setUserId(e.target.value)}
+                            className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color disabled:cursor-not-allowed" 
+                            placeholder="Masukkan User ID Game Anda"
+                        />
                     </div>
                     <button onClick={handleNext} disabled={!isConnected} className={`w-full p-3 font-bold rounded-lg ${isConnected ? 'btn-primary' : 'bg-gray-600 cursor-not-allowed'}`}>
                         Pilih Nominal

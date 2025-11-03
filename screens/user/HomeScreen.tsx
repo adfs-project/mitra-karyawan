@@ -4,23 +4,37 @@ import SmartAssistant from '../../components/user/SmartAssistant';
 import ForYouWidget from '../../components/user/ForYouWidget';
 import CompactArticleCard from '../../components/user/news/CompactArticleCard';
 import { useData } from '../../contexts/DataContext';
-import { BuildingStorefrontIcon, CurrencyDollarIcon, NewspaperIcon, ClockIcon, Squares2X2Icon } from '@heroicons/react/24/solid';
+import { BuildingStorefrontIcon, CurrencyDollarIcon, NewspaperIcon, ClockIcon, Squares2X2Icon, SparklesIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import AttendanceCameraModal from '../../components/user/AttendanceCameraModal';
 
 const QuickAccess: React.FC = () => {
-    const items = [
+    const { homePageConfig, logEngagementEvent } = useData();
+
+    const baseItems = [
         { name: 'Market', icon: BuildingStorefrontIcon, path: '/market' },
         { name: 'Wallet', icon: CurrencyDollarIcon, path: '/wallet' },
         { name: 'News', icon: NewspaperIcon, path: '/news' },
     ];
+
+    if (homePageConfig.featureFlags.aiInvestmentBot) {
+        baseItems.push({ name: 'AI Bot', icon: SparklesIcon, path: '/placeholder/ai-investment-bot' });
+    }
+
+    const gridColsClass = baseItems.length === 4 ? 'grid-cols-4' : 'grid-cols-3';
+
     return (
         <div>
              <h2 className="text-lg font-bold text-text-primary mb-2">Akses Cepat</h2>
-             <div className="grid grid-cols-3 gap-4 text-center">
-                {items.map(item => (
-                    <Link to={item.path} key={item.name} className="bg-surface p-4 rounded-lg flex flex-col items-center justify-center">
+             <div className={`grid ${gridColsClass} gap-4 text-center`}>
+                {baseItems.map(item => (
+                    <Link 
+                        to={item.path} 
+                        key={item.name} 
+                        onClick={() => logEngagementEvent('quickAccessClicks', item.name)}
+                        className="bg-surface p-4 rounded-lg flex flex-col items-center justify-center aspect-square"
+                    >
                         <item.icon className="h-8 w-8 text-primary mb-2" />
                         <span className="text-xs font-semibold">{item.name}</span>
                     </Link>

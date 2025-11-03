@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, BoltIcon, BuildingLibraryIcon, WifiIcon, ShieldCheckIcon } from '@heroicons/react/24/solid';
 import { useData } from '../../../contexts/DataContext';
@@ -13,12 +13,17 @@ const billers = [
 const PPOBScreen = () => {
     const navigate = useNavigate();
     const { serviceLinkage, apiIntegrations, showToast } = useData();
+    const [customerNumber, setCustomerNumber] = useState('');
 
-    const handlePay = (featureId: string) => {
+    const handlePay = (featureId: string, billerName: string) => {
+        if (!customerNumber.trim()) {
+            showToast('Nomor pelanggan harus diisi.', 'warning');
+            return;
+        }
         const providerId = serviceLinkage[featureId];
         const provider = apiIntegrations.find(api => api.id === providerId);
         if (provider) {
-            showToast(`Mencoba membayar melalui ${provider.name}... (Simulasi)`, 'info');
+            showToast(`Membayar tagihan ${billerName} untuk no. ${customerNumber} via ${provider.name}... (Simulasi)`, 'info');
         }
     };
 
@@ -35,7 +40,13 @@ const PPOBScreen = () => {
                 <div className="space-y-4">
                     <div>
                         <label className="text-sm font-bold text-text-secondary">Nomor Pelanggan</label>
-                        <input type="text" className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color" placeholder="Contoh: 1234567890" />
+                        <input 
+                            type="text" 
+                            value={customerNumber}
+                            onChange={e => setCustomerNumber(e.target.value)}
+                            className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color" 
+                            placeholder="Contoh: 1234567890" 
+                        />
                     </div>
                     {billers.map(biller => {
                         const providerId = serviceLinkage[biller.id];
@@ -50,7 +61,7 @@ const PPOBScreen = () => {
                                 </div>
                                 <div className="text-right">
                                     <button 
-                                        onClick={() => isConnected && handlePay(biller.id)}
+                                        onClick={() => isConnected && handlePay(biller.id, biller.name)}
                                         disabled={!isConnected} 
                                         className={`px-4 py-1 text-sm font-bold rounded-full ${isConnected ? 'bg-primary text-black' : 'bg-gray-600 cursor-not-allowed'}`}
                                     >

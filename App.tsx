@@ -1,4 +1,3 @@
-// FIX: The file content was placeholder text. Replaced it with the root application component, setting up providers and routing.
 import React, { Suspense, useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import * as ErrorBoundaryModule from 'react-error-boundary';
@@ -13,6 +12,7 @@ import UserLayout from './components/layout/UserLayout';
 import AdminLayout from './components/layout/AdminLayout';
 import HrLayout from './components/layout/HrLayout';
 import FinanceLayout from './components/layout/FinanceLayout';
+import ManagerLayout from './components/layout/ManagerLayout';
 
 const CenteredLoading: React.FC = () => (
     <div className="flex h-screen w-screen items-center justify-center bg-background text-text-primary text-center">
@@ -85,6 +85,7 @@ const renderWithLayout = (component: React.ReactNode, layout: RouteConfig['layou
         case 'admin': return <AdminLayout>{component}</AdminLayout>;
         case 'hr': return <HrLayout>{component}</HrLayout>;
         case 'finance': return <FinanceLayout>{component}</FinanceLayout>;
+        case 'manager': return <ManagerLayout>{component}</ManagerLayout>;
         default: return component;
     }
 };

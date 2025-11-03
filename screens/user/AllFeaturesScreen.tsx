@@ -11,12 +11,12 @@ import {
 } from '@heroicons/react/24/solid';
 
 const features = [
-    { name: 'PPOB & Tagihan', path: '/placeholder/PPOB & Tagihan', icon: BoltIcon, description: 'Bayar listrik, air, internet, dll.' },
-    { name: 'Layanan Pemerintah', path: '/placeholder/Layanan Pemerintah', icon: BuildingLibraryIcon, description: 'Bayar PBB, e-Samsat, & lainnya.' },
-    { name: 'Gaya Hidup', path: '/placeholder/Gaya Hidup', icon: TicketIcon, description: 'Tiket bioskop, voucher game, & donasi.' },
-    { name: 'Pulsa & Data', path: '/placeholder/Pulsa & Data', icon: DevicePhoneMobileIcon, description: 'Isi ulang pulsa & paket data.' },
-    { name: 'Tarik Tunai', path: '/placeholder/Tarik Tunai', icon: CreditCardIcon, description: 'Ambil uang tunai di ATM & retail.' },
-    { name: 'Belanja Harian', path: '/placeholder/Belanja Harian', icon: ShoppingBagIcon, description: 'Kebutuhan harian dari Koperasi.' },
+    { name: 'PPOB & Tagihan', path: '/services/ppob', icon: BoltIcon, description: 'Bayar listrik, air, internet, dll.' },
+    { name: 'Layanan Pemerintah', path: '/services/government', icon: BuildingLibraryIcon, description: 'Bayar PBB, e-Samsat, & lainnya.' },
+    { name: 'Gaya Hidup', path: '/services/lifestyle', icon: TicketIcon, description: 'Tiket bioskop, voucher game, & donasi.' },
+    { name: 'Pulsa & Data', path: '/services/topup', icon: DevicePhoneMobileIcon, description: 'Isi ulang pulsa & paket data.' },
+    { name: 'Tarik Tunai', path: '/services/cash-out', icon: CreditCardIcon, description: 'Ambil uang tunai di ATM & retail.' },
+    { name: 'Belanja Harian', path: '/services/daily-needs', icon: ShoppingBagIcon, description: 'Kebutuhan harian dari Koperasi.' },
 ];
 
 const AllFeaturesScreen: React.FC = () => {

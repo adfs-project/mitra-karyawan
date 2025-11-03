@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
-import { LinkIcon, BoltIcon, TicketIcon, PhoneIcon, ChevronDownIcon } from '@heroicons/react/24/solid';
+import { LinkIcon, BoltIcon, TicketIcon, PhoneIcon, ChevronDownIcon, BuildingLibraryIcon, CreditCardIcon } from '@heroicons/react/24/solid';
 import { IntegrationStatus } from '../../types';
 
 interface Feature {
@@ -26,6 +26,15 @@ const featureGroups: FeatureGroup[] = [
         ],
     },
     {
+        title: 'Layanan Pemerintah',
+        icon: BuildingLibraryIcon,
+        features: [
+            { id: 'gov-pbb', name: 'Pajak PBB' },
+            { id: 'gov-samsat', name: 'e-Samsat' },
+            { id: 'gov-mpn', name: 'Penerimaan Negara (MPN)' },
+        ],
+    },
+    {
         title: 'Pulsa & Data',
         icon: PhoneIcon,
         features: [{ id: 'pulsa', name: 'Isi Ulang Pulsa & Paket Data' }],
@@ -37,6 +46,13 @@ const featureGroups: FeatureGroup[] = [
             { id: 'lifestyle-cinema', name: 'Tiket Bioskop' },
             { id: 'lifestyle-game', name: 'Voucher Game' },
             { id: 'lifestyle-donation', name: 'Donasi' },
+        ],
+    },
+    {
+        title: 'Layanan Finansial',
+        icon: CreditCardIcon,
+        features: [
+            { id: 'cash-out', name: 'Tarik Tunai' },
         ],
     },
 ];

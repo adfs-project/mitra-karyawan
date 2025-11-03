@@ -1,19 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
-// FIX: Replaced deprecated `useApp` hook with the consolidated `useData` hook.
 import { useData } from '../../../contexts/DataContext';
+
+const ProviderLogo = ({ providerName }: { providerName: string }) => {
+    const [logoError, setLogoError] = useState(false);
+    const sanitizedName = providerName.toLowerCase().replace(/\s+/g, '');
+    const logoUrl = `https://logo.clearbit.com/${sanitizedName}.com`;
+
+    if (logoError) {
+        return (
+            <div className="h-8 w-8 rounded-full bg-border-color flex items-center justify-center font-bold text-text-secondary flex-shrink-0">
+                {providerName.charAt(0)}
+            </div>
+        );
+    }
+    return <img src={logoUrl} alt={`${providerName} logo`} className="h-8 w-8 rounded-full bg-white" onError={() => setLogoError(true)} />;
+};
 
 const CashOutScreen: React.FC = () => {
     const navigate = useNavigate();
-    const { showToast } = useData();
+    const { serviceLinkage, apiIntegrations, showToast } = useData();
+    const [amount, setAmount] = useState<number>(0);
 
-    useEffect(() => {
-        const timer: number = window.setTimeout(() => {
-            showToast('Fitur Tarik Tunai segera hadir!', 'info');
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [showToast]);
+    const provider = apiIntegrations.find(api => api.id === serviceLinkage['cash-out']);
+    const isConnected = !!provider;
+
+    const handleGenerateCode = () => {
+        if (!amount || amount <= 0) {
+            showToast('Jumlah penarikan harus diisi.', 'warning');
+            return;
+        }
+        if (provider) {
+            showToast(`Membuat kode penarikan untuk ${new Intl.NumberFormat('id-ID').format(amount)} via ${provider.name}... (Simulasi)`, 'info');
+        }
+    };
 
     return (
         <div className="p-4 space-y-6">
@@ -24,13 +45,34 @@ const CashOutScreen: React.FC = () => {
                 <h1 className="text-2xl font-bold text-primary">Tarik Tunai</h1>
             </div>
             <div className="bg-surface p-6 rounded-lg border border-border-color">
-                <p className="text-text-secondary mb-4">Fitur ini sedang dalam pengembangan. Anda akan dapat menarik saldo dompet Anda di ATM atau gerai retail terdekat.</p>
-                <div className="space-y-4 opacity-50">
-                    <div>
-                        <label className="text-sm font-bold text-text-secondary">Jumlah Penarikan</label>
-                        <input type="number" disabled className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color cursor-not-allowed" placeholder="e.g., 100000" />
+                {isConnected && provider && (
+                    <div className="mb-4 flex items-center space-x-3 bg-surface-light p-3 rounded-lg border border-border-color">
+                        <ProviderLogo providerName={provider.name} />
+                        <p className="text-sm text-text-secondary">Layanan ini ditenagai oleh <span className="font-bold text-text-primary">{provider.name}</span></p>
                     </div>
-                     <button disabled className="w-full p-3 bg-gray-600 font-bold rounded-lg cursor-not-allowed">
+                )}
+                <p className="text-text-secondary mb-4">
+                    {isConnected 
+                        ? 'Tarik saldo dompet Anda di ATM atau gerai retail terdekat.'
+                        : 'Layanan ini belum terhubung ke penyedia. Silakan hubungi admin.'
+                    }
+                </p>
+                <div className={`space-y-4 ${!isConnected ? 'opacity-70' : ''}`}>
+                    <div>
+                        <label className="text-sm font-bold text-text-secondary">Jumlah Penarikan (IDR)</label>
+                        <input 
+                            type="number"
+                            value={amount || ''}
+                            onChange={e => setAmount(Number(e.target.value))}
+                            disabled={!isConnected}
+                            className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color disabled:cursor-not-allowed" 
+                            placeholder="e.g., 100000" />
+                    </div>
+                     <button 
+                        onClick={handleGenerateCode}
+                        disabled={!isConnected} 
+                        className={`w-full p-3 font-bold rounded-lg ${isConnected ? 'btn-primary' : 'bg-gray-600 cursor-not-allowed'}`}
+                    >
                         Buat Kode Penarikan
                     </button>
                 </div>

@@ -22,6 +22,7 @@ export interface UserProfile {
     employeeType?: 'Contract' | 'Permanent';
     placeOfBirth?: string;
     dateOfBirth?: string;
+    managerId?: string;
 }
 
 export type Achievement = 'First Purchase' | 'Punctual Payer' | 'Top Spender';
@@ -429,4 +430,23 @@ export interface SystemIntegrityLog {
     type: SystemIntegrityLogType;
     message: string;
     details?: Record<string, any>;
+}
+
+export interface Kpi {
+    id: string;
+    metric: string;
+    target: number;
+    actual: number;
+    weight: number; // in percentage, e.g., 50 for 50%
+    employeeComment?: string;
+    managerComment?: string;
+}
+
+export interface PerformanceReview {
+    id: string;
+    userId: string;
+    period: string; // e.g., "Q3 2024"
+    kpis: Kpi[];
+    finalScore: number; // Final weighted score
+    status: 'Pending' | 'SelfAssessmentComplete' | 'Finalized';
 }

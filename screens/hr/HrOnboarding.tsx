@@ -11,6 +11,7 @@ const HrOnboarding: React.FC = () => {
     const { users, updateUserStatus } = useData();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
+    const [processingId, setProcessingId] = useState<string | null>(null);
 
 
     const branchEmployees = useMemo(() => {
@@ -19,9 +20,11 @@ const HrOnboarding: React.FC = () => {
             .sort((a, b) => new Date(b.profile.joinDate || 0).getTime() - new Date(a.profile.joinDate || 0).getTime());
     }, [users, hrUser]);
 
-    const handleOffboard = (employee: User) => {
+    const handleOffboard = async (employee: User) => {
         if (window.confirm(`Are you sure you want to offboard (deactivate) ${employee.profile.name}? This action cannot be undone easily.`)) {
-            updateUserStatus(employee.id, 'inactive');
+            setProcessingId(employee.id);
+            await updateUserStatus(employee.id, 'inactive');
+            setProcessingId(null);
         }
     };
 
@@ -73,10 +76,14 @@ const HrOnboarding: React.FC = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            {emp.status === 'active' && (
-                                                <button onClick={() => handleOffboard(emp)} className="font-medium text-secondary hover:underline">
-                                                    Offboard
-                                                </button>
+                                            {processingId === emp.id ? (
+                                                <div className="flex justify-center"><div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div></div>
+                                            ) : (
+                                                emp.status === 'active' && (
+                                                    <button onClick={() => handleOffboard(emp)} className="font-medium text-secondary hover:underline">
+                                                        Offboard
+                                                    </button>
+                                                )
                                             )}
                                         </td>
                                     </tr>

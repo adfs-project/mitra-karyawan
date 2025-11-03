@@ -21,13 +21,18 @@ const ProviderLogo = ({ providerName }: { providerName: string }) => {
 const DonationScreen = () => {
     const navigate = useNavigate();
     const { serviceLinkage, apiIntegrations, showToast } = useData();
+    const [amount, setAmount] = useState<number>(0);
 
     const provider = apiIntegrations.find(api => api.id === serviceLinkage['lifestyle-donation']);
     const isConnected = !!provider;
     
     const handleDonate = () => {
+        if (!amount || amount <= 0) {
+            showToast('Jumlah donasi harus diisi.', 'warning');
+            return;
+        }
         if (provider) {
-            showToast(`Memproses donasi melalui ${provider.name}... (Simulasi)`, 'info');
+            showToast(`Memproses donasi sebesar ${new Intl.NumberFormat('id-ID').format(amount)} melalui ${provider.name}... (Simulasi)`, 'info');
         }
     };
 
@@ -61,7 +66,14 @@ const DonationScreen = () => {
                     </div>
                      <div>
                         <label className="text-sm font-bold text-text-secondary">Jumlah Donasi (IDR)</label>
-                        <input type="number" disabled={!isConnected} className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color disabled:cursor-not-allowed" />
+                        <input 
+                            type="number" 
+                            disabled={!isConnected} 
+                            value={amount || ''}
+                            onChange={e => setAmount(Number(e.target.value))}
+                            className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color disabled:cursor-not-allowed" 
+                            placeholder="e.g., 50000"
+                        />
                     </div>
                     <button onClick={handleDonate} disabled={!isConnected} className={`w-full p-3 font-bold rounded-lg ${isConnected ? 'btn-primary' : 'bg-gray-600 cursor-not-allowed'}`}>
                         Donasi Sekarang

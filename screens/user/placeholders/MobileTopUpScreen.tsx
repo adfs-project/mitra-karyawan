@@ -24,13 +24,22 @@ const ProviderLogo = ({ providerName }: { providerName: string }) => {
 const MobileTopUpScreen = () => {
     const navigate = useNavigate();
     const { serviceLinkage, apiIntegrations, showToast } = useData();
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [selectedNominal, setSelectedNominal] = useState<number | null>(null);
 
     const provider = apiIntegrations.find(api => api.id === serviceLinkage['pulsa']);
     const isConnected = !!provider;
 
     const handleBuy = () => {
+        if (!phoneNumber.trim() || !selectedNominal) {
+            showToast('Nomor ponsel dan nominal harus diisi.', 'warning');
+            return;
+        }
         if (provider) {
-            showToast(`Memproses pembelian pulsa via ${provider.name}... (Simulasi)`, 'info');
+            showToast(`Membeli pulsa ${new Intl.NumberFormat('id-ID').format(selectedNominal)} untuk ${phoneNumber} via ${provider.name}... (Simulasi)`, 'info');
+            // Reset form
+            setPhoneNumber('');
+            setSelectedNominal(null);
         }
     };
 
@@ -58,13 +67,24 @@ const MobileTopUpScreen = () => {
                 <div className={`space-y-4 ${!isConnected ? 'opacity-60' : ''}`}>
                     <div>
                         <label className="text-sm font-bold text-text-secondary">Nomor Ponsel</label>
-                        <input type="tel" disabled={!isConnected} className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color disabled:cursor-not-allowed" placeholder="081234567890" />
+                        <input 
+                            type="tel" 
+                            value={phoneNumber}
+                            onChange={e => setPhoneNumber(e.target.value)}
+                            disabled={!isConnected} 
+                            className="w-full mt-1 p-3 bg-surface-light rounded border border-border-color disabled:cursor-not-allowed" 
+                            placeholder="081234567890" />
                     </div>
                     <div>
                         <label className="text-sm font-bold text-text-secondary">Pilih Nominal</label>
                         <div className="grid grid-cols-2 gap-3 mt-1">
                             {nominals.map(nom => (
-                                <button key={nom} disabled={!isConnected} className="p-3 bg-surface-light rounded-lg border border-border-color text-left disabled:cursor-not-allowed disabled:opacity-70 hover:border-primary">
+                                <button 
+                                    key={nom} 
+                                    onClick={() => setSelectedNominal(nom)}
+                                    disabled={!isConnected} 
+                                    className={`p-3 bg-surface-light rounded-lg border-2 text-left disabled:cursor-not-allowed disabled:opacity-70 hover:border-primary transition-colors ${selectedNominal === nom ? 'border-primary' : 'border-border-color'}`}
+                                >
                                     <p className="font-bold text-text-primary">{new Intl.NumberFormat('id-ID').format(nom)}</p>
                                     <p className="text-xs text-text-secondary">Harga: {new Intl.NumberFormat('id-ID', {style: 'currency', currency: 'IDR'}).format(nom + 1500)}</p>
                                 </button>
