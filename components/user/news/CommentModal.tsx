@@ -1,8 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Article } from '../../../packages/shared/types';
-import { useAuth } from '../../../packages/shared/contexts/AuthContext';
-// FIX: Replaced useCore with useApp as DataContext is deprecated.
-import { useData } from '../../../packages/shared/contexts/DataContext';
+import { Article, useAuth, useData } from '@mk/shared';
 import { XMarkIcon, PaperAirplaneIcon, HandThumbUpIcon } from '@heroicons/react/24/outline';
 import { HandThumbUpIcon as HandThumbUpSolidIcon } from '@heroicons/react/24/solid';
 

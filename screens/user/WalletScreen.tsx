@@ -1,10 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+import { useAuth, useData, Transaction } from '@mk/shared';
 import { SparklesIcon } from '@heroicons/react/24/solid';
-// FIX: Import ArrowDownCircleIcon from heroicons and remove dummy component.
 import { FunnelIcon, ArrowUpCircleIcon, ArrowsRightLeftIcon, ArrowDownCircleIcon } from '@heroicons/react/24/outline';
-import { Transaction } from '../../types';
 
 import WalletAnalytics from '../../components/user/wallet/WalletAnalytics';
 import FinancialPlanning from '../../components/user/wallet/FinancialPlanning';

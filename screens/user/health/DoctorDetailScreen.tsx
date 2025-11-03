@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useData } from '../../../contexts/DataContext';
+import { useData } from '@mk/shared';
 import { ArrowLeftIcon, CalendarDaysIcon, ClockIcon } from '@heroicons/react/24/outline';
 import BookingModal from '../../../components/user/health/BookingModal';
 

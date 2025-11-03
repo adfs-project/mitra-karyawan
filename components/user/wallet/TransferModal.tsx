@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../../packages/shared/contexts/AuthContext';
-// FIX: Replaced useCore with useApp as DataContext is deprecated.
-import { useData } from '../../../packages/shared/contexts/DataContext';
+import { useAuth, useData } from '@mk/shared';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const TransferModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {

@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../../packages/shared/contexts/AuthContext';
-// FIX: Replaced useCore with useApp as DataContext is deprecated.
-import { useData } from '../../../packages/shared/contexts/DataContext';
-import { Budget, ScheduledPayment } from '../../../packages/shared/types';
+import { useAuth, useData, Budget, ScheduledPayment } from '@mk/shared';
 import { PlusIcon, BanknotesIcon, CalendarDaysIcon, PencilIcon, LockClosedIcon } from '@heroicons/react/24/solid';
 import BudgetModal from './BudgetModal';
 import ScheduledPaymentModal from './ScheduledPaymentModal';

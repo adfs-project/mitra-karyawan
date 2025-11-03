@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useData } from '../../../contexts/DataContext';
-import { Budget } from '../../../types';
+import { useData, Budget } from '@mk/shared';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 interface BudgetModalProps {

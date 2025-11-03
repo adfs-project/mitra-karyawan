@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Doctor } from '../../../packages/shared/types';
-import { useData } from '../../../packages/shared/contexts/DataContext';
+import { Doctor, useData } from '@mk/shared';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const BookingModal: React.FC<{

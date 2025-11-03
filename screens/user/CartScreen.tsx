@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCartIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+import { useAuth, useData } from '@mk/shared';
 
 const CartScreen: React.FC = () => {
     const { cart, products, removeFromCart, updateCartQuantity, checkoutCart, showToast } = useData();

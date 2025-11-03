@@ -1,7 +1,5 @@
 import React from 'react';
-// FIX: Replaced useCore with useApp as DataContext is deprecated.
-import { useData } from '../../contexts/DataContext';
-import { useAuth } from '../../contexts/AuthContext';
+import { useData, useAuth } from '@mk/shared';
 import { Link } from 'react-router-dom';
 import { BookmarkIcon } from '@heroicons/react/24/outline';
 import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';

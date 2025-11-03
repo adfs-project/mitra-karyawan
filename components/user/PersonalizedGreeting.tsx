@@ -1,7 +1,5 @@
 import React from 'react';
-import { useAuth } from '../../packages/shared/contexts/AuthContext';
-// FIX: Replaced useCore with useApp as DataContext is deprecated.
-import { useData } from '../../packages/shared/contexts/DataContext';
+import { useAuth, useData } from '@mk/shared';
 
 const PersonalizedGreeting: React.FC = () => {
     const { user } = useAuth();

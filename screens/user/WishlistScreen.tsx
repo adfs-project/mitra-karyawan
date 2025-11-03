@@ -1,9 +1,8 @@
 import React from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth, useData } from '@mk/shared';
 import { Link } from 'react-router-dom';
 import { HeartIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
-import { useData } from '../../contexts/DataContext';
 
 const WishlistScreen: React.FC = () => {
     const { user } = useAuth();

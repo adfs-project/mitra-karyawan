@@ -1,10 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { XMarkIcon, PaperAirplaneIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import { GoogleGenAI } from "@google/genai";
-import { Transaction } from '../../../packages/shared/types';
-import { useData } from '../../../packages/shared/contexts/DataContext';
-import { buildSecurePrompt } from '../../../packages/shared/services/aiGuardrailService';
-import loggingService from '../../../packages/shared/services/loggingService';
+import { Transaction, useData, buildSecurePrompt, loggingService } from '@mk/shared';
 
 interface Message {
     sender: 'user' | 'ai';

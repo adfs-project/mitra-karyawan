@@ -1,12 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-// FIX: Import 'ClipboardDocumentCheckIcon' from heroicons to resolve the 'Cannot find name' error.
+import { useAuth, Role, User, useTheme, useData } from '@mk/shared';
 import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon, ClipboardDocumentListIcon, ClipboardDocumentCheckIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
-import { Role, User } from '../../types';
-import { useTheme } from '../../contexts/ThemeContext';
-// FIX: Replaced 'useApp' and 'useHR' with the consolidated 'useData' hook.
-import { useData } from '../../contexts/DataContext';
 import MyKpiModal from '../../components/user/MyKpiModal';
 
 

@@ -1,6 +1,5 @@
 import React from 'react';
-import { useAuth } from '../../../packages/shared/contexts/AuthContext';
-import { useData } from '../../../packages/shared/contexts/DataContext';
+import { useAuth, useData } from '@mk/shared';
 import { CreditCardIcon } from '@heroicons/react/24/solid';
 
 const PayLaterStatusCard: React.FC = () => {

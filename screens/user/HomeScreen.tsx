@@ -3,10 +3,9 @@ import PersonalizedGreeting from '../../components/user/PersonalizedGreeting';
 import SmartAssistant from '../../components/user/SmartAssistant';
 import ForYouWidget from '../../components/user/ForYouWidget';
 import CompactArticleCard from '../../components/user/news/CompactArticleCard';
-import { useData } from '../../contexts/DataContext';
+import { useData, useAuth } from '@mk/shared';
 import { BuildingStorefrontIcon, CurrencyDollarIcon, NewspaperIcon, ClockIcon, Squares2X2Icon, SparklesIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 import AttendanceCameraModal from '../../components/user/AttendanceCameraModal';
 
 const QuickAccess: React.FC = () => {

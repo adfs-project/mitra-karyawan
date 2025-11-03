@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+import { useAuth, useData } from '@mk/shared';
 import WellnessHub from '../../components/user/health/WellnessHub';
 import SymptomCheckerModal from '../../components/user/health/SymptomCheckerModal';
 

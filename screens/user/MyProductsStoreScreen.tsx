@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { Product } from '../../types';
+import { useAuth, Product, useData } from '@mk/shared';
 import { BuildingStorefrontIcon, PlusIcon, PencilIcon, TrashIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import ProductFormModal from '../../components/user/market/ProductFormModal';
-import { useData } from '../../contexts/DataContext';
 
 const MyProductsStoreScreen: React.FC = () => {
     const { user } = useAuth();

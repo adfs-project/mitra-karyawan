@@ -1,8 +1,5 @@
 import React, { useMemo } from 'react';
-import { useAuth } from '../../../packages/shared/contexts/AuthContext';
-// FIX: Replaced useCore with useApp as DataContext is deprecated.
-import { useData } from '../../../packages/shared/contexts/DataContext';
-import { Article } from '../../../packages/shared/types';
+import { useAuth, useData, Article } from '@mk/shared';
 import ArticleCard from './ArticleCard';
 import { SparklesIcon } from '@heroicons/react/24/solid';
 
