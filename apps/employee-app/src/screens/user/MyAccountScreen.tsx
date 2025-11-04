@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth, useTheme, useData, Role, User } from '@mk/shared';
-import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon, ClipboardDocumentListIcon, ClipboardDocumentCheckIcon, UserGroupIcon, TrophyIcon, StarIcon } from '@heroicons/react/24/solid';
+import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon, ClipboardDocumentListIcon, ClipboardDocumentCheckIcon, UserGroupIcon, StarIcon, TrophyIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import MyKpiModal from '../../components/user/MyKpiModal';
 import DesktopLeftSidebar from '../../components/layout/DesktopLeftSidebar';
@@ -177,6 +177,7 @@ const ChangePasswordModal: React.FC<{
     );
 };
 
+// FIX: Added missing PayslipModal component definition.
 const PayslipModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -191,9 +192,12 @@ const PayslipModal: React.FC<{
     const handlePrint = () => {
         const printContentNode = document.getElementById('payslip-to-print-container');
         if (!printContentNode) return;
+
         const printContent = printContentNode.innerHTML;
         const originalContents = document.body.innerHTML;
+        
         const styles = `<style>body { background-color: #fff; color: #000; font-family: 'Courier New', monospace; font-size: 12px; } table { width: 100%; border-collapse: collapse; } td { padding: 2px 4px; } .text-right { text-align: right; } .font-bold { font-weight: bold; } hr { border: none; border-top: 1px solid #000; margin: 4px 0; }</style>`;
+
         document.body.innerHTML = `${styles}<div>${printContent}</div>`;
         window.print();
         document.body.innerHTML = originalContents;
@@ -306,38 +310,47 @@ const PayslipModal: React.FC<{
     );
 };
 
-const AccountRightSidebar: React.FC<{ user: User }> = ({ user }) => {
+const ThemeToggle: React.FC = () => {
     const { theme, toggleTheme } = useTheme();
     return (
-        <div className="space-y-6">
-            <div className="p-4 bg-surface rounded-lg border border-border-color">
-                 <h3 className="font-bold text-text-secondary text-sm mb-2 flex items-center"><TrophyIcon className="h-4 w-4 mr-2"/> Poin & Pencapaian</h3>
-                 <div className="text-center py-4">
-                    <p className="text-text-secondary text-sm">Poin Loyalitas</p>
-                    <div className="flex items-center justify-center space-x-1 my-1">
-                        <StarIcon className="h-6 w-6 text-secondary" />
-                        <p className="text-3xl font-bold text-secondary">{user.loyaltyPoints.toLocaleString('id-ID')}</p>
-                    </div>
-                 </div>
-                 <h4 className="font-bold text-text-secondary text-xs mt-2 mb-1">Lencana:</h4>
-                 <p className="text-xs text-text-primary">{user.achievements.join(', ') || 'Belum ada'}</p>
+        <div className="flex justify-between items-center p-4 w-full text-left">
+            <div className="flex items-center">
+                {theme === 'dark' ? <MoonIcon className="h-6 w-6 text-primary mr-4" /> : <SunIcon className="h-6 w-6 text-primary mr-4" />}
+                <span className="text-text-primary font-semibold">Mode Tampilan</span>
             </div>
-             <div className="p-4 bg-surface rounded-lg border border-border-color">
-                 <h3 className="font-bold text-text-secondary text-sm mb-2 flex items-center">
-                    {theme === 'dark' ? <MoonIcon className="h-4 w-4 mr-2" /> : <SunIcon className="h-4 w-4 mr-2" />}
-                    Mode Tampilan
-                </h3>
-                <div className="flex justify-between items-center">
-                    <span className="text-text-primary text-sm">Mode {theme === 'dark' ? 'Gelap' : 'Terang'}</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked={theme === 'dark'} onChange={toggleTheme} className="sr-only peer" />
-                        <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-800"></div>
-                    </label>
-                </div>
+            <div className="flex items-center space-x-2">
+                <span className="text-sm text-text-secondary">{theme === 'dark' ? 'Gelap' : 'Terang'}</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked={theme === 'dark'} onChange={toggleTheme} className="sr-only peer" />
+                    <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-800"></div>
+                </label>
             </div>
         </div>
-    )
+    );
 };
+
+const RightSidebar: React.FC = () => {
+    const { user } = useAuth();
+    if (!user) return null;
+    return (
+        <div className="sticky top-20 space-y-6">
+            <div className="bg-surface p-4 rounded-lg border border-border-color">
+                <h3 className="font-bold text-text-primary mb-2 flex items-center"><StarIcon className="h-4 w-4 mr-2" /> Poin & Pencapaian</h3>
+                <div className="text-center">
+                    <p className="text-3xl font-bold text-secondary">{user.loyaltyPoints}</p>
+                    <p className="text-xs text-text-secondary">Poin Loyalitas</p>
+                    <div className="flex justify-center space-x-2 mt-2">
+                        {user.achievements.map(ach => <TrophyIcon key={ach} className="h-6 w-6 text-yellow-400" title={ach} />)}
+                    </div>
+                </div>
+            </div>
+             <div className="bg-surface rounded-lg border border-border-color">
+                <ThemeToggle />
+            </div>
+        </div>
+    );
+};
+
 
 const MyAccountScreen: React.FC = () => {
     const { user, logout } = useAuth();
@@ -354,84 +367,129 @@ const MyAccountScreen: React.FC = () => {
     }, [users, user]);
 
     if (!user || !user.profile) return null;
-    
-    const activityItems = [
+
+    const menuGroup1 = [
         { name: 'Riwayat Konsultasi', icon: DocumentTextIcon, path: '/my-consultations' },
         { name: 'Artikel Tersimpan', icon: BookmarkIcon, path: '/bookmarked-articles' },
         { name: 'Riwayat Absensi', icon: ClipboardDocumentListIcon, path: '/attendance-history' },
         { name: 'Kinerja & KPI', icon: ClipboardDocumentCheckIcon, path: '#', action: () => setIsKpiModalOpen(true) },
     ];
     
-    const marketplaceItems = [
-        { name: 'Wishlist Saya', icon: HeartIcon, path: '/wishlist' },
+    const menuGroup2 = [
+         { name: 'Wishlist Saya', icon: HeartIcon, path: '/wishlist' },
         { name: 'Toko Saya', icon: BuildingStorefrontIcon, path: '/my-products' },
     ];
-    
-    const settingsItems = [
-         { name: 'Ajukan Cuti', icon: CalendarDaysIcon, path: '#', action: () => setLeaveModalOpen(true) },
-         { name: 'Pengajuan Dana Opex', icon: CreditCardIcon, path: '/opex' },
-         { name: 'Ubah Password', icon: KeyIcon, path: '#', action: () => setChangePasswordModalOpen(true) },
-         { name: 'Slip Gaji', icon: BanknotesIcon, path: '#', action: () => setIsPayslipModalOpen(true) },
-    ];
-    
-    const portalItems = [
-        ...(user.role === Role.HR ? [{ name: 'Portal HR', icon: BriefcaseIcon, path: 'http://localhost:3001/#/hr/dashboard' }] : []),
-        ...(isManager ? [{ name: 'Portal Manajer', icon: UserGroupIcon, path: 'http://localhost:3001/#/manager/dashboard' }] : []),
+
+    const menuGroup3 = [
+        { name: 'Pengajuan Dana Opex', icon: CreditCardIcon, path: '/opex' },
+        { name: 'Ajukan Cuti', icon: CalendarDaysIcon, path: '#', action: () => setLeaveModalOpen(true) },
+        { name: 'Slip Gaji', icon: BanknotesIcon, path: '#', action: () => setIsPayslipModalOpen(true) },
     ];
 
-    const MenuItem: React.FC<{ item: { name: string, icon: React.ElementType, path: string, action?: () => void }, isPortal?: boolean }> = ({ item, isPortal = false }) => {
+    const menuGroup4 = [
+        { name: 'Aplikasi PayLater', icon: CreditCardIcon, path: '#', action: () => applyForPayLater() },
+        { name: 'Ubah Password', icon: KeyIcon, path: '#', action: () => setChangePasswordModalOpen(true) },
+    ];
+    
+    const hrMenuItem = { name: 'Portal HR', icon: BriefcaseIcon, path: 'http://localhost:3001/#/hr/dashboard' };
+    const managerMenuItem = { name: 'Portal Manajer', icon: UserGroupIcon, path: 'http://localhost:3001/#/manager/dashboard' };
+
+    const MenuItem: React.FC<{ item: { name: string, icon: React.ElementType, path: string, action?: () => void } }> = ({ item }) => {
         const content = (
-            <div className={`flex justify-between items-center p-4 w-full text-left hover:bg-surface-light ${isPortal ? 'bg-primary/10 hover:bg-primary/20' : 'border-t border-border-color'}`}>
+            <div className="flex justify-between items-center p-4 w-full text-left hover:bg-surface-light">
                 <div className="flex items-center">
-                    <item.icon className={`h-6 w-6 mr-4 ${isPortal ? 'text-primary' : 'text-primary'}`} />
-                    <span className={isPortal ? 'font-bold text-primary' : 'text-text-primary'}>{item.name}</span>
+                    <item.icon className="h-6 w-6 text-primary mr-4" />
+                    <span className="text-text-primary">{item.name}</span>
                 </div>
-                <ChevronRightIcon className={`h-5 w-5 ${isPortal ? 'text-primary' : 'text-text-secondary'}`} />
+                <ChevronRightIcon className="h-5 w-5 text-text-secondary" />
             </div>
         );
-        if (isPortal) return <a href={item.path} className="block">{content}</a>;
         return item.path === '#' ? <button onClick={item.action} className="w-full">{content}</button> : <Link to={item.path} className="block">{content}</Link>;
     };
     
     return (
-        <div className="lg:grid lg:grid-cols-12 lg:gap-8">
+        <div className="pb-4 lg:py-6 lg:grid lg:grid-cols-12 lg:gap-8">
             <DesktopLeftSidebar />
-            <main className="lg:col-span-6 p-4 lg:p-0 space-y-6">
-                <div className="bg-surface rounded-lg border border-border-color lg:hidden">
-                    <div className="p-4 flex items-center space-x-4">
-                        <img src={user.profile.photoUrl} alt="Profile" className="w-16 h-16 rounded-full border-2 border-primary" />
-                        <div>
-                            <h1 className="text-xl font-bold">{user.profile.name}</h1>
-                            <p className="text-sm text-text-secondary">{user.email}</p>
+
+            <main className="lg:col-span-6 xl:col-span-7">
+                {/* Profile Header for Mobile */}
+                <div className="bg-surface p-6 lg:hidden">
+                    <div className="flex justify-between items-start">
+                        <div className="flex items-center space-x-4">
+                            <img src={user.profile.photoUrl} alt="Profile" className="w-20 h-20 rounded-full border-2 border-primary" />
+                            <div>
+                                <h1 className="text-2xl font-bold text-text-primary">{user.profile.name}</h1>
+                                <p className="text-text-secondary">{user.email}</p>
+                                <p className="text-text-secondary text-sm">{user.profile.phone}</p>
+                            </div>
                         </div>
+                        <button onClick={() => setEditModalOpen(true)} className="p-2 bg-surface-light rounded-full hover:bg-border-color">
+                            <PencilSquareIcon className="h-6 w-6 text-primary"/>
+                        </button>
                     </div>
                 </div>
-            
-                <div className="bg-surface rounded-lg border border-border-color">
-                    <h2 className="p-4 text-lg font-bold">Aktivitas Saya</h2>
-                    {activityItems.map(item => <MenuItem key={item.name} item={item} />)}
-                </div>
 
-                <div className="bg-surface rounded-lg border border-border-color">
-                    <h2 className="p-4 text-lg font-bold">Marketplace</h2>
-                    {marketplaceItems.map(item => <MenuItem key={item.name} item={item} />)}
-                </div>
+                <div className="m-4 lg:m-0 space-y-4">
+                     <div className="bg-surface rounded-lg border border-border-color">
+                        <div className="p-4">
+                            <h2 className="text-lg font-bold text-primary flex items-center">
+                                <BriefcaseIcon className="h-5 w-5 mr-2" />
+                                Informasi Kepegawaian
+                            </h2>
+                        </div>
+                        <div className="p-4 border-t border-border-color grid grid-cols-2 gap-y-4 gap-x-2 text-sm">
+                            <div><p className="text-text-secondary">Cabang</p><p className="font-semibold text-text-primary">{user.profile.branch || '-'}</p></div>
+                            <div><p className="text-text-secondary">Tipe Karyawan</p><p className="font-semibold text-text-primary">{user.profile.employeeType || '-'}</p></div>
+                            <div><p className="text-text-secondary">Tanggal Mulai Bekerja</p><p className="font-semibold text-text-primary">{user.profile.joinDate ? new Date(user.profile.joinDate).toLocaleDateString('id-ID') : '-'}</p></div>
+                        </div>
+                    </div>
 
-                <div className="bg-surface rounded-lg border border-border-color">
-                    <h2 className="p-4 text-lg font-bold">Pengaturan & Lainnya</h2>
-                    {settingsItems.map(item => <MenuItem key={item.name} item={item} />)}
-                    {portalItems.map(item => <MenuItem key={item.name} item={item} isPortal />)}
+                    {(user.role === Role.HR || isManager) && (
+                        <div className="bg-surface rounded-lg border border-border-color">
+                            {user.role === Role.HR && (
+                                <a href={hrMenuItem.path} target="_blank" rel="noopener noreferrer" className="flex justify-between items-center p-4 w-full text-left bg-primary/10 hover:bg-primary/20">
+                                    <div className="flex items-center"><hrMenuItem.icon className="h-6 w-6 text-primary mr-4" /><span className="text-primary font-bold">{hrMenuItem.name}</span></div>
+                                    <ChevronRightIcon className="h-5 w-5 text-primary" />
+                                </a>
+                            )}
+                            {isManager && (
+                                <a href={managerMenuItem.path} target="_blank" rel="noopener noreferrer" className="flex justify-between items-center p-4 w-full text-left border-t border-border-color bg-secondary/10 hover:bg-secondary/20">
+                                    <div className="flex items-center"><managerMenuItem.icon className="h-6 w-6 text-secondary mr-4" /><span className="text-secondary font-bold">{managerMenuItem.name}</span></div>
+                                    <ChevronRightIcon className="h-5 w-5 text-secondary" />
+                                </a>
+                            )}
+                        </div>
+                    )}
+                    
+                    <div className="bg-surface rounded-lg border border-border-color divide-y divide-border-color">
+                        {menuGroup1.map((item) => <MenuItem key={item.name} item={item} />)}
+                    </div>
+                    <div className="bg-surface rounded-lg border border-border-color divide-y divide-border-color">
+                        {menuGroup2.map((item) => <MenuItem key={item.name} item={item} />)}
+                    </div>
+                     <div className="bg-surface rounded-lg border border-border-color divide-y divide-border-color">
+                        {menuGroup3.map((item) => <MenuItem key={item.name} item={item} />)}
+                    </div>
+                     <div className="bg-surface rounded-lg border border-border-color divide-y divide-border-color">
+                        {menuGroup4.map((item) => <MenuItem key={item.name} item={item} />)}
+                    </div>
+                    
+                    <div className="lg:hidden">
+                        <ThemeToggle />
+                    </div>
+
+                    <button 
+                        onClick={logout} 
+                        className="w-full flex items-center justify-center p-4 bg-red-500/10 text-red-500 rounded-lg font-bold hover:bg-red-500/20 transition-colors"
+                    >
+                        <ArrowRightOnRectangleIcon className="h-6 w-6 mr-2" />
+                        Logout
+                    </button>
                 </div>
-                
-                <button onClick={logout} className="w-full flex items-center justify-center p-4 bg-red-500/10 text-red-500 rounded-lg font-bold hover:bg-red-500/20 transition-colors">
-                    <ArrowRightOnRectangleIcon className="h-6 w-6 mr-2" /> Logout
-                </button>
             </main>
 
-            <aside className="hidden lg:block lg:col-span-3">
-                <div className="sticky top-20">
-                    <AccountRightSidebar user={user}/>
-                </div>
+            <aside className="hidden lg:block lg:col-span-3 xl:col-span-3">
+                <RightSidebar />
             </aside>
             
             <EditProfileModal isOpen={isEditModalOpen} onClose={() => setEditModalOpen(false)} user={user} />
