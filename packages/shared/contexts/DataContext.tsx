@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
 import vaultService from '../services/vaultService';
 import {
@@ -9,7 +10,8 @@ import {
 } from '../types';
 import { testApiConnection } from '../services/apiService';
 import { useAuth } from './AuthContext';
-import { GoogleGenAI, Type } from "@google/genai";
+// FIX: The AI call was using a backend proxy. Updated to use the @google/genai SDK directly as per guidelines.
+import { GoogleGenAI } from "@google/genai";
 import { getConsultationTemplatePrompt } from '../services/aiGuardrailService';
 import { provisionService } from '../services/orchestratorService';
 
@@ -163,7 +165,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
     });
     const { user, updateCurrentUser } = useAuth();
-    // FIX: Import 'useRef' to resolve 'Cannot find name' error.
     const isInitialMount = useRef(true);
 
     // This useEffect simulates the "Gudang Tua" loading model.
@@ -923,7 +924,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, [state.users, showToast]);
 
-    // FIX: Added approvePayLaterByHr to support two-step PayLater approval.
     const approvePayLaterByHr = useCallback(async (userId: string) => {
         const userIndex = state.users.findIndex(u => u.id === userId);
         if (userIndex === -1) {

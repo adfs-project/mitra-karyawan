@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import * as ErrorBoundaryModule from 'react-error-boundary';
 import { ExclamationTriangleIcon, SparklesIcon, ArrowPathIcon, MapPinIcon } from '@heroicons/react/24/solid';
-import { GoogleGenAI } from '@google/genai';
+
+// The GoogleGenAI import is no longer needed here.
 
 const RecoveryUI: React.FC<ErrorBoundaryModule.FallbackProps> = ({ error }) => {
     const [solution, setSolution] = useState<string | null>(null);
@@ -18,59 +18,45 @@ const RecoveryUI: React.FC<ErrorBoundaryModule.FallbackProps> = ({ error }) => {
             return;
         }
 
-        const generateSolution = async () => {
+        const analyzeErrorViaBackend = async () => {
             setIsLoadingSolution(true);
-            try {
-                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-                const prompt = `Anda adalah seorang senior software engineer yang sedang melakukan debugging. Berdasarkan pesan error React berikut, berikan 2-3 langkah solusi yang paling mungkin dan dapat ditindaklanjuti dalam Bahasa Indonesia. Buat dalam format daftar bernomor dan jelaskan secara singkat dan jelas. Pesan Error: "${error.message}"`;
-                
-                const response = await ai.models.generateContent({
-                    model: 'gemini-2.5-flash',
-                    contents: prompt,
-                });
-
-                setSolution(response.text);
-
-            } catch (e) {
-                console.error("AI solution generation failed:", e);
-                setSolution("Gagal menghubungi AI untuk mendapatkan solusi. Periksa koneksi internet dan API Key Anda.");
-            } finally {
-                setIsLoadingSolution(false);
-            }
-        };
-
-        const generateLocationAnalysis = async () => {
             setIsLoadingLocation(true);
             try {
-                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-                const prompt = `Anda adalah seorang senior software engineer yang sedang melakukan debugging. Berdasarkan pesan error dan stack trace berikut, identifikasi file dan fungsi yang paling mungkin menjadi sumber masalah. Jelaskan alasan Anda secara singkat dalam Bahasa Indonesia. Jangan hanya mengulang stack trace, tapi interpretasikan. Contoh: "Masalah kemungkinan besar ada di file 'HomeScreen.tsx' di dalam fungsi 'handleSomething', karena fungsi tersebut dipanggil tepat sebelum error terjadi menurut stack trace."
-
-                Pesan Error: "${error.message}"
-                Stack Trace:
-                ${error.stack}`;
-                
-                const response = await ai.models.generateContent({
-                    model: 'gemini-2.5-flash',
-                    contents: prompt,
+                // This is a public endpoint, so no auth token is needed.
+                const response = await fetch('http://localhost:4000/api/ai/analyze-error', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        errorMessage: error.message,
+                        stackTrace: error.stack,
+                    }),
                 });
 
-                setLocationAnalysis(response.text);
+                if (!response.ok) {
+                    throw new Error('Backend AI analysis failed');
+                }
+
+                const data = await response.json();
+                setSolution(data.solution);
+                setLocationAnalysis(data.location);
+
             } catch (e) {
-                console.error("AI location analysis failed:", e);
-                setLocationAnalysis("Gagal menghubungi AI untuk menganalisis lokasi. Periksa koneksi internet dan API Key Anda.");
+                console.error("AI analysis proxy failed:", e);
+                const failMessage = "Gagal menghubungi AI untuk analisis. Periksa koneksi dan coba lagi.";
+                setSolution(failMessage);
+                setLocationAnalysis(failMessage);
             } finally {
+                setIsLoadingSolution(false);
                 setIsLoadingLocation(false);
             }
         };
 
-        generateSolution();
-        generateLocationAnalysis();
+        analyzeErrorViaBackend();
     }, [error]);
     
     const handleReturnToPreviousPage = () => {
         window.history.back();
     };
-
 
     return (
         <div className="flex items-center justify-center h-screen w-screen bg-background text-text-primary p-4">
@@ -117,7 +103,6 @@ const RecoveryUI: React.FC<ErrorBoundaryModule.FallbackProps> = ({ error }) => {
                         <div className="text-sm text-text-primary whitespace-pre-wrap font-sans prose" dangerouslySetInnerHTML={{ __html: solution ? solution.replace(/(\d\.)/g, '<br/><strong>$1</strong>').replace(/\*\*/g, '') : '' }} />
                     )}
                 </div>
-
 
                  <div className="mt-4">
                     <button
