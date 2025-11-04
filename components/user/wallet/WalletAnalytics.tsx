@@ -1,22 +1,129 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Transaction } from '../../../types';
 import { ChartBarIcon, ShoppingCartIcon, BoltIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/solid';
 
-const Bar: React.FC<{ value: number; maxValue: number; color: string; label: string }> = ({ value, maxValue, color, label }) => {
-    const height = maxValue > 0 ? (value / maxValue) * 100 : 0;
-    return (
-        <div className="flex flex-col items-center flex-grow">
-            <div className="w-full h-40 bg-surface-light rounded-t-md flex items-end">
-                <div 
-                    className="w-full rounded-t-md" 
-                    style={{ height: `${height}%`, backgroundColor: color, transition: 'height 0.5s ease-out' }}
-                ></div>
+const DonutChart: React.FC<{ income: number; outcome: number }> = ({ income, outcome }) => {
+    const [hovered, setHovered] = useState<'income' | 'outcome' | null>(null);
+
+    const data = {
+        income: { value: income, color: 'var(--color-primary)' },
+        outcome: { value: outcome, color: 'var(--color-secondary)' },
+    };
+
+    const total = data.income.value + data.outcome.value;
+    if (total === 0) {
+        return (
+            <div className="flex justify-center items-center h-56">
+                <p className="text-text-secondary">Belum ada data transaksi.</p>
             </div>
-            <span className="text-xs text-text-secondary mt-2">{label}</span>
-            <span className="text-sm font-bold">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value)}</span>
+        );
+    }
+    
+    const incomePercent = (data.income.value / total) * 100;
+    const outcomePercent = (data.outcome.value / total) * 100;
+
+    const size = 200;
+    const strokeWidth = 20;
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+
+    const outcomeStrokeDashoffset = circumference * (1 - outcomePercent / 100);
+    const incomeStrokeDashoffset = circumference * (1 - incomePercent / 100);
+
+    const getCenterText = () => {
+        if (hovered === 'income') {
+            return {
+                label: 'Pemasukan',
+                value: data.income.value,
+                color: 'text-primary'
+            };
+        }
+        if (hovered === 'outcome') {
+            return {
+                label: 'Pengeluaran',
+                value: data.outcome.value,
+                color: 'text-secondary'
+            };
+        }
+        const savings = data.income.value - data.outcome.value;
+        return {
+            label: savings >= 0 ? 'Sisa Dana' : 'Defisit',
+            value: savings,
+            color: savings >= 0 ? 'text-primary' : 'text-red-500'
+        };
+    };
+
+    const centerText = getCenterText();
+    
+    return (
+        <div className="flex flex-col items-center">
+            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+                    {/* Background Circle */}
+                    <circle
+                        cx={size / 2}
+                        cy={size / 2}
+                        r={radius}
+                        fill="transparent"
+                        stroke="var(--color-surface-light)"
+                        strokeWidth={strokeWidth}
+                    />
+                    {/* Outcome Segment */}
+                    <circle
+                        onMouseEnter={() => setHovered('outcome')}
+                        onMouseLeave={() => setHovered(null)}
+                        cx={size / 2}
+                        cy={size / 2}
+                        r={radius}
+                        fill="transparent"
+                        stroke={data.outcome.color}
+                        strokeWidth={strokeWidth}
+                        strokeDasharray={circumference}
+                        strokeDashoffset={outcomeStrokeDashoffset}
+                        strokeLinecap="round"
+                        className="transition-all duration-300 ease-in-out"
+                        style={{ transform: hovered === 'outcome' ? 'scale(1.05)' : 'scale(1)', transformOrigin: 'center' }}
+                    />
+                    {/* Income Segment */}
+                    <circle
+                         onMouseEnter={() => setHovered('income')}
+                        onMouseLeave={() => setHovered(null)}
+                        cx={size / 2}
+                        cy={size / 2}
+                        r={radius}
+                        fill="transparent"
+                        stroke={data.income.color}
+                        strokeWidth={strokeWidth}
+                        strokeDasharray={circumference}
+                        strokeDashoffset={incomeStrokeDashoffset}
+                        strokeLinecap="round"
+                        transform={`rotate(${outcomePercent * 3.6} ${size/2} ${size/2})`}
+                        className="transition-all duration-300 ease-in-out"
+                        style={{ transform: `rotate(${outcomePercent * 3.6}deg) ${hovered === 'income' ? 'scale(1.05)' : 'scale(1)'}`, transformOrigin: 'center' }}
+
+                    />
+                </g>
+                 <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="transition-opacity duration-300">
+                    <tspan x="50%" dy="-0.5em" className="text-xs font-semibold text-text-secondary">{centerText.label}</tspan>
+                    <tspan x="50%" dy="1.2em" className={`text-xl font-bold ${centerText.color}`}>
+                       {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(centerText.value)}
+                    </tspan>
+                </text>
+            </svg>
+            <div className="flex space-x-6 mt-4">
+                <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-primary mr-2"></div>
+                    <span className="text-sm font-semibold">Pemasukan</span>
+                </div>
+                 <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-secondary mr-2"></div>
+                    <span className="text-sm font-semibold">Pengeluaran</span>
+                </div>
+            </div>
         </div>
     );
 };
+
 
 const CategorySpend: React.FC<{ icon: React.ElementType; category: string; amount: number; color: string }> = ({ icon: Icon, category, amount, color }) => {
     return (
@@ -54,8 +161,6 @@ const WalletAnalytics: React.FC<{ transactions: Transaction[] }> = ({ transactio
         return { income, outcome, categorySpending };
     }, [transactions]);
 
-    const maxChartValue = Math.max(analyticsData.income, analyticsData.outcome, 1);
-
     return (
         <div className="space-y-6">
             <div className="bg-surface p-4 rounded-lg">
@@ -63,10 +168,7 @@ const WalletAnalytics: React.FC<{ transactions: Transaction[] }> = ({ transactio
                     <ChartBarIcon className="h-5 w-5 mr-2 text-primary" />
                     Pemasukan vs Pengeluaran (30 Hari Terakhir)
                 </h3>
-                <div className="flex justify-around items-end space-x-4">
-                    <Bar value={analyticsData.income} maxValue={maxChartValue} color="var(--color-primary)" label="Pemasukan" />
-                    <Bar value={analyticsData.outcome} maxValue={maxChartValue} color="var(--color-secondary)" label="Pengeluaran" />
-                </div>
+                <DonutChart income={analyticsData.income} outcome={analyticsData.outcome} />
             </div>
 
             <div className="bg-surface p-4 rounded-lg">

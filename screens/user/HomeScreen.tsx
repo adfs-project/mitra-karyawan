@@ -37,14 +37,14 @@ const QuickAccess: React.FC = () => {
                         onClick={() => logEngagementEvent('quickAccessClicks', item.name)}
                         className="bg-surface p-4 rounded-lg flex flex-col items-center justify-center aspect-square"
                     >
-                        <item.icon className="h-12 w-12 text-primary mb-3" />
+                        <item.icon className={`h-17 w-17 mb-3 ${item.name === 'Wallet' ? 'text-primary' : 'text-secondary'}`} />
                         <span className="text-base font-semibold">{item.name}</span>
                     </Link>
                 ))}
             </div>
              <Link to="/features" className="mt-4 block bg-surface p-3 rounded-lg text-center font-semibold text-primary hover:bg-surface-light transition-colors">
                 <div className="flex items-center justify-center">
-                    <Squares2X2Icon className="h-7 w-7 mr-2" />
+                    <Squares2X2Icon className="h-14 w-14 mr-2" />
                     <span>Lihat Semua Layanan</span>
                 </div>
             </Link>
