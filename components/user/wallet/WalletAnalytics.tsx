@@ -1,10 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Transaction } from '../../../types';
 import { ChartBarIcon, ShoppingCartIcon, BoltIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/solid';
 
 const DonutChart: React.FC<{ income: number; outcome: number }> = ({ income, outcome }) => {
-    const [hovered, setHovered] = useState<'income' | 'outcome' | null>(null);
-
     const data = {
         income: { value: income, color: 'var(--color-primary)' },
         outcome: { value: outcome, color: 'var(--color-secondary)' },
@@ -29,31 +27,8 @@ const DonutChart: React.FC<{ income: number; outcome: number }> = ({ income, out
 
     const outcomeStrokeDashoffset = circumference * (1 - outcomePercent / 100);
     const incomeStrokeDashoffset = circumference * (1 - incomePercent / 100);
-
-    const getCenterText = () => {
-        if (hovered === 'income') {
-            return {
-                label: 'Pemasukan',
-                value: data.income.value,
-                color: 'var(--color-primary)'
-            };
-        }
-        if (hovered === 'outcome') {
-            return {
-                label: 'Pengeluaran',
-                value: data.outcome.value,
-                color: 'var(--color-secondary)'
-            };
-        }
-        const savings = data.income.value - data.outcome.value;
-        return {
-            label: savings >= 0 ? 'Sisa Dana' : 'Defisit',
-            value: savings,
-            color: '#A755F7'
-        };
-    };
-
-    const centerText = getCenterText();
+    
+    const savings = data.income.value - data.outcome.value;
     
     return (
         <div className="flex flex-col md:flex-row items-center justify-center gap-x-12 gap-y-6">
@@ -71,8 +46,6 @@ const DonutChart: React.FC<{ income: number; outcome: number }> = ({ income, out
                         />
                         {/* Outcome Segment */}
                         <circle
-                            onMouseEnter={() => setHovered('outcome')}
-                            onMouseLeave={() => setHovered(null)}
                             cx={size / 2}
                             cy={size / 2}
                             r={radius}
@@ -86,8 +59,6 @@ const DonutChart: React.FC<{ income: number; outcome: number }> = ({ income, out
                         />
                         {/* Income Segment */}
                         <circle
-                            onMouseEnter={() => setHovered('income')}
-                            onMouseLeave={() => setHovered(null)}
                             cx={size / 2}
                             cy={size / 2}
                             r={radius}
@@ -102,12 +73,6 @@ const DonutChart: React.FC<{ income: number; outcome: number }> = ({ income, out
                         />
                     </g>
                 </svg>
-                 <div className="text-center transition-opacity duration-300 pointer-events-none">
-                    <p className="text-sm font-semibold text-text-secondary">{centerText.label}</p>
-                    <p className="text-2xl font-bold" style={{ color: centerText.color }}>
-                       {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(centerText.value)}
-                    </p>
-                </div>
             </div>
             <div className="flex flex-col space-y-4">
                 <div className="flex items-center">
@@ -123,6 +88,13 @@ const DonutChart: React.FC<{ income: number; outcome: number }> = ({ income, out
                         <span className="text-sm font-semibold">Pengeluaran</span>
                         <p className="font-bold text-lg text-secondary">{outcomePercent.toFixed(0)}%</p>
                     </div>
+                </div>
+
+                <div className="pt-4 mt-4 border-t border-border-color">
+                    <span className="text-sm font-semibold text-text-secondary">{savings >= 0 ? 'Sisa Dana' : 'Defisit'}</span>
+                    <p className="font-bold text-2xl" style={{ color: '#A755F7' }}>
+                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(savings)}
+                    </p>
                 </div>
             </div>
         </div>
