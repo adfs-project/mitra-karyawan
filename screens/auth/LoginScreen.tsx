@@ -12,7 +12,6 @@ const LoginScreen: React.FC = () => {
     const [loading, setLoading] = useState(false);
     
     const [showOtpInput, setShowOtpInput] = useState(false);
-    const [mockOtp, setMockOtp] = useState('');
 
     const { login, verifyOtp } = useAuth();
     const { showToast } = useData();
@@ -27,8 +26,8 @@ const LoginScreen: React.FC = () => {
 
         switch (result.result) {
             case 'otp_required':
+                showToast(`(For Demo) Your OTP is: ${result.otp}`, 'info');
                 setShowOtpInput(true);
-                setMockOtp(result.otp!);
                 break;
             case 'inactive':
                 navigate('/deactivated');
@@ -109,7 +108,7 @@ const LoginScreen: React.FC = () => {
             <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-text-primary">Masukkan Kode Verifikasi</h2>
                 <p className="text-sm text-text-secondary mt-2">
-                    (Untuk demonstrasi, OTP Anda adalah: <strong className="text-primary">{mockOtp}</strong>)
+                    Cek notifikasi untuk kode OTP Anda.
                 </p>
             </div>
             <form onSubmit={handleOtpSubmit} className="space-y-6">
