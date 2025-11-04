@@ -21,7 +21,8 @@ const QuickAccess: React.FC = () => {
         baseItems.push({ name: 'AI Bot', icon: SparklesIcon, path: '/placeholder/ai-investment-bot' });
     }
 
-    const gridColsClass = baseItems.length === 4 ? 'grid-cols-4' : 'grid-cols-2';
+    const gridColsClass = baseItems.length === 3 ? 'grid-cols-3' : 'grid-cols-2';
+
 
     return (
         <div>
@@ -34,14 +35,14 @@ const QuickAccess: React.FC = () => {
                         onClick={() => logEngagementEvent('quickAccessClicks', item.name)}
                         className="bg-surface p-4 rounded-lg flex flex-col items-center justify-center aspect-square"
                     >
-                        <item.icon className="h-24 w-24 text-primary mb-4" />
-                        <span className="text-base font-semibold">{item.name}</span>
+                        <item.icon className="h-14 w-14 text-primary mb-2" />
+                        <span className="text-sm font-semibold">{item.name}</span>
                     </Link>
                 ))}
             </div>
              <Link to="/features" className="mt-4 block bg-surface p-3 rounded-lg text-center font-semibold text-primary hover:bg-surface-light transition-colors">
                 <div className="flex items-center justify-center">
-                    <Squares2X2Icon className="h-5 w-5 mr-2" />
+                    <Squares2X2Icon className="h-6 w-6 mr-2" />
                     <span>Lihat Semua Layanan</span>
                 </div>
             </Link>
