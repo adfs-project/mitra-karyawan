@@ -110,18 +110,18 @@ const WalletScreen: React.FC = () => {
     const transactionTypes: TransactionType[] = ['All', 'Top-Up', 'Transfer', 'Marketplace', 'PPOB', 'Refund'];
 
     return (
-        <div className="p-4 lg:p-0 lg:py-6 lg:grid lg:grid-cols-3 lg:gap-8">
+        <div className="p-4 desktop:p-0 desktop:py-6 desktop:grid desktop:grid-cols-3 desktop:gap-8">
             {/* Left Sidebar for Desktop */}
-            <aside className="hidden lg:block lg:col-span-1">
+            <aside className="hidden desktop:block desktop:col-span-1">
                 <div className="sticky top-20">
                     <StickySidebar onTopUp={() => setTopUpModalOpen(true)} onTransfer={() => setTransferModalOpen(true)} />
                 </div>
             </aside>
 
             {/* Main Content */}
-            <main className="lg:col-span-2 space-y-6">
+            <main className="desktop:col-span-2 space-y-6">
                 {/* Mobile-only Sidebar content */}
-                <div className="lg:hidden">
+                <div className="desktop:hidden">
                     <StickySidebar onTopUp={() => setTopUpModalOpen(true)} onTransfer={() => setTransferModalOpen(true)} />
                 </div>
 

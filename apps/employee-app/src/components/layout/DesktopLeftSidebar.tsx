@@ -18,7 +18,7 @@ const DesktopLeftSidebar: React.FC = () => {
     if (!user) return null;
 
     return (
-        <aside className="hidden lg:block lg:col-span-3 xl:col-span-2">
+        <aside className="hidden desktop:block desktop:col-span-3 xl:col-span-2">
             <div className="sticky top-20 space-y-6">
                 {/* User Profile Card */}
                 <div className="bg-surface p-4 rounded-lg border border-border-color">
