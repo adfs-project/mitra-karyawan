@@ -5,7 +5,7 @@ import App from './App';
 // Assuming a global CSS file exists for Tailwind directives.
 import './index.css';
 
-console.log('MK App Version: 1.7.0');
+console.log('MK App Version: 1.5.0');
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
