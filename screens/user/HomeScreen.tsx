@@ -18,7 +18,7 @@ const QuickAccess: React.FC = () => {
         <div>
              <h2 className="text-lg font-bold text-text-primary mb-2">Akses Cepat</h2>
              <div className={`grid ${gridColsClass} gap-4 text-center`}>
-                {baseItems.map(item => ( <Link to={item.path} key={item.name} onClick={() => logEngagementEvent('quickAccessClicks', item.name)} className="bg-surface p-4 rounded-lg flex flex-col items-center justify-center aspect-square" > <item.icon className="h-8 w-8 text-primary mb-2" /> <span className="text-xs font-semibold">{item.name}</span> </Link> ))}
+                {baseItems.map(item => ( <Link to={item.path} key={item.name} onClick={() => logEngagementEvent('quickAccessClicks', item.name)} className="bg-surface p-4 rounded-lg flex flex-col items-center justify-center aspect-square" > <item.icon className="h-12 w-12 text-primary mb-3" /> <span className="text-sm font-semibold">{item.name}</span> </Link> ))}
             </div>
              <Link to="/features" className="mt-4 block bg-surface p-3 rounded-lg text-center font-semibold text-primary hover:bg-surface-light transition-colors">
                 <div className="flex items-center justify-center"> <Squares2X2Icon className="h-5 w-5 mr-2" /> <span>Lihat Semua Layanan</span> </div>
