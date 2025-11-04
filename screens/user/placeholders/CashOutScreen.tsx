@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftIcon, BanknotesIcon, CameraIcon, CheckCircleIcon, InformationCircleIcon } from '@heroicons/react/24/solid';
+import { ArrowLeftIcon, BanknotesIcon, CameraIcon, CheckCircleIcon, InformationCircleIcon, ClockIcon } from '@heroicons/react/24/solid';
 import { useData } from '../../../contexts/DataContext';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -75,7 +75,7 @@ const CashOutScreen: React.FC = () => {
         if (method === 'ATM') {
             setStep('atmGuide');
         } else {
-            const code = `MK-CASH-${Date.now()}`;
+            const code = `MKC${Date.now()}`;
             setQrData({ code, expires: Date.now() + 300000 });
             setStep('qr');
         }
@@ -116,6 +116,7 @@ const CashOutScreen: React.FC = () => {
         setQrData(null);
         setAtmCode('');
         setError('');
+        setIsProcessing(false);
     };
 
     const formatTime = (seconds: number) => {
@@ -265,33 +266,62 @@ const CashOutScreen: React.FC = () => {
     );
 
     const renderSuccessStep = () => (
-        <div className="space-y-4 text-center animate-fade-in-up py-8">
-            <CheckCircleIcon className="w-20 h-20 text-green-400 mx-auto"/>
-            <h3 className="text-xl font-bold">Penarikan Disetujui!</h3>
-            <p className="text-text-secondary">Silakan ambil uang Anda dari mesin ATM.</p>
+        <div className="space-y-6 text-center animate-fade-in-up py-8">
+            <CheckCircleIcon className="w-24 h-24 text-green-400 mx-auto"/>
+            <h3 className="text-2xl font-bold">Penarikan Berhasil!</h3>
+            <div className="bg-surface-light p-4 rounded-lg text-left divide-y divide-border-color">
+                <div className="py-2 flex justify-between text-sm"><span className="text-text-secondary">Jumlah</span><span className="font-bold">{formatCurrency(amount)}</span></div>
+                <div className="py-2 flex justify-between text-sm"><span className="text-text-secondary">Metode</span><span className="font-bold">{selectedMethod}</span></div>
+                <div className="py-2 flex justify-between text-sm"><span className="text-text-secondary">ID Transaksi</span><span className="font-mono text-xs">{qrData?.code || atmCode}</span></div>
+            </div>
+            <p className="text-text-secondary text-sm">
+                {selectedMethod === 'ATM' ? 'Silakan ambil uang Anda dari mesin ATM.' : `Dana telah berhasil ditarik melalui ${selectedMethod}.`}
+            </p>
             <button onClick={handleBackToStart} className="w-full p-3 font-bold rounded-lg btn-primary mt-4">
                 Selesai
             </button>
         </div>
     );
 
+    const renderQrStep = () => {
+        const merchantLogo = selectedMethod === 'Alfamart' 
+            ? "https://upload.wikimedia.org/wikipedia/commons/9/9e/ALFAMART_LOGO_BARU.png" 
+            : "https://upload.wikimedia.org/wikipedia/commons/9/9d/Logo_Indomaret.png";
+        
+        return (
+            <div className="space-y-4 text-center animate-fade-in-up">
+                 <div className="bg-gradient-to-br from-surface to-surface-light rounded-xl p-4 shadow-2xl border border-primary/20">
+                    <div className="flex justify-between items-center border-b border-border-color pb-3 mb-3">
+                        <img src={merchantLogo} alt={selectedMethod || ''} className="h-6 object-contain"/>
+                        <span className="text-sm font-bold text-primary">MK App</span>
+                    </div>
 
-    const renderQrStep = () => (
-         <div className="space-y-4 text-center animate-fade-in-up">
-            <p className="text-text-secondary">Tunjukkan kode ini ke kasir {selectedMethod}</p>
-            <div className="w-64 h-64 mx-auto my-2">
-                <QrCodePlaceholder />
+                    <div className="text-center py-4">
+                        <p className="text-sm text-text-secondary">Total Pembayaran</p>
+                        <p className="text-4xl font-bold text-primary">{formatCurrency(amount)}</p>
+
+                        <div className="w-56 h-56 mx-auto my-4">
+                            <QrCodePlaceholder />
+                        </div>
+
+                        <p className="text-sm text-text-secondary">Tunjukkan kode ini pada kasir untuk menyelesaikan penarikan.</p>
+                    </div>
+
+                    <div className="border-t border-border-color pt-3 text-sm text-text-secondary">
+                        <div className="flex justify-between items-center">
+                            <span>ID Transaksi</span>
+                            <span className="font-mono text-xs">{qrData?.code}</span>
+                        </div>
+                        <div className="flex justify-between items-center mt-2">
+                            <span className="flex items-center"><ClockIcon className="h-4 w-4 mr-1"/> Kode berlaku hingga</span>
+                            <span className="font-bold text-secondary">{formatTime(timer)}</span>
+                        </div>
+                    </div>
+                </div>
+                <button onClick={handleBack} className="w-full p-2 mt-2 text-sm font-semibold text-text-secondary hover:underline">Pilih Metode Lain</button>
             </div>
-            <div className="bg-surface-light p-3 rounded-lg">
-                <p className="text-sm text-text-secondary">Kode Berlaku Selama</p>
-                <p className="text-3xl font-bold text-secondary">{formatTime(timer)}</p>
-                <p className="text-sm text-text-secondary mt-2">Jumlah</p>
-                <p className="text-xl font-bold">{formatCurrency(amount)}</p>
-                <p className="font-mono text-xs text-text-secondary mt-2 tracking-widest">{qrData?.code}</p>
-            </div>
-            <button onClick={handleBack} className="w-full p-2 mt-2 text-sm font-semibold text-text-secondary hover:underline">Pilih Metode Lain</button>
-        </div>
-    );
+        );
+    };
 
     const renderContent = () => {
         switch (step) {
