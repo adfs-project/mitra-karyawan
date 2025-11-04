@@ -106,7 +106,7 @@ const MarketScreen: React.FC = () => {
                 <p className="text-text-secondary">Jual beli barang antar karyawan.</p>
             </div>
             
-            <div className="sticky top-0 bg-background py-2 z-5">
+            <div className="sticky top-[72px] bg-background py-2 z-5">
                 <div className="relative">
                     <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-text-secondary" />
                     <input 

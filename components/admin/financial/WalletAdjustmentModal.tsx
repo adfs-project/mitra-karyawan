@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { User } from '../../types';
-import { useData } from '../../contexts/DataContext';
+import { User } from '../../../types';
+import { useData } from '../../../contexts/DataContext';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const WalletAdjustmentModal: React.FC<{

@@ -2,12 +2,15 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import { User, Role, UserProfile } from '../types';
 import vaultService from '../services/vaultService';
 
-type LoginResult = { result: 'success' | 'not_found' | 'inactive' | 'incorrect_password' };
+type LoginResult = { result: 'success' | 'not_found' | 'inactive' | 'incorrect_password' | 'otp_required', otp?: string };
 
+// Temporary in-memory OTP store for simulation
+const otpStore: Record<string, string> = {};
 
 interface AuthContextType {
     user: User | null;
     login: (email: string, password: string) => Promise<LoginResult>;
+    verifyOtp: (email: string, otp: string) => Promise<'success' | 'incorrect_otp'>;
     logout: () => void;
     register: (userData: Omit<User, 'id' | 'role' | 'status' | 'wallet' | 'achievements' | 'loyaltyPoints' | 'wishlist' | 'bookmarkedArticles' | 'healthData'>) => Promise<'success' | 'exists'>;
     updateCurrentUser: (updatedUser: User) => void;
@@ -65,11 +68,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return { result: 'inactive' };
         }
 
-        // OTP is removed. Directly log in the user.
-        const sanitizedUser = vaultService.getSanitizedData().users.find(u => u.id === foundUser.id)!;
-        setUser(sanitizedUser);
-        
-        return { result: 'success' };
+        // Generate and store a 4-digit OTP instead of logging in directly
+        const generatedOtp = String(Math.floor(1000 + Math.random() * 9000));
+        otpStore[email.toLowerCase()] = generatedOtp;
+        console.log(`OTP for ${email}: ${generatedOtp}`); // For debugging
+
+        // Return the OTP for the simulation UI
+        return { result: 'otp_required', otp: generatedOtp };
+    };
+
+    const verifyOtp = async (email: string, otp: string): Promise<'success' | 'incorrect_otp'> => {
+        const storedOtp = otpStore[email.toLowerCase()];
+        if (storedOtp && storedOtp === otp) {
+            // OTP is correct, complete the login
+            const foundUser = vaultService.findUserByEmail(email)!; // We know the user exists from the login step
+            const sanitizedUser = vaultService.getSanitizedData().users.find(u => u.id === foundUser.id)!;
+            setUser(sanitizedUser);
+            
+            // Clean up the used OTP
+            delete otpStore[email.toLowerCase()];
+
+            return 'success';
+        }
+        return 'incorrect_otp';
     };
 
     const logout = () => {
@@ -307,7 +328,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, register, updateCurrentUser, createEmployee, createMultipleEmployeesByHr, createHrAccountByAdmin, createFinanceAccountByAdmin, changePassword }}>
+        <AuthContext.Provider value={{ user, login, verifyOtp, logout, register, updateCurrentUser, createEmployee, createMultipleEmployeesByHr, createHrAccountByAdmin, createFinanceAccountByAdmin, changePassword }}>
             {children}
         </AuthContext.Provider>
     );

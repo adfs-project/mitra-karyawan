@@ -47,6 +47,7 @@ const AddHrAccountModal: React.FC<AddHrAccountModalProps> = ({ isOpen, onClose }
         setIsLoading(true);
         const { email, password, ...profileData } = formData;
         
+        // FIX: The function call was incomplete. Added password and profile to match the required signature.
         const result = await createHrAccountByAdmin({
             email,
             password,
@@ -98,14 +99,14 @@ const AddHrAccountModal: React.FC<AddHrAccountModalProps> = ({ isOpen, onClose }
                             <label className="text-sm font-bold text-text-secondary block mb-1">Initial Password</label>
                             <input type="password" name="password" value={formData.password} onChange={handleChange} required className="w-full p-2 bg-surface-light rounded border border-border-color" />
                         </div>
-                        <div>
+                        <div className="md:col-span-2">
                             <label className="text-sm font-bold text-text-secondary block mb-1">Branch</label>
-                            <input type="text" name="branch" value={formData.branch} onChange={handleChange} required className="w-full p-2 bg-surface-light rounded border border-border-color" placeholder="e.g., Jakarta, Bandung" />
+                             <input type="text" name="branch" value={formData.branch} onChange={handleChange} required className="w-full p-2 bg-surface-light rounded border border-border-color" placeholder="e.g., Jakarta, Bandung" />
                         </div>
-                        <div className="flex items-center justify-center">
-                             <label className="flex items-center cursor-pointer">
-                                <input type="checkbox" name="isHeadOfBranch" checked={formData.isHeadOfBranch} onChange={handleChange} className="form-checkbox h-5 w-5 text-primary bg-surface-light border-border-color rounded focus:ring-primary" />
-                                <span className="ml-2 text-text-primary font-semibold">Set as Head of Branch</span>
+                        <div className="md:col-span-2">
+                             <label className="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" name="isHeadOfBranch" checked={formData.isHeadOfBranch} onChange={handleChange} className="form-checkbox h-5 w-5 text-primary bg-surface-light border-border-color focus:ring-primary" />
+                                <span className="text-sm font-medium text-text-primary">Set as Head of Branch</span>
                             </label>
                         </div>
                     </div>

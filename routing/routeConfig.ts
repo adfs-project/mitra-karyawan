@@ -179,7 +179,7 @@ export const routes: RouteConfig[] = [
     { name: 'admin-system-integrity', path: '/admin/system/integrity', component: AdminSystemIntegrityScreen, isPrivate: true, layout: 'admin' },
 
     // HR routes
-    { name: 'hr-portal', path: '/hr-portal', component: HrPortalScreen, isPrivate: true, layout: 'hr' },
+    { name: 'hr-portal', path: '/hr-portal', component: HrDashboard, isPrivate: true, layout: 'hr' }, // Changed to go direct to dashboard
     { name: 'hr-dashboard', path: '/hr/dashboard', component: HrDashboard, isPrivate: true, layout: 'hr' },
     { name: 'hr-onboarding', path: '/hr/onboarding', component: HrOnboarding, isPrivate: true, layout: 'hr' },
     { name: 'hr-leave', path: '/hr/leave', component: HrLeaveManagement, isPrivate: true, layout: 'hr' },
@@ -217,10 +217,12 @@ export const rolePermissions: Record<Role, string[]> = {
     ],
     [Role.HR]: [
         'hr-portal', 'hr-dashboard', 'hr-onboarding', 'hr-leave', 'hr-payroll', 'hr-copilot', 'hr-wellness', 
-        'hr-attendance', 'hr-opex', 'hr-benefits', 'hr-pay-later', 'hr-performance', 'hr-analytics', 'account'
+        'hr-attendance', 'hr-opex', 'hr-benefits', 'hr-pay-later', 'hr-performance', 'hr-analytics',
+        'account' // Allow HR to access their own account page
     ],
     [Role.Finance]: [
-        'finance-dashboard', 'finance-command-center', 'finance-payroll-report', 'finance-pay-later', 'account'
+        'finance-dashboard', 'finance-command-center', 'finance-payroll-report', 'finance-pay-later',
+        'account' // Allow Finance to access their own account page
     ],
     [Role.User]: [
         'home', 'wallet', 'market', 'news', 'health', 'account', 'cart', 'wishlist',

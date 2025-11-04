@@ -1,7 +1,7 @@
 import React from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
-import { MoodHistory, HealthChallenge } from '../../types';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useData } from '../../../contexts/DataContext';
+import { MoodHistory, HealthChallenge } from '../../../types';
 import { TrophyIcon, BookOpenIcon, SparklesIcon, FireIcon, UserGroupIcon } from '@heroicons/react/24/solid';
 
 

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { SparklesIcon } from '@heroicons/react/24/solid';
+import { buildSecurePrompt } from '../../../../services/aiGuardrailService';
 import { useData } from '../../../contexts/DataContext';
 import { Product } from '../../../types';
-import { buildSecurePrompt } from '../../../services/aiGuardrailService';
 import ProductCard from './ProductCard';
 
 const FallbackRecommendations: React.FC = () => {

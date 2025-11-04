@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.btn-primary {
+  @apply bg-primary text-black font-bold transition-transform transform hover:-translate-y-px;
+}
+.btn-secondary {
+  @apply bg-secondary text-black font-bold transition-transform transform hover:-translate-y-px;
+}
+html.light .btn-primary {
+  @apply text-white;
+}
+html.light .btn-secondary {
+  @apply text-white;
+}

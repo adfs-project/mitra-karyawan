@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Role, User } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useData } from '../../contexts/DataContext';
+import { Role, User } from '../../types';
 import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon, ClipboardDocumentListIcon, ClipboardDocumentCheckIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import MyKpiModal from '../../components/user/MyKpiModal';
@@ -438,7 +438,7 @@ const MyAccountScreen: React.FC = () => {
             <div className="m-4 bg-surface rounded-lg border border-border-color">
                 <ThemeToggle />
                 {user.role === Role.HR && (
-                     <Link to={hrMenuItem.path} key={hrMenuItem.name} className="flex justify-between items-center p-4 w-full text-left border-t border-border-color bg-primary/10 hover:bg-primary/20">
+                     <Link to={'/hr/dashboard'} key={hrMenuItem.name} className="flex justify-between items-center p-4 w-full text-left border-t border-border-color bg-primary/10 hover:bg-primary/20">
                         <div className="flex items-center">
                             <hrMenuItem.icon className="h-6 w-6 text-primary mr-4" />
                             <span className="text-primary font-bold">{hrMenuItem.name}</span>

@@ -93,6 +93,8 @@ const renderWithLayout = (component: React.ReactNode, layout: RouteConfig['layou
 // FIX: New PrivateRoute guard component for clarity and robustness.
 const PrivateRoute: React.FC<{ children: React.ReactNode; route: RouteConfig }> = ({ children, route }) => {
     const { user } = useAuth();
+    // FIX: Get 'users' from useData to check for manager status.
+    const { users } = useData();
     const location = useLocation();
 
     if (!user) {
@@ -106,6 +108,11 @@ const PrivateRoute: React.FC<{ children: React.ReactNode; route: RouteConfig }> 
 
     const allowedRoutes = rolePermissions[user.role];
     if (!allowedRoutes || !allowedRoutes.includes(route.name)) {
+        // Special case: a user might be a manager
+        const isManager = users.some(u => u.profile.managerId === user.id);
+        if (user.role === Role.User && route.name === 'manager-dashboard' && isManager) {
+             return renderWithLayout(children, route.layout);
+        }
         return <AccessDeniedRedirect redirectTo={getHomeRoute(user)} />;
     }
 
@@ -126,6 +133,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode; route: RouteConfig }> =
 
 const AppRoutes: React.FC = () => {
     const { user } = useAuth();
+    const { users } = useData(); // Get users to check for manager status
 
     return (
         <Routes>
@@ -156,7 +164,7 @@ const AppRoutes: React.FC = () => {
 
 const AppContent: React.FC = () => {
     const { user } = useAuth();
-    const { isLoading } = useData();
+    const { isLoading, users } = useData();
     
     // "Gudang Tua" architecture: a single global loading gate.
     // If the user is logged in but the main DataContext is still fetching
@@ -168,7 +176,9 @@ const AppContent: React.FC = () => {
     return (
          <ErrorBoundaryModule.ErrorBoundary FallbackComponent={RecoveryUI} resetKeys={[user]}>
             <GlobalErrorCatcher />
-            <AppRoutes />
+            <Router>
+                <AppRoutes />
+            </Router>
             <ToastContainer />
         </ErrorBoundaryModule.ErrorBoundary>
     )
@@ -177,13 +187,11 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
     return (
         <ThemeProvider>
-            <Router>
-                <AuthProvider>
-                    <DataProvider>
-                        <AppContent />
-                    </DataProvider>
-                </AuthProvider>
-            </Router>
+            <AuthProvider>
+                <DataProvider>
+                    <AppContent />
+                </DataProvider>
+            </AuthProvider>
         </ThemeProvider>
     );
 };

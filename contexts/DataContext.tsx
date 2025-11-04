@@ -5,7 +5,7 @@ import {
     CartItem, Dispute, ApiIntegration, ScalabilityService, LeaveRequest, Budget, ScheduledPayment,
     MonetizationConfig, TaxConfig, HomePageConfig, AssistantLog, EngagementAnalytics,
     AdminWallets, PersonalizationRule, Order, Eprescription, HealthDocument, HealthChallenge, InsuranceClaim, ServiceLinkageMap, Toast, OpexRequest, IntegrationStatus, Role,
-    AttendanceRecord, SystemIntegrityLog, SystemIntegrityLogType, OpexRequestStatus, MoodHistory, ScalabilityServiceStatus, PerformanceReview
+    AttendanceRecord, SystemIntegrityLog, SystemIntegrityLogType, OpexRequestStatus, MoodHistory, ScalabilityServiceStatus, PerformanceReview, Coordinates
 } from '../types';
 import { testApiConnection } from '../services/apiService';
 import { useAuth } from './AuthContext';
@@ -191,10 +191,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, []);
 
-    // ... All other functions from AppContext, MarketplaceContext, HRContext, etc. are now merged here ...
-    // Note: The implementation of these functions is copied and adapted to use the monolithic `state` and `updateState`.
-    // For brevity, I will show the pattern with a few key functions. The full implementation would involve merging ALL logic.
-
     const showToast = useCallback((message: string, type: Toast['type']) => {
         const newToast: Toast = { id: Date.now(), message, type };
         setState(s => ({ ...s, toasts: [...s.toasts, newToast] }));
@@ -235,6 +231,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const addNotification = useCallback((userId: string, message: string, type: Notification['type']) => {
         const newNotif: Notification = { id: `notif-${Date.now()}`, userId, message, type, read: false, timestamp: new Date().toISOString() };
         updateState('notifications', [newNotif, ...state.notifications]);
+    }, [state.notifications, updateState]);
+
+    const markNotificationsAsRead = useCallback((userId: string) => {
+        const updatedNotifications = state.notifications.map(n => {
+            if (n.userId === userId && !n.read) {
+                return { ...n, read: true };
+            }
+            return n;
+        });
+        updateState('notifications', updatedNotifications);
     }, [state.notifications, updateState]);
     
     const addToCart = useCallback((productId: string, quantity: number) => {
@@ -1029,22 +1035,267 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, [state.performanceReviews, updateState, showToast, user, state.users, addNotification]);
 
 
-    // This is a simplified merge. A full implementation would involve merging ALL logic.
-    const mergedFunctions = {
-        // Functions from AppContext
-        markNotificationsAsRead: (userId: string) => updateState('notifications', state.notifications.map(n => n.userId === userId ? { ...n, read: true } : n)),
-        adjustUserWallet: async (userId: string, amount: number, reason: string) => { /* ... implementation ... */ },
-        freezeUserWallet: async (userId: string, freeze: boolean) => { /* ... implementation ... */ },
-        // Functions from MarketplaceContext
-        updateCartQuantity: (productId: string, quantity: number) => { /* ... implementation ... */ },
-        checkoutCart: async () => { /* ... implementation ... */ return { success: true, message: ''}; },
-        addProduct: async (data: any) => { /* ... implementation ... */ },
-        updateProduct: async (data: any) => { /* ... implementation ... */ },
-        deleteProduct: async (id: string) => { showToast('Deletion is disabled', 'warning'); },
-        addMultipleProductsByAdmin: async (data: any[]) => { /* ... implementation ... */ return {success: 0, failed: 0, errors: []}; },
-        // ... and so on for ALL functions from ALL contexts
-    };
+    const updateCartQuantity = useCallback((productId: string, quantity: number) => {
+        const newCart = state.cart.map(item => item.productId === productId ? { ...item, quantity: Math.max(0, quantity) } : item).filter(item => item.quantity > 0);
+        updateState('cart', newCart);
+    }, [state.cart, updateState]);
+
+    const checkoutCart = useCallback(async (): Promise<{ success: boolean; message: string }> => {
+        if (!user) return { success: false, message: 'User not logged in.' };
+        const total = state.cart.reduce((sum, item) => {
+            const product = state.products.find(p => p.id === item.productId);
+            return sum + (product ? product.price * item.quantity : 0);
+        }, 0);
+
+        if (total === 0) return { success: false, message: 'Cart is empty.' };
+        if (user.wallet.balance < total) return { success: false, message: 'Insufficient balance.' };
+        
+        const newOrder: Order = {
+            id: `order-${Date.now()}`,
+            userId: user.id,
+            items: state.cart.map(item => ({
+                productId: item.productId,
+                productName: state.products.find(p => p.id === item.productId)?.name || 'Unknown',
+                quantity: item.quantity,
+                price: state.products.find(p => p.id === item.productId)?.price || 0,
+            })),
+            total,
+            timestamp: new Date().toISOString(),
+        };
+
+        await addTransaction({ userId: user.id, type: 'Marketplace', amount: -total, description: `Order ${newOrder.id}`, status: 'Completed', relatedId: newOrder.id });
+
+        updateState('orders', [newOrder, ...state.orders]);
+        updateState('cart', []);
+
+        return { success: true, message: 'Checkout successful!' };
+
+    }, [user, state.cart, state.products, addTransaction, updateState, state.orders]);
     
+    const addProduct = useCallback(async (productData: Omit<Product, 'id' | 'sellerId' | 'sellerName' | 'reviews' | 'rating' | 'reviewCount' | 'status' | 'createdAt'>) => {
+        if (!user) return;
+        const newProduct: Product = {
+            ...productData,
+            id: `prod-${Date.now()}`,
+            sellerId: user.id,
+            sellerName: user.profile.name,
+            reviews: [],
+            rating: 0,
+            reviewCount: 0,
+            status: 'Needs Review',
+            createdAt: new Date().toISOString(),
+        };
+        updateState('products', [newProduct, ...state.products]);
+        addNotification('admin-001', `${user.profile.name} has listed a new product for review: ${newProduct.name}`, 'info');
+        showToast('Product submitted for review.', 'success');
+    }, [user, state.products, updateState, addNotification, showToast]);
+
+    const updateProduct = useCallback(async (productData: Product) => {
+        const updatedProducts = state.products.map(p => p.id === productData.id ? { ...productData, status: 'Needs Review' as 'Needs Review' } : p);
+        updateState('products', updatedProducts);
+        addNotification('admin-001', `Product ${productData.name} was updated and needs review.`, 'info');
+        showToast('Product updated and resubmitted for review.', 'success');
+    }, [state.products, updateState, addNotification, showToast]);
+    
+    const bookConsultation = useCallback(async (doctorId: string, slotTime: string): Promise<{ success: boolean, message: string, consultationId?: string }> => {
+        if (!user) return { success: false, message: "User not logged in." };
+        const doctor = state.doctors.find(d => d.id === doctorId);
+        if (!doctor) return { success: false, message: "Doctor not found." };
+        
+        if (user.wallet.balance < doctor.consultationFee) {
+            return { success: false, message: "Insufficient balance for consultation." };
+        }
+
+        const txResult = await addTransaction({ userId: user.id, type: 'Teleconsultation', amount: -doctor.consultationFee, description: `Consultation with ${doctor.name}`, status: 'Completed', relatedId: doctor.id });
+        if (!txResult.success) return txResult;
+        
+        const newConsultation: Consultation = {
+            id: `cons-${Date.now()}`,
+            userId: user.id,
+            userName: user.profile.name,
+            doctorId,
+            doctorName: doctor.name,
+            doctorSpecialty: doctor.specialty,
+            scheduledTime: new Date().toISOString(), // Simplified for demo
+            status: 'Scheduled',
+        };
+        const updatedDoctors = state.doctors.map(d => d.id === doctorId ? { ...d, availableSlots: d.availableSlots.map(s => s.time === slotTime ? { ...s, isBooked: true } : s) } : d);
+        
+        updateState('consultations', [newConsultation, ...state.consultations]);
+        updateState('doctors', updatedDoctors);
+
+        return { success: true, message: "Booking confirmed!", consultationId: newConsultation.id };
+
+    }, [user, state.doctors, state.consultations, addTransaction, updateState]);
+    
+    const endConsultation = useCallback(async (consultationId: string, chatSummary: string) => {
+        const consultation = state.consultations.find(c => c.id === consultationId);
+        if (!consultation) return;
+
+        // Simulate AI generating a prescription based on summary
+        const needsPrescription = chatSummary.toLowerCase().includes("resep") || chatSummary.toLowerCase().includes("obat");
+        let eprescriptionId: string | undefined = undefined;
+        if (needsPrescription) {
+            const newPrescription: Eprescription = {
+                id: `epres-${Date.now()}`,
+                consultationId,
+                patientId: consultation.userId,
+                doctorId: consultation.doctorId,
+                doctorName: consultation.doctorName,
+                issueDate: new Date().toISOString(),
+                items: [{ drugName: "Paracetamol 500mg", dosage: "3x1", instructions: "Setelah makan" }],
+                status: 'New'
+            };
+            updateState('eprescriptions', [newPrescription, ...state.eprescriptions]);
+            eprescriptionId = newPrescription.id;
+        }
+
+        const updatedConsultations = state.consultations.map(c => c.id === consultationId ? { ...c, status: 'Completed' as 'Completed', notes: chatSummary, eprescriptionId } : c);
+        updateState('consultations', updatedConsultations);
+
+    }, [state.consultations, state.eprescriptions, updateState]);
+    
+    const addMoodEntry = useCallback((mood: MoodHistory['mood']) => {
+        if (!user) return;
+        const newEntry: MoodHistory = { date: new Date().toISOString().split('T')[0], mood };
+        // Avoid duplicate entries for the same day
+        const otherEntries = user.healthData.moodHistory.filter(h => h.date !== newEntry.date);
+        updateCurrentUser({ ...user, healthData: { ...user.healthData, moodHistory: [newEntry, ...otherEntries] } });
+        showToast("Mood for today has been recorded!", 'success');
+    }, [user, updateCurrentUser, showToast]);
+    
+    const joinHealthChallenge = useCallback((challengeId: string) => {
+        if (!user) return;
+        const isParticipant = state.healthChallenges.find(c => c.id === challengeId)?.participants.some(p => p.userId === user.id);
+        if (isParticipant) {
+            showToast("You have already joined this challenge.", 'info');
+            return;
+        }
+        const updatedChallenges = state.healthChallenges.map(c => c.id === challengeId ? { ...c, participants: [...c.participants, { userId: user.id, progress: 0 }] } : c);
+        updateState('healthChallenges', updatedChallenges);
+        showToast("Successfully joined the challenge!", 'success');
+    }, [user, state.healthChallenges, updateState, showToast]);
+    
+    const addHealthDocument = useCallback(async (doc: { name: string; fileUrl: string }) => {
+        if (!user) return;
+        const newDoc: HealthDocument = { ...doc, id: `doc-${Date.now()}`, userId: user.id, uploadDate: new Date().toISOString() };
+        updateState('healthDocuments', [newDoc, ...state.healthDocuments]);
+        showToast("Document uploaded successfully.", 'success');
+    }, [user, state.healthDocuments, updateState, showToast]);
+    
+    const submitInsuranceClaim = useCallback(async (claim: { type: InsuranceClaim['type']; amount: number; receiptUrl: string; }) => {
+        if (!user) return;
+        const newClaim: InsuranceClaim = { 
+            ...claim, 
+            id: `ic-${Date.now()}`,
+            userId: user.id,
+            userName: user.profile.name,
+            branch: user.profile.branch || 'N/A',
+            submissionDate: new Date().toISOString(),
+            status: 'Pending',
+        };
+        updateState('insuranceClaims', [newClaim, ...state.insuranceClaims]);
+        showToast("Insurance claim submitted.", 'success');
+    }, [user, state.insuranceClaims, updateState, showToast]);
+    
+    const subscribeToHealthPlus = useCallback(async () => {
+        if (!user) return;
+        await addTransaction({ userId: user.id, type: 'Subscription', amount: -50000, description: 'Health+ Subscription (1 Month)', status: 'Completed' });
+        updateCurrentUser({ ...user, isPremium: true });
+    }, [user, addTransaction, updateCurrentUser]);
+    
+    const redeemEprescription = useCallback(async (eprescriptionId: string): Promise<{ success: boolean; message: string; }> => {
+        if (!user) return { success: false, message: 'User not logged in' };
+        const pres = state.eprescriptions.find(e => e.id === eprescriptionId);
+        if (!pres || pres.status === 'Redeemed') return { success: false, message: 'Prescription not valid or already redeemed' };
+        
+        // This is a simulation, in real app you would calculate price
+        const total = 50000;
+        if (user.wallet.balance < total) return { success: false, message: 'Insufficient balance' };
+        
+        await addTransaction({ userId: user.id, type: 'Obat & Resep', amount: -total, description: `Redeem prescription ${pres.id}`, status: 'Completed', relatedId: pres.id });
+        
+        const updatedPrescriptions = state.eprescriptions.map(e => e.id === eprescriptionId ? { ...e, status: 'Redeemed' as 'Redeemed' } : e);
+        updateState('eprescriptions', updatedPrescriptions);
+
+        return { success: true, message: 'Prescription redeemed successfully!' };
+
+    }, [user, state.eprescriptions, addTransaction, updateState]);
+    
+    const clockIn = useCallback(async (photoUrl: string): Promise<{ success: boolean; message: string; }> => {
+        if (!user) return { success: false, message: 'User not logged in' };
+        const today = new Date().toISOString().split('T')[0];
+        const todaysRecord = state.attendanceRecords.find(r => r.userId === user.id && r.date === today && !r.clockOutTime);
+        
+        if (todaysRecord && todaysRecord.clockInTime) {
+            return { success: false, message: 'You have already clocked in today.' };
+        }
+        
+        try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject));
+            const newRecord: AttendanceRecord = {
+                id: `att-${Date.now()}`,
+                userId: user.id,
+                userName: user.profile.name,
+                branch: user.profile.branch || 'N/A',
+                date: today,
+                clockInTime: new Date().toISOString(),
+                clockInLocation: { latitude: position.coords.latitude, longitude: position.coords.longitude },
+                clockInPhotoUrl: photoUrl,
+            };
+            updateState('attendanceRecords', [newRecord, ...state.attendanceRecords]);
+            return { success: true, message: 'Clock in successful!' };
+        } catch (error) {
+            return { success: false, message: 'Could not get location. Please enable location services.' };
+        }
+    }, [user, state.attendanceRecords, updateState]);
+    
+    const clockOut = useCallback(async (photoUrl: string): Promise<{ success: boolean; message: string; }> => {
+        if (!user) return { success: false, message: 'User not logged in' };
+        const today = new Date().toISOString().split('T')[0];
+        const recordToUpdate = state.attendanceRecords.find(r => r.userId === user.id && r.date === today && !r.clockOutTime);
+        
+        if (!recordToUpdate) {
+            return { success: false, message: 'You have not clocked in yet.' };
+        }
+        
+        try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject));
+            const updatedRecord = {
+                ...recordToUpdate,
+                clockOutTime: new Date().toISOString(),
+                clockOutLocation: { latitude: position.coords.latitude, longitude: position.coords.longitude },
+                clockOutPhotoUrl: photoUrl,
+            };
+            const newRecords = state.attendanceRecords.map(r => r.id === recordToUpdate.id ? updatedRecord : r);
+            updateState('attendanceRecords', newRecords);
+            return { success: true, message: 'Clock out successful!' };
+        } catch (error) {
+            return { success: false, message: 'Could not get location. Please enable location services.' };
+        }
+    }, [user, state.attendanceRecords, updateState]);
+
+    const submitOpexRequest = useCallback(async (requestData: Omit<OpexRequest, 'id'|'userId'|'userName'|'branch'|'status'|'timestamp'|'hrApproverId'|'hrApprovalTimestamp'|'financeApproverId'|'financeApprovalTimestamp'|'rejectionReason'>) => {
+        if (!user) return;
+        const newRequest: OpexRequest = {
+            ...requestData,
+            id: `opex-${Date.now()}`,
+            userId: user.id,
+            userName: user.profile.name,
+            branch: user.profile.branch || 'N/A',
+            status: 'Pending HR Verification',
+            timestamp: new Date().toISOString(),
+        };
+        updateState('opexRequests', [newRequest, ...state.opexRequests]);
+        
+        const hrUser = state.users.find(u => u.role === Role.HR && u.profile.branch === user.profile.branch);
+        if (hrUser) {
+            addNotification(hrUser.id, `New opex request from ${user.profile.name} for ${requestData.type} needs verification.`, 'info');
+        }
+        
+        showToast("Opex request submitted successfully.", 'success');
+    }, [user, state.opexRequests, state.users, addNotification, showToast, updateState]);
+
     // Placeholder for all other functions to avoid breaking the UI
     const placeholderFunctions = {
         logAssistantQuery: () => {}, logEngagementEvent: () => {},
@@ -1055,16 +1306,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addPersonalizationRule: () => {}, updatePersonalizationRule: () => {}, deletePersonalizationRule: () => showToast("Deletion is disabled.", 'warning'),
         updateServiceLinkage: () => {}, addBudget: async () => {}, updateBudget: async () => {}, deleteBudget: () => showToast("Deletion is disabled.", 'warning'),
         addScheduledPayment: async () => {}, updateScheduledPayment: async () => {}, deleteScheduledPayment: () => showToast("Deletion is disabled.", 'warning'),
-        applyForPayLater: () => {}, 
+        applyForPayLater: () => {
+             if (!user) return;
+             if(user.payLater && user.payLater.status !== 'not_applied' && user.payLater.status !== 'rejected') {
+                showToast('You have already applied for PayLater.', 'info');
+                return;
+             }
+             const updatedUser = { ...user, payLater: { status: 'pending' as 'pending' }};
+             updateCurrentUser(updatedUser);
+             showToast('PayLater application submitted!', 'success');
+        },
         addMultipleArticlesByAdmin: async () => ({ success: 0, failed: 0, errors: [] }),
-        bookConsultation: async () => ({ success: false, message: 'Not implemented' }), endConsultation: async () => {},
-        addMoodEntry: () => {}, joinHealthChallenge: () => {}, 
-        addHealthDocument: async () => {}, deleteHealthDocument: () => showToast("Deletion is disabled.", 'warning'),
-        submitInsuranceClaim: async () => {}, 
-        subscribeToHealthPlus: async () => {}, redeemEprescription: async () => ({ success: false, message: 'Not implemented' }),
-        clockIn: async () => ({ success: false, message: 'Not implemented' }), clockOut: async () => ({ success: false, message: 'Not implemented' }),
-        submitOpexRequest: async () => {},
+        deleteHealthDocument: () => showToast("Deletion is disabled.", 'warning'),
         updateUserInterestProfile: async () => {},
+        addMultipleProductsByAdmin: async () => ({ success: 0, failed: 0, errors: [] }),
+        freezeUserWallet: async () => {},
+        adjustUserWallet: async () => {},
     };
 
     return (
@@ -1073,6 +1330,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             updateState,
             addTransaction,
             addNotification,
+            markNotificationsAsRead,
             showToast,
             removeToast,
             addToCart,
@@ -1111,7 +1369,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             generatePayslipData,
             updatePerformanceReview,
             submitSelfAssessment,
-            ...mergedFunctions,
+            updateCartQuantity,
+            checkoutCart,
+            addProduct,
+            updateProduct,
+            bookConsultation,
+            endConsultation,
+            addMoodEntry,
+            joinHealthChallenge,
+            addHealthDocument,
+            submitInsuranceClaim,
+            subscribeToHealthPlus,
+            redeemEprescription,
+            clockIn,
+            clockOut,
+            submitOpexRequest,
             ...placeholderFunctions
         }}>
             {children}
