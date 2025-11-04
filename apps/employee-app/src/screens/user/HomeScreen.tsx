@@ -34,8 +34,8 @@ const QuickAccess: React.FC = () => {
                         onClick={() => logEngagementEvent('quickAccessClicks', item.name)}
                         className="bg-surface p-4 rounded-lg flex flex-col items-center justify-center aspect-square"
                     >
-                        <item.icon className="h-8 w-8 text-primary mb-2" />
-                        <span className="text-xs font-semibold">{item.name}</span>
+                        <item.icon className="h-24 w-24 text-primary mb-4" />
+                        <span className="text-base font-semibold">{item.name}</span>
                     </Link>
                 ))}
             </div>
