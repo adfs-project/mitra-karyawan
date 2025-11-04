@@ -22,8 +22,8 @@ const DonutChart: React.FC<{ income: number; outcome: number }> = ({ income, out
     const incomePercent = (data.income.value / total) * 100;
     const outcomePercent = (data.outcome.value / total) * 100;
 
-    const size = 200;
-    const strokeWidth = 20;
+    const size = 240;
+    const strokeWidth = 80;
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
 
@@ -35,89 +35,94 @@ const DonutChart: React.FC<{ income: number; outcome: number }> = ({ income, out
             return {
                 label: 'Pemasukan',
                 value: data.income.value,
-                color: 'text-primary'
+                color: 'var(--color-primary)'
             };
         }
         if (hovered === 'outcome') {
             return {
                 label: 'Pengeluaran',
                 value: data.outcome.value,
-                color: 'text-secondary'
+                color: 'var(--color-secondary)'
             };
         }
         const savings = data.income.value - data.outcome.value;
         return {
             label: savings >= 0 ? 'Sisa Dana' : 'Defisit',
             value: savings,
-            color: savings >= 0 ? 'text-primary' : 'text-red-500'
+            color: '#A755F7'
         };
     };
 
     const centerText = getCenterText();
     
     return (
-        <div className="flex flex-col items-center">
-            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-                <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
-                    {/* Background Circle */}
-                    <circle
-                        cx={size / 2}
-                        cy={size / 2}
-                        r={radius}
-                        fill="transparent"
-                        stroke="var(--color-surface-light)"
-                        strokeWidth={strokeWidth}
-                    />
-                    {/* Outcome Segment */}
-                    <circle
-                        onMouseEnter={() => setHovered('outcome')}
-                        onMouseLeave={() => setHovered(null)}
-                        cx={size / 2}
-                        cy={size / 2}
-                        r={radius}
-                        fill="transparent"
-                        stroke={data.outcome.color}
-                        strokeWidth={strokeWidth}
-                        strokeDasharray={circumference}
-                        strokeDashoffset={outcomeStrokeDashoffset}
-                        strokeLinecap="round"
-                        className="transition-all duration-300 ease-in-out"
-                        style={{ transform: hovered === 'outcome' ? 'scale(1.05)' : 'scale(1)', transformOrigin: 'center' }}
-                    />
-                    {/* Income Segment */}
-                    <circle
-                         onMouseEnter={() => setHovered('income')}
-                        onMouseLeave={() => setHovered(null)}
-                        cx={size / 2}
-                        cy={size / 2}
-                        r={radius}
-                        fill="transparent"
-                        stroke={data.income.color}
-                        strokeWidth={strokeWidth}
-                        strokeDasharray={circumference}
-                        strokeDashoffset={incomeStrokeDashoffset}
-                        strokeLinecap="round"
-                        transform={`rotate(${outcomePercent * 3.6} ${size/2} ${size/2})`}
-                        className="transition-all duration-300 ease-in-out"
-                        style={{ transform: `rotate(${outcomePercent * 3.6}deg) ${hovered === 'income' ? 'scale(1.05)' : 'scale(1)'}`, transformOrigin: 'center' }}
-
-                    />
-                </g>
-                 <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="transition-opacity duration-300">
-                    <tspan x="50%" dy="-0.5em" className="text-xs font-semibold text-text-secondary">{centerText.label}</tspan>
-                    <tspan x="50%" dy="1.2em" className={`text-xl font-bold ${centerText.color}`}>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-x-12 gap-y-6">
+            <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+                <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="absolute">
+                    <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+                        {/* Background Circle */}
+                        <circle
+                            cx={size / 2}
+                            cy={size / 2}
+                            r={radius}
+                            fill="transparent"
+                            stroke="var(--color-surface-light)"
+                            strokeWidth={strokeWidth}
+                        />
+                        {/* Outcome Segment */}
+                        <circle
+                            onMouseEnter={() => setHovered('outcome')}
+                            onMouseLeave={() => setHovered(null)}
+                            cx={size / 2}
+                            cy={size / 2}
+                            r={radius}
+                            fill="transparent"
+                            stroke={data.outcome.color}
+                            strokeWidth={strokeWidth}
+                            strokeDasharray={circumference}
+                            strokeDashoffset={outcomeStrokeDashoffset}
+                            strokeLinecap="round"
+                            className="transition-all duration-300 ease-in-out cursor-pointer"
+                        />
+                        {/* Income Segment */}
+                        <circle
+                            onMouseEnter={() => setHovered('income')}
+                            onMouseLeave={() => setHovered(null)}
+                            cx={size / 2}
+                            cy={size / 2}
+                            r={radius}
+                            fill="transparent"
+                            stroke={data.income.color}
+                            strokeWidth={strokeWidth}
+                            strokeDasharray={circumference}
+                            strokeDashoffset={incomeStrokeDashoffset}
+                            strokeLinecap="round"
+                            transform={`rotate(${outcomePercent * 3.6} ${size/2} ${size/2})`}
+                            className="transition-all duration-300 ease-in-out cursor-pointer"
+                        />
+                    </g>
+                </svg>
+                 <div className="text-center transition-opacity duration-300 pointer-events-none">
+                    <p className="text-sm font-semibold text-text-secondary">{centerText.label}</p>
+                    <p className="text-2xl font-bold" style={{ color: centerText.color }}>
                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(centerText.value)}
-                    </tspan>
-                </text>
-            </svg>
-            <div className="flex space-x-6 mt-4">
+                    </p>
+                </div>
+            </div>
+            <div className="flex flex-col space-y-4">
                 <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-primary mr-2"></div>
-                    <span className="text-sm font-semibold">Pemasukan</span>
+                    <div className="w-4 h-4 rounded-full bg-primary mr-3"></div>
+                    <div>
+                        <span className="text-sm font-semibold">Pemasukan</span>
+                        <p className="font-bold text-lg text-primary">{incomePercent.toFixed(0)}%</p>
+                    </div>
                 </div>
                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-secondary mr-2"></div>
-                    <span className="text-sm font-semibold">Pengeluaran</span>
+                    <div className="w-4 h-4 rounded-full bg-secondary mr-3"></div>
+                    <div>
+                        <span className="text-sm font-semibold">Pengeluaran</span>
+                        <p className="font-bold text-lg text-secondary">{outcomePercent.toFixed(0)}%</p>
+                    </div>
                 </div>
             </div>
         </div>
