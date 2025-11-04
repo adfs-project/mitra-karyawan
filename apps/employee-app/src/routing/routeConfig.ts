@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Role, lazyWithTimeout } from '@mk/shared';
 
@@ -19,7 +20,7 @@ const DeactivatedAccountScreen = lazyWithTimeout(() => import('../screens/auth/D
 // User Screens
 const HomeScreen = lazyWithTimeout(() => import('../screens/user/HomeScreen'));
 const WalletScreen = lazyWithTimeout(() => import('../screens/user/WalletScreen'));
-const MarketScreen = lazyWithTimeout(() => import('../screens/user/MarketScreen'));
+const MarketScreen = lazyWithTimeout(() => import('../screens/user/market/MarketScreen'));
 const InfoNewsScreen = lazyWithTimeout(() => import('../screens/user/InfoNewsScreen'));
 const HealthScreen = lazyWithTimeout(() => import('../screens/user/HealthScreen'));
 const MyAccountScreen = lazyWithTimeout(() => import('../screens/user/MyAccountScreen'));

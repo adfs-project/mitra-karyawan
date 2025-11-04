@@ -1,3 +1,4 @@
+
 import React from 'react';
 import FinanceSidebar from './FinanceSidebar';
 import { useAuth } from '@mk/shared';

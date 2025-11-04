@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { useData } from '@mk/shared';
 import { UsersIcon, BanknotesIcon, ShoppingCartIcon, ArrowTrendingUpIcon, CursorArrowRaysIcon, SparklesIcon } from '@heroicons/react/24/outline';
@@ -97,21 +98,4 @@ const AdminDashboard: React.FC = () => {
                             {transactions.slice(0, 5).map(tx => (
                                 <tr key={tx.id} className="bg-surface border-b border-border-color">
                                     <td className="px-6 py-4 font-medium text-text-primary whitespace-nowrap">{tx.userName}</td>
-                                    <td className="px-6 py-4">{tx.type}</td>
-                                    <td className={`px-6 py-4 font-bold ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(tx.amount)}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${tx.status === 'Completed' ? 'bg-green-500/20 text-green-400' : tx.status === 'Pending' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>{tx.status}</span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-export default AdminDashboard;
+                                    <td className="px-6
