@@ -72,7 +72,7 @@ const Header: React.FC = () => {
         <header className="bg-surface sticky top-0 z-10 p-4 flex justify-between items-center border-b border-border-color">
             <div className="flex items-center space-x-3">
                 <span className="text-xl font-bold text-primary">
-                    {language === 'ID' ? 'MK App' : 'MK App'}
+                    {language === 'ID' ? 'Mitra Karyawan' : 'Mitra Karyawan'}
                 </span>
                 {user?.profile.branch && (
                     <>
