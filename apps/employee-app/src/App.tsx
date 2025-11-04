@@ -1,7 +1,7 @@
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import * as ErrorBoundaryModule from 'react-error-boundary';
-import { AuthProvider, useAuth, DataProvider, useData, ThemeProvider, RecoveryUI, ToastContainer, Role, ScreenshotGuard } from '@mk/shared';
+import { AuthProvider, useAuth, DataProvider, useData, ThemeProvider, RecoveryUI, ToastContainer, Role, ScreenshotGuard, InstallBanner } from '@mk/shared';
 import { employeeRoutes, rolePermissions, RouteConfig } from './routing/routeConfig';
 
 // Layouts specific to this app
@@ -84,15 +84,53 @@ const AppRoutes: React.FC = () => {
 const AppContent: React.FC = () => {
     const { user } = useAuth();
     const { isLoading } = useData();
+    const [installPromptEvent, setInstallPromptEvent] = useState<any>(null);
+    const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+    useEffect(() => {
+        const handleBeforeInstallPrompt = (e: Event) => {
+            e.preventDefault();
+            setInstallPromptEvent(e);
+            if (!sessionStorage.getItem('install_banner_dismissed')) {
+                setShowInstallBanner(true);
+            }
+        };
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        };
+    }, []);
+
+    const handleInstallClick = () => {
+        if (installPromptEvent) {
+            installPromptEvent.prompt();
+            setShowInstallBanner(false);
+        }
+    };
+
+    const handleDismissInstall = () => {
+        setShowInstallBanner(false);
+        sessionStorage.setItem('install_banner_dismissed', 'true');
+    };
+
     if (user && isLoading) {
         return <CenteredLoading />;
     }
+    
     return (
         <ErrorBoundaryModule.ErrorBoundary FallbackComponent={RecoveryUI} resetKeys={[user]}>
             <Router>
                 <AppRoutes />
                 <ToastContainer />
             </Router>
+            {showInstallBanner && (
+                <InstallBanner
+                    onInstall={handleInstallClick}
+                    onDismiss={handleDismissInstall}
+                />
+            )}
         </ErrorBoundaryModule.ErrorBoundary>
     );
 };
