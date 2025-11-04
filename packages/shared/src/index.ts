@@ -1,4 +1,3 @@
-
 // This file acts as the main public API for the @mk/shared package.
 // Everything exported from here can be imported by other apps in the monorepo.
 
@@ -19,3 +18,4 @@ export { default as ToastContainer } from './components/common/ToastContainer';
 export { default as InstallBanner } from './components/common/InstallBanner';
 export { default as LocationName } from './components/common/LocationName';
 export { default as PhotoViewerModal } from './components/common/PhotoViewerModal';
+export { default as ScreenshotGuard } from './components/common/ScreenshotGuard';

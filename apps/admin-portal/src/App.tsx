@@ -1,8 +1,7 @@
-
 import React, { Suspense, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import * as ErrorBoundaryModule from 'react-error-boundary';
-import { AuthProvider, useAuth, DataProvider, useData, ThemeProvider, RecoveryUI, ToastContainer, Role } from '@mk/shared';
+import { AuthProvider, useAuth, DataProvider, useData, ThemeProvider, RecoveryUI, ToastContainer, Role, ScreenshotGuard } from '@mk/shared';
 import { adminRoutes, rolePermissions, RouteConfig } from './routing/routeConfig';
 
 // Layouts specific to this app
@@ -116,6 +115,7 @@ const App: React.FC = () => (
         <AuthProvider>
             <DataProvider>
                 <AppContent />
+                <ScreenshotGuard />
             </DataProvider>
         </AuthProvider>
     </ThemeProvider>
