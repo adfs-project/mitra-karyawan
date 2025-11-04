@@ -92,7 +92,7 @@ const WalletScreen: React.FC = () => {
                                     <p className="font-semibold text-text-primary">{tx.description}</p>
                                     <p className="text-xs text-text-secondary">{new Date(tx.timestamp).toLocaleString()}</p>
                                 </div>
-                                <div className={`font-bold text-right`}>
+                                <div className={'font-bold text-right'}>
                                     <p className={`${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(tx.amount)}</p>
                                      <span className={`text-xs font-normal ${tx.status === 'Completed' ? 'text-green-500' : tx.status === 'Pending' ? 'text-yellow-500' : 'text-red-500'}`}>
                                         {tx.status}
@@ -110,21 +110,14 @@ const WalletScreen: React.FC = () => {
     const transactionTypes: TransactionType[] = ['All', 'Top-Up', 'Transfer', 'Marketplace', 'PPOB', 'Refund'];
 
     return (
-        <div className="p-4 desktop:p-0 desktop:py-6 desktop:grid desktop:grid-cols-3 desktop:gap-8">
-            {/* Left Sidebar for Desktop */}
-            <aside className="hidden desktop:block desktop:col-span-1">
+        <div className="py-6 grid grid-cols-3 gap-8">
+            <aside className="col-span-1">
                 <div className="sticky top-20">
                     <StickySidebar onTopUp={() => setTopUpModalOpen(true)} onTransfer={() => setTransferModalOpen(true)} />
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="desktop:col-span-2 space-y-6">
-                {/* Mobile-only Sidebar content */}
-                <div className="desktop:hidden">
-                    <StickySidebar onTopUp={() => setTopUpModalOpen(true)} onTransfer={() => setTransferModalOpen(true)} />
-                </div>
-
+            <main className="col-span-2 space-y-6">
                  <button onClick={() => setAdvisorModalOpen(true)} className="w-full btn-secondary p-3 rounded-lg flex items-center justify-center font-bold space-x-2">
                     <SparklesIcon className="h-6 w-6" />
                     <span>Tanya Analis Keuangan AI</span>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import PersonalizedGreeting from '../../components/user/PersonalizedGreeting';
 import SmartAssistant from '../../components/user/SmartAssistant';
 import ForYouWidget from '../../components/user/ForYouWidget';
@@ -7,21 +7,22 @@ import { useData, useAuth, Notification, Product } from '@mk/shared';
 import { BuildingStorefrontIcon, CurrencyDollarIcon, NewspaperIcon, ClockIcon, Squares2X2Icon, SparklesIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 import AttendanceCameraModal from '../../components/user/AttendanceCameraModal';
-import DesktopLeftSidebar from '../../components/layout/DesktopLeftSidebar';
-
-// QuickAccess, AttendanceCard, and RightSidebar components remain unchanged...
 
 const QuickAccess: React.FC = () => {
     const { homePageConfig, logEngagementEvent } = useData();
+
     const baseItems = [
         { name: 'Market', icon: BuildingStorefrontIcon, path: '/market' },
         { name: 'Wallet', icon: CurrencyDollarIcon, path: '/wallet' },
         { name: 'News', icon: NewspaperIcon, path: '/news' },
     ];
+
     if (homePageConfig.featureFlags.aiInvestmentBot) {
         baseItems.push({ name: 'AI Bot', icon: SparklesIcon, path: '/placeholder/ai-investment-bot' });
     }
-    const gridColsClass = baseItems.length === 4 ? 'grid-cols-4' : 'grid-cols-3';
+
+    const gridColsClass = baseItems.length === 4 ? 'grid-cols-4' : 'grid-cols-2';
+
     return (
         <div>
              <h2 className="text-lg font-bold text-text-primary mb-2">Akses Cepat</h2>
@@ -51,26 +52,30 @@ const QuickAccess: React.FC = () => {
 const AttendanceCard: React.FC = () => {
     const { user } = useAuth();
     const { attendanceRecords, clockIn, clockOut, showToast } = useData();
-    const [isLoading, setIsLoading] = React.useState(false);
-    const [isCameraModalOpen, setIsCameraModalOpen] = React.useState(false);
-    const [cameraMode, setCameraMode] = React.useState<'in' | 'out' | null>(null);
-    const activeRecord = React.useMemo(() => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
+    const [cameraMode, setCameraMode] = useState<'in' | 'out' | null>(null);
+
+    const activeRecord = useMemo(() => {
         if (!user) return null;
         return [...(attendanceRecords || [])]
             .filter(r => r.userId === user.id && r.clockInTime && !r.clockOutTime)
             .sort((a, b) => new Date(b.clockInTime!).getTime() - new Date(a.clockInTime!).getTime())[0];
     }, [attendanceRecords, user]);
-    const latestRecordToday = React.useMemo(() => {
+
+    const latestRecordToday = useMemo(() => {
         if (!user) return null;
         const today = new Date().toISOString().split('T')[0];
         const recordsToday = (attendanceRecords || []).filter(r => r.userId === user.id && r.date === today);
         if (recordsToday.length === 0) return null;
+
         return recordsToday.sort((a, b) => {
             const timeA = new Date(a.clockOutTime || a.clockInTime || 0).getTime();
             const timeB = new Date(b.clockOutTime || b.clockInTime || 0).getTime();
             return timeB - timeA;
         })[0];
     }, [attendanceRecords, user]);
+
     const getStatus = () => {
         if (activeRecord) {
             return { text: `Anda masuk pukul ${new Date(activeRecord.clockInTime!).toLocaleTimeString('id-ID')}.`, button: 'Clock Out' };
@@ -80,19 +85,25 @@ const AttendanceCard: React.FC = () => {
         }
         return { text: 'Anda belum absen hari ini.', button: 'Clock In' };
     };
+
     const handleClockButtonClick = (mode: 'in' | 'out') => {
         setCameraMode(mode);
         setIsCameraModalOpen(true);
     };
+
     const handlePhotoCapture = async (photoUrl: string) => {
         setIsCameraModalOpen(false);
         setIsLoading(true);
+        
         let result = await (cameraMode === 'in' ? clockIn(photoUrl) : clockOut(photoUrl));
+        
         showToast(result.message, result.success ? 'success' : 'error');
         setIsLoading(false);
         setCameraMode(null);
     };
+
     const status = getStatus();
+
     return (
         <>
             <div className="bg-surface p-4 rounded-lg border border-border-color">
@@ -102,12 +113,20 @@ const AttendanceCard: React.FC = () => {
                 </h2>
                 <p className="text-text-secondary text-sm mb-4">{status.text}</p>
                 {status.button && (
-                    <button onClick={() => handleClockButtonClick(status.button === 'Clock In' ? 'in' : 'out')} disabled={isLoading} className="w-full btn-primary p-3 rounded-lg font-bold flex justify-center items-center">
+                    <button
+                        onClick={() => handleClockButtonClick(status.button === 'Clock In' ? 'in' : 'out')}
+                        disabled={isLoading}
+                        className="w-full btn-primary p-3 rounded-lg font-bold flex justify-center items-center"
+                    >
                         {isLoading ? <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div> : status.button}
                     </button>
                 )}
             </div>
-            <AttendanceCameraModal isOpen={isCameraModalOpen} onClose={() => setIsCameraModalOpen(false)} onCapture={handlePhotoCapture} />
+            <AttendanceCameraModal
+                isOpen={isCameraModalOpen}
+                onClose={() => setIsCameraModalOpen(false)}
+                onCapture={handlePhotoCapture}
+            />
         </>
     );
 };
@@ -158,12 +177,9 @@ const HomeScreen: React.FC = () => {
         .slice(0, 2);
 
     return (
-        <div className="py-6 desktop:grid desktop:grid-cols-12 desktop:gap-8">
-            <DesktopLeftSidebar />
-
-            {/* Main content */}
-            <main className="desktop:col-span-6 xl:col-span-7">
-                <div className="space-y-8 px-4 desktop:px-0">
+        <div className="py-6 grid grid-cols-10 gap-8">
+            <div className="col-span-7">
+                <div className="space-y-8">
                     <PersonalizedGreeting />
                     <SmartAssistant />
                     <AttendanceCard />
@@ -178,10 +194,9 @@ const HomeScreen: React.FC = () => {
                          </div>
                     </div>
                 </div>
-            </main>
+            </div>
 
-            {/* Right sidebar */}
-            <aside className="hidden desktop:block desktop:col-span-3 xl:col-span-3">
+            <aside className="col-span-3">
                 <RightSidebar />
             </aside>
         </div>

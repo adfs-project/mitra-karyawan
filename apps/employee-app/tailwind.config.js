@@ -8,9 +8,6 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
-      screens: {
-        'desktop': { 'raw': '(orientation: landscape) and (min-height: 768px)' },
-      },
       colors: {
         primary: 'var(--color-primary)',
         secondary: 'var(--color-secondary)',

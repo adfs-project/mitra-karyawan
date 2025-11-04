@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { useAuth } from '@mk/shared';
+import { useAuth } from '../../contexts/AuthContext';
 import { HomeIcon, WalletIcon, BuildingStorefrontIcon, NewspaperIcon, HeartIcon, UserCircleIcon } from '@heroicons/react/24/solid';
 
 const navItems = [
@@ -18,7 +18,7 @@ const DesktopLeftSidebar: React.FC = () => {
     if (!user) return null;
 
     return (
-        <aside className="col-span-3 xl:col-span-2 p-4">
+        <aside className="col-span-3 xl:col-span-2 p-4 border-r border-border-color">
             <div className="sticky top-20 space-y-6">
                 {/* User Profile Card */}
                 <div className="bg-surface p-4 rounded-lg border border-border-color">

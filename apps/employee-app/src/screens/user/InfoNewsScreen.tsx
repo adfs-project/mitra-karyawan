@@ -4,7 +4,6 @@ import ArticleCard from '../../components/user/news/ArticleCard';
 import CommentModal from '../../components/user/news/CommentModal';
 import AiPersonalizedFeed from '../../components/user/news/AiPersonalizedFeed';
 import { SparklesIcon, GlobeAltIcon, TagIcon, BookmarkIcon } from '@heroicons/react/24/solid';
-import DesktopLeftSidebar from '../../components/layout/DesktopLeftSidebar';
 import { Link } from 'react-router-dom';
 
 type Tab = 'For You' | 'Global';
@@ -64,10 +63,8 @@ const InfoNewsScreen: React.FC = () => {
     }, [articles]);
 
     return (
-        <div className="p-4 desktop:p-0 desktop:py-6 desktop:grid desktop:grid-cols-12 desktop:gap-8">
-            <DesktopLeftSidebar />
-            
-            <main className="desktop:col-span-6 xl:col-span-7 space-y-4">
+        <div className="py-6 grid grid-cols-10 gap-8">
+            <main className="col-span-7 space-y-4">
                 <h1 className="text-2xl font-bold text-primary">Info & News</h1>
 
                 <div className="flex border-b border-border-color">
@@ -100,7 +97,7 @@ const InfoNewsScreen: React.FC = () => {
                 </div>
             </main>
 
-            <aside className="hidden desktop:block desktop:col-span-3 xl:col-span-3">
+            <aside className="col-span-3">
                 <RightSidebar />
             </aside>
 

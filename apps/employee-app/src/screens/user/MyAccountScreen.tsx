@@ -3,9 +3,6 @@ import { useAuth, useTheme, useData, Role, User } from '@mk/shared';
 import { ChevronRightIcon, PencilSquareIcon, HeartIcon, BuildingStorefrontIcon, BanknotesIcon, ArrowRightOnRectangleIcon, BookmarkIcon, DocumentTextIcon, BriefcaseIcon, SunIcon, MoonIcon, CalendarDaysIcon, XMarkIcon, CreditCardIcon, KeyIcon, PrinterIcon, ClipboardDocumentListIcon, ClipboardDocumentCheckIcon, UserGroupIcon, StarIcon, TrophyIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import MyKpiModal from '../../components/user/MyKpiModal';
-import DesktopLeftSidebar from '../../components/layout/DesktopLeftSidebar';
-
-// EditProfileModal, LeaveRequestModal, ChangePasswordModal, PayslipModal components remain unchanged...
 
 const EditProfileModal: React.FC<{isOpen: boolean; onClose: () => void; user: User;}> = ({ isOpen, onClose, user }) => {
     const { updateCurrentUser } = useAuth();
@@ -96,10 +93,7 @@ const ChangePasswordModal: React.FC<{isOpen: boolean; onClose: () => void;}> = (
     );
 };
 
-const PayslipModal: React.FC<{isOpen: boolean; onClose: () => void; user: User;}> = ({ isOpen, onClose, user }) => {
-    // ... implementation unchanged
-    return null;
-};
+const PayslipModal: React.FC<{isOpen: boolean; onClose: () => void; user: User;}> = ({ isOpen, onClose, user }) => { return null; /* Implementation unchanged */ };
 
 const ThemeToggle: React.FC = () => {
     const { theme, toggleTheme } = useTheme();
@@ -142,7 +136,6 @@ const RightSidebar: React.FC = () => {
     );
 };
 
-
 const MyAccountScreen: React.FC = () => {
     const { user, logout } = useAuth();
     const { applyForPayLater, users } = useData();
@@ -159,7 +152,6 @@ const MyAccountScreen: React.FC = () => {
 
     if (!user || !user.profile) return null;
 
-    // Menu items grouped logically
     const menuGroup1 = [ { name: 'Riwayat Konsultasi', icon: DocumentTextIcon, path: '/my-consultations' }, { name: 'Artikel Tersimpan', icon: BookmarkIcon, path: '/bookmarked-articles' }, { name: 'Riwayat Absensi', icon: ClipboardDocumentListIcon, path: '/attendance-history' }, { name: 'Kinerja & KPI', icon: ClipboardDocumentCheckIcon, path: '#', action: () => setIsKpiModalOpen(true) },];
     const menuGroup2 = [ { name: 'Wishlist Saya', icon: HeartIcon, path: '/wishlist' }, { name: 'Toko Saya', icon: BuildingStorefrontIcon, path: '/my-products' },];
     const menuGroup3 = [ { name: 'Pengajuan Dana Opex', icon: CreditCardIcon, path: '/opex' }, { name: 'Ajukan Cuti', icon: CalendarDaysIcon, path: '#', action: () => setLeaveModalOpen(true) }, { name: 'Slip Gaji', icon: BanknotesIcon, path: '#', action: () => setIsPayslipModalOpen(true) },];
@@ -178,21 +170,24 @@ const MyAccountScreen: React.FC = () => {
     };
     
     return (
-        <div className="pb-4 desktop:py-6 desktop:grid desktop:grid-cols-12 desktop:gap-8">
-            <DesktopLeftSidebar />
-
-            <main className="desktop:col-span-6 xl:col-span-7">
-                <div className="bg-surface p-6 desktop:hidden">
+        <div className="py-6 grid grid-cols-10 gap-8">
+            <main className="col-span-7 space-y-4">
+                <div className="bg-surface p-6 rounded-lg border border-border-color">
                     <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-4">
                             <img src={user.profile.photoUrl} alt="Profile" className="w-20 h-20 rounded-full border-2 border-primary" />
-                            <div><h1 className="text-2xl font-bold text-text-primary">{user.profile.name}</h1><p className="text-text-secondary">{user.email}</p><p className="text-text-secondary text-sm">{user.profile.phone}</p></div>
+                            <div>
+                                <h1 className="text-2xl font-bold text-text-primary">{user.profile.name}</h1>
+                                <p className="text-text-secondary">{user.email}</p>
+                                <p className="text-text-secondary text-sm">{user.profile.phone}</p>
+                            </div>
                         </div>
-                        <button onClick={() => setEditModalOpen(true)} className="p-2 bg-surface-light rounded-full hover:bg-border-color"><PencilSquareIcon className="h-6 w-6 text-primary"/></button>
+                        <button onClick={() => setEditModalOpen(true)} className="p-2 bg-surface-light rounded-full hover:bg-border-color">
+                            <PencilSquareIcon className="h-6 w-6 text-primary"/>
+                        </button>
                     </div>
                 </div>
-
-                <div className="m-4 desktop:m-0 space-y-4">
+                <div className="space-y-4">
                     <div className="bg-surface rounded-lg border border-border-color">
                         <div className="p-4"><h2 className="text-lg font-bold text-primary flex items-center"><BriefcaseIcon className="h-5 w-5 mr-2" />Informasi Kepegawaian</h2></div>
                         <div className="p-4 border-t border-border-color grid grid-cols-2 gap-y-4 gap-x-2 text-sm">
@@ -211,12 +206,11 @@ const MyAccountScreen: React.FC = () => {
                     <div className="bg-surface rounded-lg border border-border-color divide-y divide-border-color">{menuGroup2.map((item) => <MenuItem key={item.name} item={item} />)}</div>
                     <div className="bg-surface rounded-lg border border-border-color divide-y divide-border-color">{menuGroup3.map((item) => <MenuItem key={item.name} item={item} />)}</div>
                     <div className="bg-surface rounded-lg border border-border-color divide-y divide-border-color">{menuGroup4.map((item) => <MenuItem key={item.name} item={item} />)}</div>
-                    <div className="desktop:hidden"><ThemeToggle /></div>
                     <button onClick={logout} className="w-full flex items-center justify-center p-4 bg-red-500/10 text-red-500 rounded-lg font-bold hover:bg-red-500/20 transition-colors"><ArrowRightOnRectangleIcon className="h-6 w-6 mr-2" />Logout</button>
                 </div>
             </main>
 
-            <aside className="hidden desktop:block desktop:col-span-3 xl:col-span-3">
+            <aside className="col-span-3">
                 <RightSidebar />
             </aside>
             
